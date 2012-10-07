@@ -1,0 +1,16 @@
+id-w-h-g-id-id-id-id.png
+
+pieces.json
+ID:
+  width:
+  height:
+  geometry: WIDTH X HEIGHT + OFFSET_X + OFFSET_Y
+
+adjacent.json
+ID:
+  adjacent:
+    - ID
+    - ID
+
+
+214-219-1280x960+461+499

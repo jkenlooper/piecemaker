@@ -1,0 +1,12 @@
+*.swp
+*.pyc
+.installed.cfg
+bin/
+bootstrap.py
+develop-eggs/
+eggs/
+include/
+lib/
+parts/
+src/piecemaker.egg-info/
+var/
