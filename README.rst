@@ -1,5 +1,5 @@
-The Piece Maker
-===============
+The Jigsaw Piece Maker
+======================
 
 A jigsaw puzzle pieces generator that levels the playing field.
 

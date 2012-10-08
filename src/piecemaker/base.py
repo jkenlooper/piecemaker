@@ -4,7 +4,7 @@ from tempfile import SpooledTemporaryFile
 import svgwrite
 #from scissors.base import Clips, Scissors
 
-
+from paths.interlockingnubs import HorizontalPath, VerticalPath
 
 class JigsawPieceClips(object):
     """
@@ -46,11 +46,16 @@ class JigsawPieceClips(object):
 
     def _vertical_layer(self):
         layer = self._dwg.add(self._dwg.g())
-        for range(0, self.cols): #TODO: except last one
+        for i in range(0, self.cols): #TODO: except last one
             g = layer.add(self._dwg.g())
-            path = g.add(
-                    self._dwg.path('M 0 0 L 250 0 L 200 300 L 250 960 L 0 960')
-                    )
+            curvelines = ['M 0 0 ',]
+            for j range(0, self.rows):
+                interlockingnub_path = VerticalPath(width=self.size[0]/self._cols)
+                #TODO: set the start for each path
+                curveline.append(interlockingnub_path.render())
+
+            curveline = ' '.join(curvelines)
+            path = g.add(self._dwg.path(curveline))
         #TODO: last one is full size rect
 
     def _horizontal_layer(self):
