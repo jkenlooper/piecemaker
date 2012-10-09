@@ -45,6 +45,21 @@ def piecemaker():
             default=False,
             help="Only create a clips svg file",)
 
+    parser.add_option("--width",
+            action="store",
+            type="int",
+            help="""
+            Width of the image or clips svg viewbox, will scale to this width
+            if image is set.
+            """,)
+    parser.add_option("--height",
+            action="store",
+            type="int",
+            help="""
+            Height of the image or clips svg viewbox, will scale to this height
+            if image is set.
+            """,)
+
     parser.add_option("--adjacent",
             action="store_true",
             type="int",
@@ -59,7 +74,8 @@ def piecemaker():
     #if not args:
     #    parser.error("Must set an image")
 
-    jpc = JigsawPieceClips((1280,960), 20)
+    # if doing just clips then need to pass in width and height
+    jpc = JigsawPieceClips(width=1280, height=960, pieces=20)
     print jpc.svg()
 
     #mydir = options.dir

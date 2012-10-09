@@ -89,8 +89,8 @@ class Path(object):
     def control_start_a():
         doc = "control point in path"
         def fget(self):
-            #if not self.out:
-            #  return self.point(self.invert(self._control_start_a))
+            if not self.out:
+                return self.point(self.invert(self._control_start_a))
             return self.point(self._control_start_a)
         def fset(self, p):
             self._control_start_a = retuple(p)
@@ -100,8 +100,8 @@ class Path(object):
     def control_start_b():
         doc = "control point in path"
         def fget(self):
-            #if not self.out:
-            #  return self.point(self.invert(self._control_start_b))
+            if not self.out:
+                return self.point(self.invert(self._control_start_b))
             return self.point(self._control_start_b)
         def fset(self, p):
             self._control_start_b = retuple(p)
@@ -111,8 +111,8 @@ class Path(object):
     def control_left_a():
         doc = "control point in path"
         def fget(self):
-            #if not self.out:
-            #  return self.point(self.invert(self._control_left_a))
+            if not self.out:
+                return self.point(self.invert(self._control_left_a))
             return self.point(self._control_left_a)
         def fset(self, p):
             self._control_left_a = retuple(p)
@@ -122,8 +122,8 @@ class Path(object):
     def control_left_b():
         doc = "control point in path"
         def fget(self):
-            #if not self.out:
-            #  return self.point(self.invert(self._control_left_b))
+            if not self.out:
+                return self.point(self.invert(self._control_left_b))
             return self.point(self._control_left_b)
         def fset(self, p):
             self._control_left_b = retuple(p)
@@ -133,8 +133,8 @@ class Path(object):
     def control_center_a():
         doc = "control point in path"
         def fget(self):
-            #if not self.out:
-            #  return self.point(self.invert(self._control_center_a))
+            if not self.out:
+                return self.point(self.invert(self._control_center_a))
             return self.point(self._control_center_a)
         def fset(self, p):
             self._control_center_a = retuple(p)
@@ -144,8 +144,8 @@ class Path(object):
     def control_center_b():
         doc = "control point in path"
         def fget(self):
-            #if not self.out:
-            #  return self.point(self.invert(self._control_center_b))
+            if not self.out:
+                return self.point(self.invert(self._control_center_b))
             return self.point(self._control_center_b)
         def fset(self, p):
             self._control_center_b = retuple(p)
@@ -155,8 +155,8 @@ class Path(object):
     def control_right_a():
         doc = "control point in path"
         def fget(self):
-            #if not self.out:
-            #  return self.point(self.invert(self._control_right_a))
+            if not self.out:
+                return self.point(self.invert(self._control_right_a))
             return self.point(self._control_right_a)
         def fset(self, p):
             self._control_right_a = retuple(p)
@@ -166,8 +166,8 @@ class Path(object):
     def control_right_b():
         doc = "control point in path"
         def fget(self):
-            #if not self.out:
-            #  return self.point(self.invert(self._control_right_b))
+            if not self.out:
+                return self.point(self.invert(self._control_right_b))
             return self.point(self._control_right_b)
         def fset(self, p):
             self._control_right_b = retuple(p)
@@ -177,8 +177,8 @@ class Path(object):
     def anchor_left():
         doc = "left anchor point in tongue"
         def fget(self):
-            #if not self.out:
-            #  return self.point(self.invert(self._anchor_left))
+            if not self.out:
+                return self.point(self.invert(self._anchor_left))
             return self.point(self._anchor_left)
         def fset(self, p):
             self._anchor_left = retuple(p)
@@ -187,8 +187,8 @@ class Path(object):
     def anchor_center():
         doc = "center anchor point in tongue"
         def fget(self):
-            #if not self.out:
-            #  return self.point(self.invert(self._anchor_center))
+            if not self.out:
+                return self.point(self.invert(self._anchor_center))
             return self.point(self._anchor_center)
         def fset(self, p):
             self._anchor_center = retuple(p)
@@ -197,8 +197,8 @@ class Path(object):
     def anchor_right():
         doc = "right anchor point in tongue"
         def fget(self):
-            #if not self.out:
-            #  return self.point(self.invert(self._anchor_right))
+            if not self.out:
+                return self.point(self.invert(self._anchor_right))
             return self.point(self._anchor_right)
         def fset(self, p):
             self._anchor_right = retuple(p)
@@ -207,8 +207,8 @@ class Path(object):
     def relative_stop():
         doc = "last anchor point in path relative to previous anchor"
         def fget(self):
-            #if not self.out:
-            #  return self.point(self.invert(self._relative_stop))
+            if not self.out:
+                return self.point(self.invert(self._relative_stop))
             return self.point(self._relative_stop)
         def fset(self, p):
             self._relative_stop = retuple(p)
@@ -234,6 +234,10 @@ class Path(object):
 
     def render(self):
         " Create all the 'curveto' points "
+        if not self.out:
+            m = list(self._relative_middle)
+            m[1] = m[1]*-1
+            self._relative_middle = tuple(m)
 
         return """
         c %(control_start_a)s %(control_start_b)s %(anchor_left)s
@@ -258,12 +262,13 @@ class Path(object):
             })
 
 class VerticalPath(Path):
+    " top to bottom "
     def point(self, t):
         t = (t[1], t[0])
         return ','.join([str(x) for x in t])
 
 class HorizontalPath(Path):
-    " reverse "
+    " left to right "
     def point(self, t):
-        t = (t[0]*-1, t[1])
+        t = (t[0], t[1]*-1)
         return ','.join([str(x) for x in t])
