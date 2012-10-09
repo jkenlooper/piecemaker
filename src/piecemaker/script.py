@@ -4,8 +4,8 @@ from optparse import OptionParser
 from piecemaker.base import JigsawPieceClips
 
 def piecemaker():
-    parser = OptionParser(usage="%prog --dir path/to/dir --svg path/to/svgfile [options] path/to/image",
-            description="cut an image by specifying the clips svg")
+    parser = OptionParser(usage="%prog [options] path/to/image",
+            description="create jigsaw puzzle pieces")
 
     parser.add_option("--dir", "-d",
             action="store",
@@ -75,7 +75,11 @@ def piecemaker():
     #    parser.error("Must set an image")
 
     # if doing just clips then need to pass in width and height
-    jpc = JigsawPieceClips(width=1280, height=960, pieces=20)
+    jpc = JigsawPieceClips(
+            width=options.width,
+            height=options.height,
+            pieces=options.number_of_pieces,
+            minimum_piece_size=options.minimum_piece_size)
     print jpc.svg()
 
     #mydir = options.dir

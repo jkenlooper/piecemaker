@@ -1,4 +1,6 @@
 import os
+import decimal
+import math
 from tempfile import SpooledTemporaryFile
 
 import svgwrite
@@ -36,11 +38,12 @@ class JigsawPieceClips(object):
     Renders a svg file of jigsaw puzzle piece paths.
     """
     title = "Jigsaw puzzle piece clips"
+    MINIMUM_COUNT_OF_PIECES = 9
+    MAXIMUM_COUNT_OF_PIECES = 50000 #how many is too many?
 
     def __init__(self, width, height, pieces=0, minimum_piece_size=42,
             ):
 
-        #TODO: minimum piece size
         if minimum_piece_size > 0:
             # Get the maximum number of pieces that can fit within the
             # dimensions depending on the minimum piece size.
@@ -52,15 +55,21 @@ class JigsawPieceClips(object):
             else:
                 pieces = max_pieces_that_will_fit
 
+        pieces = max(pieces, MINIMUM_COUNT_OF_PIECES)
+        pieces = min(pieces, MAXIMUM_COUNT_OF_PIECES)
 
-        #TODO: rows and columns count
-        self._rows = 10
-        self._cols = 10
-        self._col_spacing = int(width/self._cols)
+        area = decimal.Decimal(width * height)
+        s = area.sqrt()
+        n = decimal.Decimal(pieces).sqrt()
+        piece_size = float(s/n)
+        # use math.ceil to at least have the target count of pieces
+        self._rows = int(math.ceil(height/piece_size))
+        self._cols = int(math.ceil(width/piece_size))
 
-
-        #TODO: pieces
-        self._pieces = self._rows * self._cols
+        #adjust piece count
+        pieces = self._pieces = self._rows*self._cols
+        self._piece_width = float(width)/float(self._cols)
+        self._piece_height = float(height)/float(self._rows)
 
         self._width = width
         self._height = height
@@ -96,7 +105,7 @@ class JigsawPieceClips(object):
                     'L %f 0 ' % start,
                     ]
             for j in range(0, self._rows):
-                interlockingnub_path = VerticalPath(width=self._width/self._cols)
+                interlockingnub_path = VerticalPath(width=self._piece_height)
                 curvelines.append(interlockingnub_path.render())
 
             curvelines.append('L 0 %i ' % self._height) # end
@@ -114,7 +123,7 @@ class JigsawPieceClips(object):
                     'L 0 %f ' % start,
                     ]
             for j in range(0, self._rows):
-                interlockingnub_path = HorizontalPath(width=self._height/self._rows)
+                interlockingnub_path = HorizontalPath(width=self._piece_width)
                 curveline.append(interlockingnub_path.render())
 
             curvelines.append('L %i 0 ' % self._width) # end
