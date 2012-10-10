@@ -4,7 +4,8 @@ import math
 from tempfile import SpooledTemporaryFile
 
 import svgwrite
-#from scissors.base import Clips, Scissors
+from PIL import Image
+from scissors.base import Scissors
 
 from paths.interlockingnubs import HorizontalPath, VerticalPath
 
@@ -13,19 +14,31 @@ class Pieces(object):
     Creates the piece pngs and pieces info
     """
     def __init__(self, clips, image, directory,
-            scale=100, max_pixels=10000000
+            scale=100, max_pixels=0
             ):
-        if scale != 100:
-            # TODO: scale the image
+        im = Image.open(image)
 
-        # TODO; get the width and height from the image
+        if scale != 100:
+            (w, h) = im.size
+            w = int(w * (scale/100.0))
+            h = int(h * (scale/100.0))
+            im.resize((w, h))
+
+        (width, height) = im.size
+
         if max_pixels > 0 and (width*height) > max_pixels:
             # resize the image using image magick @
+            # TODO: how to do this with PIL?
             # '%i@' % max_pixels
-            # TODO: get new width and height
+            (width, height) = im.size
 
-        # TODO: use scissors to create all the pieces
+        im.save(image)
+
+        scissors = Scissors(clips, image, directory)
+        scissors.cut()
+
         # TODO: get info for each piece and add it to the pieces info
+        # TODO: should scissors do the pieces info?
 
 # see adjacent.py
 

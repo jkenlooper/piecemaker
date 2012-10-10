@@ -29,6 +29,8 @@ setup(
     zip_safe=False,
     install_requires=[
         'setuptools',
+        # Like sleeping with scissors under your Pillow.
+        'Pillow',
         'scissors'
         #'lxml',
         #'pgmagick', # relies on graphicsmagick
