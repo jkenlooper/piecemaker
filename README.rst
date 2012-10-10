@@ -15,7 +15,7 @@ clips - specify a clips svg file
 compute adjacent - adds the adjacent piece id's to each piece in JSON file.
 
 minimum piece size - Will change the count of pieces to meet this requirement
-maximum piece size - Will scale down the original image to meet this requirement
+max pixels - Will scale down the original image to meet this requirement
 scaled sizes - output multiple scaled versions of piece pngs
         
 Outputs:

@@ -8,30 +8,26 @@ import svgwrite
 
 from paths.interlockingnubs import HorizontalPath, VerticalPath
 
-# TODO: not sure what to call this class
-class JigsawPieces(object):
+class Pieces(object):
     """
-    Creates the piece pngs and other image stuff?
+    Creates the piece pngs and pieces info
     """
     def __init__(self, clips, image, directory,
-            maximum_piece_size=0, max_pixels=10000000
+            scale=100, max_pixels=10000000
             ):
-        pass
-        # TODO: the clips here could have been edited to no longer be in a grid
-        # like fashion.  Keeping this in mind the maximum_piece_size is still
-        # used if set to greater than 0.
-        # TODO: use max_pixels?
+        if scale != 100:
+            # TODO: scale the image
+
         # TODO; get the width and height from the image
-        # TODO: maximum piece size
-        if maximum_piece_size > 0:
-            # only changes image size and not the piece count
-            max_size = min(max_pixels, pieces*(maximum_piece_size*maximum_piece_size))
-            if (width*height) > max_size:
-                max_pixels = max_size
+        if max_pixels > 0 and (width*height) > max_pixels:
             # resize the image using image magick @
-            # '%i@' % max_size
+            # '%i@' % max_pixels
             # TODO: get new width and height
 
+        # TODO: use scissors to create all the pieces
+        # TODO: get info for each piece and add it to the pieces info
+
+# see adjacent.py
 
 class JigsawPieceClips(object):
     """
