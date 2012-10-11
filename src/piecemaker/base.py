@@ -11,12 +11,15 @@ from paths.interlockingnubs import HorizontalPath, VerticalPath
 
 class Pieces(object):
     """
-    Creates the piece pngs and pieces info
+    Creates the piece pngs and pieces info. Lets Scissors do most of the work.
     """
-    def __init__(self, clips, image, directory,
-            scale=100, max_pixels=0
-            ):
+    def __init__(self, svgfile, image, mydir, scale=100, max_pixels=0):
+        " Resize the image if needed. "
+        # TODO: work on a copy of the image or not?
+        self._image = image
         im = Image.open(image)
+
+        self._mydir = mydir
 
         if scale != 100:
             (w, h) = im.size
@@ -34,7 +37,12 @@ class Pieces(object):
 
         im.save(image)
 
-        scissors = Scissors(clips, image, directory)
+        self._clips = Clips(svgfile=svgfile,
+                    clips_dir=mydir,
+                    size=(width, height))
+
+    def cut(self):
+        scissors = Scissors(self._clips, self._image, self._mydir)
         scissors.cut()
 
         # TODO: get info for each piece and add it to the pieces info

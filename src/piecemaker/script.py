@@ -1,3 +1,4 @@
+import os
 import subprocess
 from optparse import OptionParser
 
@@ -88,6 +89,13 @@ the minimum piece size.
     if not options.just_clips and not args:
         parser.error("Must set an image if not just making clips.")
 
+    if len(args) > 1:
+        parser.error("Multiple pictures are not supported, yet.")
+
+
+    if args:
+        imagefile = args[0]
+
     if not options.svg:
         # create a grid of puzzle pieces in svg
         if options.minimum_piece_size < 0:
@@ -104,7 +112,7 @@ the minimum piece size.
 
         if args and not (options.width and options.height):
             #TODO: handle more then just one picture
-            im = Image.open(args[0])
+            im = Image.open(imagefile)
             (width, height) = im.size
         else:
             width = options.width
@@ -125,16 +133,23 @@ the minimum piece size.
         svgfile = options.svg
 
     if not options.just_clips:
-        # should be at least one image set in args
-        # TODO: get width and height from image or?
+        # should be at least one image set in args: imagefile
+        if not (options.width and options.height):
+            # Will get the width and height from the svg viewbox.
+            size = None
+        else:
+            size = (options.width, options.height)
 
         # clip out the image
         mydir = options.dir
-        clips = Clips(svgfile=svgfile,
-                    clips_dir=mydir,
-                    size=(width, height))
-        scissors = Scissors(clips, args[0], mydir)
-        scissors.cut()
+
+        for scale in scaled_sizes:
+            scaled_dir = os.path.join(mydir, 'scale-%i' % scale)
+            os.mkdir(scaled_dir)
+
+            # TODO: copy the imagefile first or let Pieces create the copy?
+            pieces = Pieces(svgfile, imagefile, scaled_dir, scale=scale, max_pixels=options.max_pixels)
+            pieces.cut()
 
         # TODO: get adjacent pieces
 
