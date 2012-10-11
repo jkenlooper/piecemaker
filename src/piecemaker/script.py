@@ -1,7 +1,10 @@
 import subprocess
 from optparse import OptionParser
 
-from piecemaker.base import JigsawPieceClips
+from PIL import Image
+
+from piecemaker.base import JigsawPieceClipsSVG, Pieces
+from piecemaker.adjacent import Adjacent
 
 def piecemaker():
     parser = OptionParser(usage="%prog [options] path/to/image",
@@ -13,8 +16,13 @@ def piecemaker():
             help="Set the directory to store the files in.",)
     parser.add_option("--number-of-pieces", "-n",
             action="store",
+            default=0,
             type="int",
-            help="Target count of pieces. Will be adjusted depending on other criteria",)
+            help="""
+Target count of pieces. Will be adjusted depending on other
+criteria. If set to 0 then will fit as many pieces in depending on
+the minimum piece size.
+            """,)
     parser.add_option("--svg", "-s",
             action="store",
             type="string",
@@ -25,19 +33,22 @@ def piecemaker():
             default=42,
             help="Minimum piece size.  Will change the count of pieces to meet this if not set to 0.",)
 
-    parser.add_option("--maximum-piece-size",
+    parser.add_option("--max-pixels",
             action="store",
             type="int",
             default=0,
             help="""
-            Maximum piece size.  Will scale down the original image to meet
-            this requirement if not set to 0.
+            Maximum pixels for the image.  Will scale down the original image
+            to meet this requirement if not set to 0.
             """,)
     parser.add_option("--scaled-sizes",
             action="store",
             type="string",
-            default="",
-            help="List of sizes to scale for",)
+            default="100",
+            help="""
+            List of sizes to scale for. Separated with commas. example:
+            33,68,100,150 for 4 scaled puzzles with the last one being at 150%.
+            """,)
 
     parser.add_option("--just-clips",
             action="store_true",
@@ -71,22 +82,59 @@ def piecemaker():
 
     (options, args) = parser.parse_args()
 
-    #if not args:
-    #    parser.error("Must set an image")
+    if not options.dir:
+        parser.error("Must set a directory to store generated files")
 
-    # if doing just clips then need to pass in width and height
-    jpc = JigsawPieceClips(
-            width=options.width,
-            height=options.height,
-            pieces=options.number_of_pieces,
-            minimum_piece_size=options.minimum_piece_size)
-    print jpc.svg()
+    if not options.just_clips and not args:
+        parser.error("Must set an image if not just making clips.")
 
-    #mydir = options.dir
-    #clips = Clips(svgfile=options.svg,
-    #            clips_dir=mydir,
-    #            size=(options.width, options.height))
+    if not options.svg:
+        # create a grid of puzzle pieces in svg
+        if options.minimum_piece_size < 0:
+            parser.error("Invalid minimum piece size")
 
-    #scissors = Scissors(clips, args[0], mydir)
-    #scissors.cut()
+        if options.number_of_pieces < 0:
+            parser.error("Invalid number of pieces")
+
+        if not (options.minimum_piece_size < 1 and options.number_of_pieces < 1):
+            parser.error("Must set minimum piece size greater than 0 or set number of pieces greater then 0.")
+
+        if not args and not (options.width and options.height):
+            parser.error("Must set an image or specify both width and height.")
+
+        if args and not (options.width and options.height):
+            #TODO: handle more then just one picture
+            im = Image.open(args[0])
+            (width, height) = im.size
+        else:
+            width = options.width
+            height = options.height
+
+        scaled_sizes = options.scaled_sizes.split(',')
+
+        jpc = JigsawPieceClipsSVG(
+                width=width,
+                height=height,
+                pieces=options.number_of_pieces,
+                minimum_piece_size=options.minimum_piece_size)
+        # TODO: write out the svg in the dir
+        print jpc.svg()
+        svgfile = None # TODO
+    else:
+        # TODO:
+        svgfile = options.svg
+
+    if not options.just_clips:
+        # should be at least one image set in args
+        # TODO: get width and height from image or?
+
+        # clip out the image
+        mydir = options.dir
+        clips = Clips(svgfile=svgfile,
+                    clips_dir=mydir,
+                    size=(width, height))
+        scissors = Scissors(clips, args[0], mydir)
+        scissors.cut()
+
+        # TODO: get adjacent pieces
 

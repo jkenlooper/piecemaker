@@ -42,7 +42,7 @@ class Pieces(object):
 
 # see adjacent.py
 
-class JigsawPieceClips(object):
+class JigsawPieceClipsSVG(object):
     """
     Renders a svg file of jigsaw puzzle piece paths.
     """
@@ -67,16 +67,11 @@ class JigsawPieceClips(object):
         pieces = max(pieces, MINIMUM_COUNT_OF_PIECES)
         pieces = min(pieces, MAXIMUM_COUNT_OF_PIECES)
 
-        area = decimal.Decimal(width * height)
-        s = area.sqrt()
-        n = decimal.Decimal(pieces).sqrt()
-        piece_size = float(s/n)
-        # use math.ceil to at least have the target count of pieces
-        self._rows = int(math.ceil(height/piece_size))
-        self._cols = int(math.ceil(width/piece_size))
+        (self._rows, self_cols) = self._gridify(width, height, pieces)
 
         #adjust piece count
         pieces = self._pieces = self._rows*self._cols
+        #set piece dimensions
         self._piece_width = float(width)/float(self._cols)
         self._piece_height = float(height)/float(self._rows)
 
@@ -91,6 +86,23 @@ class JigsawPieceClips(object):
         self._dwg.set_desc(title=self.title, desc=description)
 
         self._create_layers()
+
+    def _gridify(width, height, pieces, add_more_pieces=True):
+        """
+        Based on area of the box, determine the count of rows and cols that
+        will meet the number of pieces.
+        """
+        area = decimal.Decimal(width * height)
+        s = area.sqrt()
+        n = decimal.Decimal(pieces).sqrt()
+        piece_size = float(s/n)
+        # use math.ceil to at least have the target count of pieces
+        rounder = math.ceil
+        if not add_more_pieces:
+            rounder = math.floor
+        rows = int(rounder(height/piece_size))
+        cols = int(rounder(width/piece_size))
+        return (rows, cols)
 
     def svg(self, filename=None):
         if not filename:
