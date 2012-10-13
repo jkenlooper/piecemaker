@@ -45,9 +45,6 @@ class Pieces(object):
         scissors = Scissors(self._clips, self._image, self._mydir)
         scissors.cut()
 
-        # TODO: get info for each piece and add it to the pieces info
-        # TODO: should scissors do the pieces info?
-
 # see adjacent.py
 
 class JigsawPieceClipsSVG(object):

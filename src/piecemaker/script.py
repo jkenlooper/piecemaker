@@ -140,7 +140,6 @@ the minimum piece size.
         else:
             size = (options.width, options.height)
 
-        # clip out the image
         mydir = options.dir
 
         for scale in scaled_sizes:
