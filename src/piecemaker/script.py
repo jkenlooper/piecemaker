@@ -53,7 +53,6 @@ the minimum piece size.
 
     parser.add_option("--just-clips",
             action="store_true",
-            type="int",
             default=False,
             help="Only create a clips svg file",)
 
@@ -74,7 +73,6 @@ the minimum piece size.
 
     parser.add_option("--adjacent",
             action="store_true",
-            type="int",
             default=True,
             help="""
             Create the adjacent.json file with list of adjacent pieces for each
@@ -104,7 +102,7 @@ the minimum piece size.
         if options.number_of_pieces < 0:
             parser.error("Invalid number of pieces")
 
-        if not (options.minimum_piece_size < 1 and options.number_of_pieces < 1):
+        if (options.minimum_piece_size < 1 and options.number_of_pieces < 1):
             parser.error("Must set minimum piece size greater than 0 or set number of pieces greater then 0.")
 
         if not args and not (options.width and options.height):
@@ -126,8 +124,10 @@ the minimum piece size.
                 pieces=options.number_of_pieces,
                 minimum_piece_size=options.minimum_piece_size)
         # TODO: write out the svg in the dir
-        print jpc.svg()
-        svgfile = None # TODO
+        svgfile = os.path.join(options.dir, 'original.svg')
+        f = open(svgfile, 'w')
+        f.write(jpc.svg())
+        f.close()
     else:
         # TODO:
         svgfile = options.svg
@@ -143,7 +143,7 @@ the minimum piece size.
         mydir = options.dir
 
         for scale in scaled_sizes:
-            scaled_dir = os.path.join(mydir, 'scale-%i' % scale)
+            scaled_dir = os.path.join(mydir, 'scale-%i' % int(scale))
             os.mkdir(scaled_dir)
 
             # TODO: copy the imagefile first or let Pieces create the copy?

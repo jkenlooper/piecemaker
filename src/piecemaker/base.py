@@ -5,7 +5,7 @@ from tempfile import SpooledTemporaryFile
 
 import svgwrite
 from PIL import Image
-from scissors.base import Scissors
+from scissors.base import Scissors, Clips
 
 from paths.interlockingnubs import HorizontalPath, VerticalPath
 
@@ -20,6 +20,8 @@ class Pieces(object):
         im = Image.open(image)
 
         self._mydir = mydir
+
+        scale = int(scale)
 
         if scale != 100:
             (w, h) = im.size
@@ -52,8 +54,8 @@ class JigsawPieceClipsSVG(object):
     Renders a svg file of jigsaw puzzle piece paths.
     """
     title = "Jigsaw puzzle piece clips"
-    MINIMUM_COUNT_OF_PIECES = 9
-    MAXIMUM_COUNT_OF_PIECES = 50000 #how many is too many?
+    minimum_count_of_pieces = 9
+    maximum_count_of_pieces = 50000 #how many is too many?
 
     def __init__(self, width, height, pieces=0, minimum_piece_size=42,
             ):
@@ -69,10 +71,10 @@ class JigsawPieceClipsSVG(object):
             else:
                 pieces = max_pieces_that_will_fit
 
-        pieces = max(pieces, MINIMUM_COUNT_OF_PIECES)
-        pieces = min(pieces, MAXIMUM_COUNT_OF_PIECES)
+        pieces = max(pieces, self.minimum_count_of_pieces)
+        pieces = min(pieces, self.maximum_count_of_pieces)
 
-        (self._rows, self_cols) = self._gridify(width, height, pieces)
+        (self._rows, self._cols) = self._gridify(width, height, pieces)
 
         #adjust piece count
         pieces = self._pieces = self._rows*self._cols
@@ -92,7 +94,7 @@ class JigsawPieceClipsSVG(object):
 
         self._create_layers()
 
-    def _gridify(width, height, pieces, add_more_pieces=True):
+    def _gridify(self, width, height, pieces, add_more_pieces=True):
         """
         Based on area of the box, determine the count of rows and cols that
         will meet the number of pieces.
@@ -123,9 +125,9 @@ class JigsawPieceClipsSVG(object):
 
     def _vertical_layer(self):
         layer = self._dwg.add(self._dwg.g())
-        for i in range(0, self.cols-1): #except last one
+        for i in range(0, self._cols-1): #except last one
             g = layer.add(self._dwg.g())
-            start = (i+1)*self._col_spacing
+            start = (i+1)*self._piece_width
             curvelines = [
                     'M 0 0 ', # origin
                     'L %f 0 ' % start,
@@ -137,24 +139,26 @@ class JigsawPieceClipsSVG(object):
             curvelines.append('L 0 %i ' % self._height) # end
             curveline = ' '.join(curvelines)
             path = g.add(self._dwg.path(curveline))
+        g = layer.add(self._dwg.g())
         fullsize_rect = g.add(self._dwg.rect(insert=(0,0), size=(self._width, self._height)))
 
     def _horizontal_layer(self):
         layer = self._dwg.add(self._dwg.g())
         for i in range(0, self._rows-1): #except last one
             g = layer.add(self._dwg.g())
-            start = (i+1)*self._row_spacing
+            start = (i+1)*self._piece_height
             curvelines = [
                     'M 0 0 ',
                     'L 0 %f ' % start,
                     ]
-            for j in range(0, self._rows):
+            for j in range(0, self._cols):
                 interlockingnub_path = HorizontalPath(width=self._piece_width)
-                curveline.append(interlockingnub_path.render())
+                curvelines.append(interlockingnub_path.render())
 
             curvelines.append('L %i 0 ' % self._width) # end
             curveline = ' '.join(curvelines)
             path = g.add(self._dwg.path(curveline))
+        g = layer.add(self._dwg.g())
         fullsize_rect = g.add(self._dwg.rect(insert=(0,0), size=(self._width, self._height)))
 
 

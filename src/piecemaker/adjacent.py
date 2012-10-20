@@ -29,6 +29,7 @@ class Adjacent(object):
         self.adjacent_pieces = {}
 
         if clips:
+            pass
             # TODO: use scissors on a blank image ( not necessary to have a
             # real image here.
             #pieces_info = 
@@ -45,6 +46,7 @@ class Adjacent(object):
             self.adjacent_pieces[piece_id] = adjacent
 
         if by_overlap:
+            pass
             # TODO: further filter out the adjacent pieces by doing the
             # overlapping  mask test.
 
