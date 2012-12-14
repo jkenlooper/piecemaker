@@ -32,10 +32,10 @@ setup(
         # Like sleeping with scissors under your Pillow.
         'Pillow',
         'scissors'
+        'beautifulsoup4',
+        'svgwrite',
         #'lxml',
         #'pgmagick', # relies on graphicsmagick
-        #'svgwrite',
-        #'beautifulsoup4', #works on python2.6 ?
 
         #'glue',
       ],

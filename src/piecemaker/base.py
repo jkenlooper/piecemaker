@@ -2,10 +2,13 @@ import os
 import decimal
 import math
 from tempfile import SpooledTemporaryFile
+from glob import glob
 
 import svgwrite
 from PIL import Image
+from bs4 import BeautifulSoup
 from scissors.base import Scissors, Clips
+
 
 from paths.interlockingnubs import HorizontalPath, VerticalPath
 
@@ -43,9 +46,72 @@ class Pieces(object):
                     clips_dir=mydir,
                     size=(width, height))
 
+        self.width = width
+        self.height = height
+
     def cut(self):
         scissors = Scissors(self._clips, self._image, self._mydir)
         scissors.cut()
+
+    def generate_resources(self):
+        " Create the extra resources to display the pieces. "
+        # TODO: create the css and sprite using glue
+
+        # TODO: use the width and height from the glue sprite.
+        sprite_width = 1024
+        sprite_height = 1024
+
+        # TODO: layout the svg pieces exactly like glue did.
+
+        # parse the individual piece svg's and create the svg
+        dwg = svgwrite.Drawing(size=(sprite_width, sprite_height), profile="full")
+        dwg.viewbox(width=sprite_width, height=sprite_height)
+        dwg.set_desc(title="svg preview", desc="")
+
+        source_image = dwg.defs.add(dwg.image())
+        source_image['id'] = "source-image"
+        source_image['width'] = self.width #TODO: set px on these?
+        source_image['height'] = self.height
+        source_image['xlink:href'] = self._image
+
+        i = 0
+        for piece_svg in glob(os.path.join(self._mydir, "*.svg")):
+            i = i + 1
+
+            piece_soup = BeautifulSoup(open(piece_svg), 'xml')
+            svg = piece_soup.svg
+            first_g = svg.g
+
+            clip_path = dwg.defs.add(dwg.clipPath())
+            clip_path['id'] = "piece-mask-%s" % i
+            clip_path['transform'] = first_g.get('transform')
+            # Later the clip_path gets filled in with the contents
+
+            piece_fragment = dwg.defs.add(dwg.svg())
+            piece_fragment['id'] = "piece-fragment-%s" % i
+
+            vb = svg.get('viewBox')
+            #TODO could also be separated by ','?
+            (minx, miny, vbwidth, vbheight) = vb.split(' ')
+            #TODO get offset for this piece and set it on the viewbox
+            piece_fragment.viewbox(width=vbwidth, height=vbheight)
+            piece_fragment['width'] = vbwidth
+            piece_fragment['height'] = vbheight
+
+            use = piece_fragment.add(dwg.use(source_image))
+
+            #for tag in first_g.children:
+            #    path = clip_path.add(dwg.path())
+            #    path['d'] = first_
+        preview_soup = BeautifulSoup(dwg.tostring(), 'xml')
+        for piece_svg in glob(os.path.join(self._mydir, "*.svg")):
+            i = i + 1
+            piece_soup = BeautifulSoup(open(piece_svg), 'xml')
+            svg = piece_soup.svg
+            first_g = svg.g
+            piece_mask_tag = preview_soup.find(id="piece-mask-%s" % i)
+            piece_mask_tag.append(first_g.contents)
+        
 
 # see adjacent.py
 
