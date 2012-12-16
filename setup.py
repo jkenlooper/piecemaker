@@ -31,13 +31,13 @@ setup(
         'setuptools',
         # Like sleeping with scissors under your Pillow.
         'Pillow',
-        'scissors'
+        'scissors',
         'beautifulsoup4',
         'svgwrite',
+        'glue',
         #'lxml',
         #'pgmagick', # relies on graphicsmagick
 
-        #'glue',
       ],
     entry_points="""
     [console_scripts]

@@ -18,8 +18,7 @@ class Pieces(object):
     """
     def __init__(self, svgfile, image, mydir, scale=100, max_pixels=0):
         " Resize the image if needed. "
-        # TODO: work on a copy of the image or not?
-        self._image = image
+        #self._image = image
         im = Image.open(image)
 
         self._mydir = mydir
@@ -40,7 +39,10 @@ class Pieces(object):
             # '%i@' % max_pixels
             (width, height) = im.size
 
-        im.save(image)
+        # work on a copy of the image that has been scaled
+        (image_root, ext) = os.path.splitext(image)
+        self._scaled_image = os.path.join(mydir, 'original-%s%s' % (scale, ext))
+        im.save(self._scaled_image)
 
         self._clips = Clips(svgfile=svgfile,
                     clips_dir=mydir,
@@ -50,8 +52,8 @@ class Pieces(object):
         self.height = height
 
     def cut(self):
-        scissors = Scissors(self._clips, self._image, self._mydir)
-        scissors.cut()
+        scissors = Scissors(self._clips, self._scaled_image, self._mydir)
+        self.pieces = scissors.cut()
 
     def generate_resources(self):
         " Create the extra resources to display the pieces. "
@@ -61,21 +63,21 @@ class Pieces(object):
         sprite_width = 1024
         sprite_height = 1024
 
-        # TODO: layout the svg pieces exactly like glue did.
 
         # parse the individual piece svg's and create the svg
         dwg = svgwrite.Drawing(size=(sprite_width, sprite_height), profile="full")
         dwg.viewbox(width=sprite_width, height=sprite_height)
         dwg.set_desc(title="svg preview", desc="")
 
-        source_image = dwg.defs.add(dwg.image())
-        source_image['id'] = "source-image"
-        source_image['width'] = self.width #TODO: set px on these?
-        source_image['height'] = self.height
-        source_image['xlink:href'] = self._image
+        common_path = os.path.commonprefix([self._scaled_image, self._mydir])
+        relative_scaled_image = self._scaled_image[len(common_path)+1:]
+        source_image = dwg.defs.add(dwg.image(relative_scaled_image,
+            id="source-image", width=self.width, height=self.height))
 
-        i = 0
-        for piece_svg in glob(os.path.join(self._mydir, "*.svg")):
+        example_y = 0
+        for i in range(0,len(self.pieces)):
+            piece_svg = os.path.join(self._mydir, "mask-%s.svg" % i)
+            piece_bbox = self.pieces[i]
             i = i + 1
 
             piece_soup = BeautifulSoup(open(piece_svg), 'xml')
@@ -93,25 +95,42 @@ class Pieces(object):
             vb = svg.get('viewBox')
             #TODO could also be separated by ','?
             (minx, miny, vbwidth, vbheight) = vb.split(' ')
-            #TODO get offset for this piece and set it on the viewbox
-            piece_fragment.viewbox(width=vbwidth, height=vbheight)
+            piece_fragment.viewbox(
+                    minx=piece_bbox[0],
+                    miny=piece_bbox[1],
+                    width=vbwidth,
+                    height=vbheight)
             piece_fragment['width'] = vbwidth
             piece_fragment['height'] = vbheight
 
             use = piece_fragment.add(dwg.use(source_image))
 
-            #for tag in first_g.children:
-            #    path = clip_path.add(dwg.path())
-            #    path['d'] = first_
+            example_use = dwg.add(dwg.use(piece_fragment,
+                clip_path="url(#piece-mask-%s)" % i))
+            # TODO: layout the svg pieces exactly like glue did.
+            example_y += example_y + math.floor(float(vbheight))
+            example_use['transform'] = "translate( %s, %s )" % (
+                   piece_bbox[0],
+                   piece_bbox[1])
+
         preview_soup = BeautifulSoup(dwg.tostring(), 'xml')
-        for piece_svg in glob(os.path.join(self._mydir, "*.svg")):
+
+        i = 0
+        for piece_svg in glob(os.path.join(self._mydir, "mask-*.svg")):
             i = i + 1
             piece_soup = BeautifulSoup(open(piece_svg), 'xml')
             svg = piece_soup.svg
-            first_g = svg.g
-            piece_mask_tag = preview_soup.find(id="piece-mask-%s" % i)
-            piece_mask_tag.append(first_g.contents)
-        
+            first_g = svg.find('g')
+            piece_mask_tag = preview_soup.defs.find("clipPath", id="piece-mask-%s" % i)
+            if piece_mask_tag:
+                new_g = first_g.wrap( preview_soup.new_tag('g') )
+                first_g.unwrap() # don't need this g with it's attributes
+                piece_mask_tag.append(new_g)
+                piece_mask_tag.g.unwrap() # strip out the g leaving contents
+
+        out = open(os.path.join(self._mydir, "preview.svg"), 'w')
+        out.write(preview_soup.prettify())
+        out.close()
 
 # see adjacent.py
 

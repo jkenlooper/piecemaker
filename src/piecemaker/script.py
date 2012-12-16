@@ -130,6 +130,7 @@ the minimum piece size.
         f.close()
     else:
         # TODO:
+        scaled_sizes = ["100",] #options.scaled_sizes.split(',')
         svgfile = options.svg
 
     if not options.just_clips:
@@ -146,9 +147,11 @@ the minimum piece size.
             scaled_dir = os.path.join(mydir, 'scale-%i' % int(scale))
             os.mkdir(scaled_dir)
 
-            # TODO: copy the imagefile first or let Pieces create the copy?
             pieces = Pieces(svgfile, imagefile, scaled_dir, scale=scale, max_pixels=options.max_pixels)
+
             pieces.cut()
+
+            pieces.generate_resources()
 
         # TODO: get adjacent pieces
 
