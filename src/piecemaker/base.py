@@ -8,6 +8,12 @@ import svgwrite
 from PIL import Image
 from bs4 import BeautifulSoup
 from scissors.base import Scissors, Clips
+from glue import (
+        ConfigManager,
+        SimpleSpriteManager,
+        Sprite,
+        DEFAULT_SETTINGS,
+        )
 
 
 from paths.interlockingnubs import HorizontalPath, VerticalPath
@@ -55,16 +61,44 @@ class Pieces(object):
         scissors = Scissors(self._clips, self._scaled_image, self._mydir)
         self.pieces = scissors.cut()
 
+
     def generate_resources(self):
         " Create the extra resources to display the pieces. "
-        # TODO: create the css and sprite using glue
 
-        # TODO: use the width and height from the glue sprite.
-        sprite_width = 1024
-        sprite_height = 1024
+        sprite = self._generate_sprite()
 
+        (sprite_width, sprite_height) = sprite.canvas_size
+        sprite_layout = {} # used for showing example layout
+        for image in sprite.images:
+            filename, ext = image.name.rsplit('.', 1)
+            sprite_layout[int(filename)] = (image.x, image.y)
 
-        # parse the individual piece svg's and create the svg
+        self._generate_vector(sprite_width, sprite_height, sprite_layout)
+
+    def _generate_sprite(self):
+        " create the css and sprite using glue "
+        settings = DEFAULT_SETTINGS
+        settings.update({
+            'html': True,
+            })
+        config = ConfigManager( defaults=settings )
+        sprite_manager = SimpleSpriteManager(
+                os.path.join(self._mydir, 'raster'),
+                config, output=self._mydir)
+        sprite = Sprite('sprite',
+                os.path.join(self._mydir, 'raster'),
+                sprite_manager)
+        sprite.process()
+
+        sprite.save_css()
+        sprite.save_html()
+        sprite.save_image()
+
+        return sprite
+
+    def _generate_vector(self, sprite_width, sprite_height, sprite_layout):
+        " parse the individual piece svg's and create the svg. "
+
         dwg = svgwrite.Drawing(size=(sprite_width, sprite_height), profile="full")
         dwg.viewbox(width=sprite_width, height=sprite_height)
         dwg.set_desc(title="svg preview", desc="")
@@ -74,11 +108,10 @@ class Pieces(object):
         source_image = dwg.defs.add(dwg.image(relative_scaled_image,
             id="source-image", width=self.width, height=self.height))
 
-        example_y = 0
         for i in range(0,len(self.pieces)):
-            piece_svg = os.path.join(self._mydir, "mask-%s.svg" % i)
+            piece_svg = os.path.join(self._mydir, "vector", "%s.svg" % i)
             piece_bbox = self.pieces[i]
-            i = i + 1
+            preview_offset = sprite_layout[i]
 
             piece_soup = BeautifulSoup(open(piece_svg), 'xml')
             svg = piece_soup.svg
@@ -107,17 +140,13 @@ class Pieces(object):
 
             example_use = dwg.add(dwg.use(piece_fragment,
                 clip_path="url(#piece-mask-%s)" % i))
-            # TODO: layout the svg pieces exactly like glue did.
-            example_y += example_y + math.floor(float(vbheight))
-            example_use['transform'] = "translate( %s, %s )" % (
-                   piece_bbox[0],
-                   piece_bbox[1])
+            # layout the svg pieces exactly like glue did.
+            example_use['transform'] = "translate( %s, %s )" % (preview_offset)
 
         preview_soup = BeautifulSoup(dwg.tostring(), 'xml')
 
-        i = 0
-        for piece_svg in glob(os.path.join(self._mydir, "mask-*.svg")):
-            i = i + 1
+        for i in range(0,len(self.pieces)):
+            piece_svg = os.path.join(self._mydir, "vector", "%s.svg" % i)
             piece_soup = BeautifulSoup(open(piece_svg), 'xml')
             svg = piece_soup.svg
             first_g = svg.find('g')
