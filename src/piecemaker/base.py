@@ -25,17 +25,23 @@ class Pieces(object):
     def __init__(self, svgfile, image, mydir, scale=100, max_pixels=0):
         " Resize the image if needed. "
         #self._image = image
-        im = Image.open(image)
+        im = Image.open(image).copy()
+        # work on a copy of the image that has been scaled
+        (image_root, ext) = os.path.splitext(image)
+        self._scaled_image = os.path.join(mydir, 'original-%s%s' % (scale, ext))
+        im.save(self._scaled_image)
 
         self._mydir = mydir
 
         scale = int(scale)
+        self.scale = scale
 
         if scale != 100:
             (w, h) = im.size
             w = int(w * (scale/100.0))
             h = int(h * (scale/100.0))
-            im.resize((w, h))
+            im = im.resize((w, h))
+            im.save(self._scaled_image)
 
         (width, height) = im.size
 
@@ -43,12 +49,8 @@ class Pieces(object):
             # resize the image using image magick @
             # TODO: how to do this with PIL?
             # '%i@' % max_pixels
+            assert False # TODO: not implemented
             (width, height) = im.size
-
-        # work on a copy of the image that has been scaled
-        (image_root, ext) = os.path.splitext(image)
-        self._scaled_image = os.path.join(mydir, 'original-%s%s' % (scale, ext))
-        im.save(self._scaled_image)
 
         self._clips = Clips(svgfile=svgfile,
                     clips_dir=mydir,
@@ -75,6 +77,9 @@ class Pieces(object):
 
         self._generate_vector(sprite_width, sprite_height, sprite_layout)
 
+
+
+
     def _generate_sprite(self):
         " create the css and sprite using glue "
         settings = DEFAULT_SETTINGS
@@ -85,7 +90,7 @@ class Pieces(object):
         sprite_manager = SimpleSpriteManager(
                 os.path.join(self._mydir, 'raster'),
                 config, output=self._mydir)
-        sprite = Sprite('sprite',
+        sprite = Sprite('scale-%s' % self.scale,
                 os.path.join(self._mydir, 'raster'),
                 sprite_manager)
         sprite.process()
@@ -106,7 +111,7 @@ class Pieces(object):
         common_path = os.path.commonprefix([self._scaled_image, self._mydir])
         relative_scaled_image = self._scaled_image[len(common_path)+1:]
         source_image = dwg.defs.add(dwg.image(relative_scaled_image,
-            id="source-image", width=self.width, height=self.height))
+            id="source-image-%s" % self.scale, width=self.width, height=self.height))
 
         for i in range(0,len(self.pieces)):
             piece_svg = os.path.join(self._mydir, "vector", "%s.svg" % i)
@@ -118,12 +123,12 @@ class Pieces(object):
             first_g = svg.g
 
             clip_path = dwg.defs.add(dwg.clipPath())
-            clip_path['id'] = "piece-mask-%s" % i
+            clip_path['id'] = "piece-mask-%s-%s" % (self.scale, i)
             clip_path['transform'] = first_g.get('transform')
             # Later the clip_path gets filled in with the contents
 
             piece_fragment = dwg.defs.add(dwg.svg())
-            piece_fragment['id'] = "piece-fragment-%s" % i
+            piece_fragment['id'] = "piece-fragment-%s-%s" % (self.scale, i)
 
             vb = svg.get('viewBox')
             #TODO could also be separated by ','?
@@ -139,9 +144,10 @@ class Pieces(object):
             use = piece_fragment.add(dwg.use(source_image))
 
             example_use = dwg.add(dwg.use(piece_fragment,
-                clip_path="url(#piece-mask-%s)" % i))
+                clip_path="url(#piece-mask-%s-%s)" % (self.scale, i)))
             # layout the svg pieces exactly like glue did.
             example_use['transform'] = "translate( %s, %s )" % (preview_offset)
+            example_use['class'] = 'example'
 
         preview_soup = BeautifulSoup(dwg.tostring(), 'xml')
 
@@ -150,7 +156,8 @@ class Pieces(object):
             piece_soup = BeautifulSoup(open(piece_svg), 'xml')
             svg = piece_soup.svg
             first_g = svg.find('g')
-            piece_mask_tag = preview_soup.defs.find("clipPath", id="piece-mask-%s" % i)
+            piece_mask_tag = preview_soup.defs.find("clipPath",
+                    id="piece-mask-%s-%s" % (self.scale, i))
             if piece_mask_tag:
                 new_g = first_g.wrap( preview_soup.new_tag('g') )
                 first_g.unwrap() # don't need this g with it's attributes
