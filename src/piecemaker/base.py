@@ -84,13 +84,14 @@ class Pieces(object):
         " create the css and sprite using glue "
         settings = DEFAULT_SETTINGS
         settings.update({
+            'namespace': 'pc',
             'html': True,
             })
         config = ConfigManager( defaults=settings )
         sprite_manager = SimpleSpriteManager(
                 os.path.join(self._mydir, 'raster'),
                 config, output=self._mydir)
-        sprite = Sprite('scale-%s' % self.scale,
+        sprite = Sprite(str(self.scale),
                 os.path.join(self._mydir, 'raster'),
                 sprite_manager)
         sprite.process()

@@ -160,6 +160,7 @@ the minimum piece size.
             pieces.generate_resources()
 
             piece_count = len(pieces.pieces)
+            piece_bboxes = pieces.pieces
             dimensions[scale] = {
                     "width": pieces.width,
                     "height": pieces.height,
@@ -168,14 +169,16 @@ the minimum piece size.
                     "board_url": "puzzle_board-%s.html" % scale,
                     }
 
-        tw = dimensions['100']['table_width']
-        th = dimensions['100']['table_height']
+        tw = dimensions[100]['table_width']
+        th = dimensions[100]['table_height']
         piece_properties = []
         for i in range(0, piece_count):
             piece_properties.append({
                   "id": i,
                   "x": randint(0,tw),
                   "y": randint(0,th),
+                  "w": piece_bboxes[i][2] - piece_bboxes[i][0],
+                  "h": piece_bboxes[i][3] - piece_bboxes[i][1],
                   "r": 0,
                   "s": 0,
                   "g": 0
