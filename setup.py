@@ -34,6 +34,7 @@ setup(
         'scissors',
         'beautifulsoup4',
         'svgwrite',
+        'html',
         'glue',
         #'lxml',
         #'pgmagick', # relies on graphicsmagick

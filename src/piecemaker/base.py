@@ -4,6 +4,7 @@ import math
 from tempfile import SpooledTemporaryFile
 from glob import glob
 
+from html import HTML
 import svgwrite
 from PIL import Image
 from bs4 import BeautifulSoup
@@ -77,7 +78,37 @@ class Pieces(object):
 
         self._generate_vector(sprite_width, sprite_height, sprite_layout)
 
+        self._sprite_proof(sprite_width, sprite_height, sprite_layout)
 
+    def _sprite_proof(self, sprite_width, sprite_height, sprite_layout):
+        """ Create a sprite proof showing how the image was cut. Should look like
+        original. """
+        h = HTML('html')
+        head = h.head()
+        title = h.title('Sprite Proof')
+        stylesheet = head.link(href="%s.css" % self.scale, rel="stylesheet",
+                type="text/css")
+        style = head.style(type="text/css")
+        style.raw_text("""
+        .pc {
+            position: absolute;
+            text-indent: -999em;
+        }
+        .pc:hover {
+            text-indent: 0;
+        }
+        """)
+        body = h.body()
+        for (k, v) in self.pieces.items():
+            x = v[0]
+            y = v[1]
+            el = body.div(klass='pc pc-%s-%s' % (self.scale, k),
+                    style="left:%spx;top:%spx;" % (x, y))
+            el.text(str(k))
+
+        f = open(os.path.join(self._mydir, 'sprite_proof.html'), 'w')
+        f.write(str(h))
+        f.close()
 
 
     def _generate_sprite(self):
