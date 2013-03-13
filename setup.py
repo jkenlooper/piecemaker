@@ -28,17 +28,12 @@ setup(
     packages=find_packages('src'),
     zip_safe=False,
     install_requires=[
-        'setuptools',
-        # Like sleeping with scissors under your Pillow.
         'Pillow',
-        'scissors',
+        'pixsaw',
         'beautifulsoup4',
         'svgwrite',
         'html',
         'glue',
-        #'lxml',
-        #'pgmagick', # relies on graphicsmagick
-
       ],
     entry_points="""
     [console_scripts]

@@ -177,8 +177,8 @@ the minimum piece size.
                   "id": i,
                   "x": randint(0,tw),
                   "y": randint(0,th),
-                  "w": piece_bboxes[i][2] - piece_bboxes[i][0],
-                  "h": piece_bboxes[i][3] - piece_bboxes[i][1],
+                  "w": piece_bboxes[str(i)][2] - piece_bboxes[str(i)][0],
+                  "h": piece_bboxes[str(i)][3] - piece_bboxes[str(i)][1],
                   "r": 0,
                   "s": 0,
                   "g": 0

@@ -3,12 +3,13 @@ import decimal
 import math
 from tempfile import SpooledTemporaryFile
 from glob import glob
+import json
 
 from html import HTML
 import svgwrite
 from PIL import Image
 from bs4 import BeautifulSoup
-from scissors.base import Scissors, Clips
+from pixsaw.base import Handler
 from glue import (
         ConfigManager,
         SimpleSpriteManager,
@@ -18,6 +19,7 @@ from glue import (
 
 
 from paths.interlockingnubs import HorizontalPath, VerticalPath
+from piecemaker.tools import rasterize_svgfiles, potrace
 
 class Pieces(object):
     """
@@ -53,16 +55,31 @@ class Pieces(object):
             assert False # TODO: not implemented
             (width, height) = im.size
 
-        self._clips = Clips(svgfile=svgfile,
-                    clips_dir=mydir,
-                    size=(width, height))
+        # rasterize the svgfile
+        rasterize_svgfiles([svgfile,])
+        (root, ext) = os.path.splitext(svgfile)
+        linesfile = "%s.png" % root
+
+        self._mask_dir = os.path.join(mydir, 'mask')
+        os.mkdir(self._mask_dir)
+        self._raster_dir = os.path.join(mydir, 'raster')
+        os.mkdir(self._raster_dir)
+        self._vector_dir = os.path.join(mydir, 'vector')
+        os.mkdir(self._vector_dir)
+        self._pixsaw_handler = Handler(mydir, linesfile, mask_dir='mask',
+                raster_dir='raster')
 
         self.width = width
         self.height = height
 
     def cut(self):
-        scissors = Scissors(self._clips, self._scaled_image, self._mydir)
-        self.pieces = scissors.cut()
+        self._pixsaw_handler.process(self._scaled_image)
+
+        for piece in glob(os.path.join(self._raster_dir, "p-m-*.png")):
+            potrace(piece, self._vector_dir)
+
+        pieces_json = open(os.path.join(self._mydir, 'pieces.json'), 'r')
+        self.pieces = json.load(pieces_json)
 
 
     def generate_resources(self):
@@ -74,7 +91,7 @@ class Pieces(object):
         sprite_layout = {} # used for showing example layout
         for image in sprite.images:
             filename, ext = image.name.rsplit('.', 1)
-            sprite_layout[int(filename)] = (image.x, image.y)
+            sprite_layout[int(filename[4:])] = (image.x, image.y)
 
         self._generate_vector(sprite_width, sprite_height, sprite_layout)
 
@@ -102,7 +119,7 @@ class Pieces(object):
         for (k, v) in self.pieces.items():
             x = v[0]
             y = v[1]
-            el = body.div(klass='pc pc-%s-%s' % (self.scale, k),
+            el = body.div(klass='pc pc-%s-p-m-%s' % (self.scale, k),
                     style="left:%spx;top:%spx;" % (x, y))
             el.text(str(k))
 
@@ -120,10 +137,10 @@ class Pieces(object):
             })
         config = ConfigManager( defaults=settings )
         sprite_manager = SimpleSpriteManager(
-                os.path.join(self._mydir, 'raster'),
+                self._raster_dir,
                 config, output=self._mydir)
         sprite = Sprite(str(self.scale),
-                os.path.join(self._mydir, 'raster'),
+                self._raster_dir,
                 sprite_manager)
         sprite.process()
 
@@ -146,8 +163,8 @@ class Pieces(object):
             id="source-image-%s" % self.scale, width=self.width, height=self.height))
 
         for i in range(0,len(self.pieces)):
-            piece_svg = os.path.join(self._mydir, "vector", "%s.svg" % i)
-            piece_bbox = self.pieces[i]
+            piece_svg = os.path.join(self._vector_dir, "p-m-%s.svg" % i)
+            piece_bbox = self.pieces[str(i)]
             preview_offset = sprite_layout[i]
 
             piece_soup = BeautifulSoup(open(piece_svg), 'xml')
@@ -184,7 +201,7 @@ class Pieces(object):
         preview_soup = BeautifulSoup(dwg.tostring(), 'xml')
 
         for i in range(0,len(self.pieces)):
-            piece_svg = os.path.join(self._mydir, "vector", "%s.svg" % i)
+            piece_svg = os.path.join(self._vector_dir, "p-m-%s.svg" % i)
             piece_soup = BeautifulSoup(open(piece_svg), 'xml')
             svg = piece_soup.svg
             first_g = svg.find('g')
@@ -245,7 +262,7 @@ class JigsawPieceClipsSVG(object):
         self._dwg.stretch()
         self._dwg.set_desc(title=self.title, desc=description)
 
-        self._create_layers()
+        self._create_lines()
 
     def _gridify(self, width, height, pieces, add_more_pieces=True):
         """
@@ -271,12 +288,19 @@ class JigsawPieceClipsSVG(object):
             #TODO: write svg to filename
             pass
 
-    def _create_layers(self):
-        # create 2 layers
-        self._vertical_layer()
-        self._horizontal_layer()
+    def _create_lines(self):
+        # create vertical and horizontal lines on a white background
+        self._initial_bg()
+        self._vertical_lines()
+        self._horizontal_lines()
 
-    def _vertical_layer(self):
+    def _initial_bg(self):
+        layer = self._dwg.add(self._dwg.g())
+        g = layer.add(self._dwg.g())
+        fullsize_rect = g.add(self._dwg.rect(insert=(0,0), size=(self._width, self._height)))
+        fullsize_rect['fill'] = 'white'
+
+    def _vertical_lines(self):
         layer = self._dwg.add(self._dwg.g())
         for i in range(0, self._cols-1): #except last one
             g = layer.add(self._dwg.g())
@@ -292,10 +316,11 @@ class JigsawPieceClipsSVG(object):
             curvelines.append('L 0 %i ' % self._height) # end
             curveline = ' '.join(curvelines)
             path = g.add(self._dwg.path(curveline))
-        g = layer.add(self._dwg.g())
-        fullsize_rect = g.add(self._dwg.rect(insert=(0,0), size=(self._width, self._height)))
+            path['stroke'] = 'black'
+            path['stroke-width'] = '.01'
+            path['fill'] = 'none'
 
-    def _horizontal_layer(self):
+    def _horizontal_lines(self):
         layer = self._dwg.add(self._dwg.g())
         for i in range(0, self._rows-1): #except last one
             g = layer.add(self._dwg.g())
@@ -311,8 +336,6 @@ class JigsawPieceClipsSVG(object):
             curvelines.append('L %i 0 ' % self._width) # end
             curveline = ' '.join(curvelines)
             path = g.add(self._dwg.path(curveline))
-        g = layer.add(self._dwg.g())
-        fullsize_rect = g.add(self._dwg.rect(insert=(0,0), size=(self._width, self._height)))
-
-
-
+            path['stroke'] = 'black'
+            path['stroke-width'] = '.01'
+            path['fill'] = 'none'
