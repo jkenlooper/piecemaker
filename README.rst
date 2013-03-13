@@ -3,15 +3,45 @@ The Jigsaw Piece Maker
 
 A jigsaw puzzle pieces generator that levels the playing field.
 
-Depends on scissors to do a lot of the work.  This script may change a lot as I
-have yet to really use it for any active projects.
+This script may change a lot as I have yet to really use it for any active
+projects.
+
+It basically creates jigsaw puzzle pieces in two formats: svg, and png.  The
+number and size of pieces are set by passing the script different options.  It
+takes a while to run if doing a lot of pieces. It currently uses potrace, batik
+rasterizer, and imagemagick convert subprocesses.
 
 
 Installing
 ----------
 
-See the scissors package for now for help on installing.
+Requires:
 
+Python Packages:
+
+* `Pillow <http://github.com/python-imaging/Pillow>`_
+* `pixsaw <http://github.com/jkenlooper/pixsaw>`_
+* `beautifulsoup4 <http://www.crummy.com/software/BeautifulSoup/bs4/>`_
+* `svgwrite <https://pypi.python.org/pypi/svgwrite>`_
+* `html <https://pypi.python.org/pypi/html>`_
+* `glue <https://github.com/jorgebastida/glue>`_
+
+Other Software needed:
+
+* `batik 1.7 <http://projects.apache.org/projects/batik.html>`_
+  (installed in projects folder.  Buildout will download and install)
+* `potrace <http://potrace.sourceforge.net/>`_
+* `imagemagick <http://www.imagemagick.org/script/index.php>`_
+
+Install with setup.py::
+
+    $ python setup.py install
+
+
+Or develop with buildout::
+
+    $ python bootstrap.py
+    $ ./bin/buildout
 
 Usage
 -----
@@ -22,9 +52,13 @@ See the script.py for more.  Not everything has been implemented, but to create
     ./bin/piecemaker --dir test  --number-of-pieces 100 test.jpg
 
 
+For now the script sorta needs to be run in the same folder because of the
+batik rasterizer dependency.  This could be done better I'm sure.
 
 Some in progress notes and such
 *******************************
+
+``These notes and such are probably outdated...``
 
 just clips - only create a clips svg file
 

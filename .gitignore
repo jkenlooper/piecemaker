@@ -2,7 +2,6 @@
 *.pyc
 .installed.cfg
 bin/
-bootstrap.py
 develop-eggs/
 eggs/
 include/
