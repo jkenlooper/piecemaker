@@ -28,7 +28,7 @@ setup(
     packages=find_packages('src'),
     zip_safe=False,
     install_requires=[
-        'Pillow',
+        'Pillow == 1.7.8',
         'pixsaw',
         'beautifulsoup4',
         'svgwrite',

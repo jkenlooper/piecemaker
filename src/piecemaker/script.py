@@ -128,8 +128,7 @@ the minimum piece size.
                 height=height,
                 pieces=options.number_of_pieces,
                 minimum_piece_size=options.minimum_piece_size)
-        # TODO: write out the svg in the dir
-        svgfile = os.path.join(options.dir, 'original.svg')
+        svgfile = os.path.join(options.dir, 'lines.svg')
         f = open(svgfile, 'w')
         f.write(jpc.svg())
         f.close()

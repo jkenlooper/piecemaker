@@ -21,9 +21,13 @@ from glue import (
 from paths.interlockingnubs import HorizontalPath, VerticalPath
 from piecemaker.tools import rasterize_svgfiles, potrace
 
+class PMHandler(Handler):
+    mask_prefix = ''
+    piece_prefix = ''
+
 class Pieces(object):
     """
-    Creates the piece pngs and pieces info. Lets Scissors do most of the work.
+    Creates the piece pngs and pieces info.
     """
     def __init__(self, svgfile, image, mydir, scale=100, max_pixels=0):
         " Resize the image if needed. "
@@ -55,9 +59,22 @@ class Pieces(object):
             assert False # TODO: not implemented
             (width, height) = im.size
 
+        # scale the svg file
+        svgfile_soup = BeautifulSoup(open(svgfile), 'xml')
+        linessvg = svgfile_soup.svg
+        linessvg['width'] = width
+        linessvg['height'] = height
+        (linessvg_name, ext) = os.path.splitext(os.path.basename(svgfile))
+        # scaled_svg is saved at the top level and not inside the scaled
+        # directories
+        scaled_svg = os.path.join(os.path.dirname(svgfile), '%s-%s.svg' % (linessvg_name, scale))
+        scaled_svg_file = open(scaled_svg, 'w')
+        scaled_svg_file.write(unicode(svgfile_soup))
+        scaled_svg_file.close()
+
         # rasterize the svgfile
-        rasterize_svgfiles([svgfile,])
-        (root, ext) = os.path.splitext(svgfile)
+        rasterize_svgfiles([scaled_svg,])
+        (root, ext) = os.path.splitext(scaled_svg)
         linesfile = "%s.png" % root
 
         self._mask_dir = os.path.join(mydir, 'mask')
@@ -66,7 +83,7 @@ class Pieces(object):
         os.mkdir(self._raster_dir)
         self._vector_dir = os.path.join(mydir, 'vector')
         os.mkdir(self._vector_dir)
-        self._pixsaw_handler = Handler(mydir, linesfile, mask_dir='mask',
+        self._pixsaw_handler = PMHandler(mydir, linesfile, mask_dir='mask',
                 raster_dir='raster')
 
         self.width = width
@@ -75,7 +92,7 @@ class Pieces(object):
     def cut(self):
         self._pixsaw_handler.process(self._scaled_image)
 
-        for piece in glob(os.path.join(self._raster_dir, "p-m-*.png")):
+        for piece in glob(os.path.join(self._raster_dir, "*.png")):
             potrace(piece, self._vector_dir)
 
         pieces_json = open(os.path.join(self._mydir, 'pieces.json'), 'r')
@@ -91,7 +108,7 @@ class Pieces(object):
         sprite_layout = {} # used for showing example layout
         for image in sprite.images:
             filename, ext = image.name.rsplit('.', 1)
-            sprite_layout[int(filename[4:])] = (image.x, image.y)
+            sprite_layout[int(filename)] = (image.x, image.y)
 
         self._generate_vector(sprite_width, sprite_height, sprite_layout)
 
@@ -119,7 +136,7 @@ class Pieces(object):
         for (k, v) in self.pieces.items():
             x = v[0]
             y = v[1]
-            el = body.div(klass='pc pc-%s-p-m-%s' % (self.scale, k),
+            el = body.div(klass='pc pc-%s-%s' % (self.scale, k),
                     style="left:%spx;top:%spx;" % (x, y))
             el.text(str(k))
 
@@ -163,7 +180,7 @@ class Pieces(object):
             id="source-image-%s" % self.scale, width=self.width, height=self.height))
 
         for i in range(0,len(self.pieces)):
-            piece_svg = os.path.join(self._vector_dir, "p-m-%s.svg" % i)
+            piece_svg = os.path.join(self._vector_dir, "%s.svg" % i)
             piece_bbox = self.pieces[str(i)]
             preview_offset = sprite_layout[i]
 
@@ -201,7 +218,7 @@ class Pieces(object):
         preview_soup = BeautifulSoup(dwg.tostring(), 'xml')
 
         for i in range(0,len(self.pieces)):
-            piece_svg = os.path.join(self._vector_dir, "p-m-%s.svg" % i)
+            piece_svg = os.path.join(self._vector_dir, "%s.svg" % i)
             piece_soup = BeautifulSoup(open(piece_svg), 'xml')
             svg = piece_soup.svg
             first_g = svg.find('g')
