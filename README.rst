@@ -89,3 +89,9 @@ Directory::
         pieces.json - JSON file with pieces info
         pieces/
           directory with piece png files
+
+
+.. image:: https://d2weczhvl823v0.cloudfront.net/jkenlooper/piecemaker/trend.png
+   :alt: Bitdeli badge
+   :target: https://bitdeli.com/free
+
