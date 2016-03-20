@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 import os
 
 name = "piecemaker"
-version = "0.0.1"
+version = "0.1.0"
 
 def read(*rnames):
     return open(os.path.join(os.path.dirname(__file__), *rnames)).read()
