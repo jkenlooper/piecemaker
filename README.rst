@@ -8,8 +8,8 @@ projects.
 
 It basically creates jigsaw puzzle pieces in two formats: svg, and png.  The
 number and size of pieces are set by passing the script different options.  It
-takes a while to run if doing a lot of pieces. It currently uses potrace, batik
-rasterizer, and imagemagick convert subprocesses.
+takes a while to run if doing a lot of pieces. It currently uses potrace, and
+imagemagick convert subprocesses.
 
 
 Installing
@@ -24,24 +24,19 @@ Python Packages:
 * `beautifulsoup4 <http://www.crummy.com/software/BeautifulSoup/bs4/>`_
 * `svgwrite <https://pypi.python.org/pypi/svgwrite>`_
 * `html <https://pypi.python.org/pypi/html>`_
+* lxml
+* cairosvg
 * `glue <https://github.com/jorgebastida/glue>`_
 
 Other Software needed:
 
-* `batik 1.7 <http://projects.apache.org/projects/batik.html>`_
-  (installed in projects folder.  Buildout will download and install)
 * `potrace <http://potrace.sourceforge.net/>`_
 * `imagemagick <http://www.imagemagick.org/script/index.php>`_
 
-Install with setup.py::
+Install with pip in editable mode for developing and such::
 
-    $ python setup.py install
+    $ pip install -e .
 
-
-Or develop with buildout::
-
-    $ python bootstrap.py
-    $ ./bin/buildout
 
 Usage
 -----
@@ -51,9 +46,6 @@ See the script.py for more.  Not everything has been implemented, but to create
 
     ./bin/piecemaker --dir test  --number-of-pieces 100 test.jpg
 
-
-For now the script sorta needs to be run in the same folder because of the
-batik rasterizer dependency.  This could be done better I'm sure.
 
 Some in progress notes and such
 *******************************
@@ -90,8 +82,4 @@ Directory::
         pieces/
           directory with piece png files
 
-
-.. image:: https://d2weczhvl823v0.cloudfront.net/jkenlooper/piecemaker/trend.png
-   :alt: Bitdeli badge
-   :target: https://bitdeli.com/free
 

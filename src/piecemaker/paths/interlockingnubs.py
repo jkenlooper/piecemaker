@@ -37,7 +37,7 @@ class Path(object):
                 ,(width*self.tongue_length)-(left_shoulder[1]*width))
         self._anchor_right = (
                 (self._anchor_left[0]+self._anchor_center[0]) - width*right_shoulder[0],
-                ((self._anchor_left[1]+self._anchor_center[1]) - width*right_shoulder[1])*-1) 
+                ((self._anchor_left[1]+self._anchor_center[1]) - width*right_shoulder[1])*-1)
         self._relative_stop = (
                 width-(self._anchor_left[0]+self._anchor_center[0]+self._anchor_right[0]),
                 (self._anchor_left[1]+self._anchor_center[1]+self._anchor_right[1])*-1)
@@ -222,7 +222,7 @@ class Path(object):
         def fset(self, p):
             self._relative_middle = retuple(p)
         return locals()
-    
+
     @Property
     def stop():
         doc = "last anchor point in path"
@@ -239,12 +239,7 @@ class Path(object):
             m[1] = m[1]*-1
             self._relative_middle = tuple(m)
 
-        return """
-        c %(control_start_a)s %(control_start_b)s %(anchor_left)s
-        c %(control_left_a)s %(control_left_b)s %(anchor_center)s 
-        c %(control_center_a)s %(control_center_b)s %(anchor_right)s 
-        c %(control_right_a)s %(control_right_b)s %(relative_stop)s
-        """ % ({
+        return u'c %(control_start_a)s %(control_start_b)s %(anchor_left)s c %(control_left_a)s %(control_left_b)s %(anchor_center)s c %(control_center_a)s %(control_center_b)s %(anchor_right)s c %(control_right_a)s %(control_right_b)s %(relative_stop)s' % ({
             'start':self.start,
             'control_start_a':self.control_start_a,
             'control_start_b':self.control_start_b,

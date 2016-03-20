@@ -1,24 +1,18 @@
 import subprocess
 import os
 import os.path
+import cairosvg
 
 def rasterize_svgfiles(svgfiles):
     """
     Converts multiple svg files to png files with same basename.
-    Relies on batik being installed.
     """
-    raster = ['/usr/bin/java', '-Xint', '-jar']
-
-    #TODO: better way of getting the path to the rasterizer?
-    raster.append('batik-1.7/batik-rasterizer.jar')
 
     for svgfile in svgfiles:
         output_dir = os.path.dirname(svgfile)
         name = os.path.basename(svgfile)
         (root, ext) = os.path.splitext(name)
-        raster.append(os.path.join(output_dir, '%s.svg' % root))
-
-    subprocess.call(raster, shell=False)
+        cairosvg.svg2png(url=svgfile, write_to=os.path.join(output_dir, '{0}.png'.format(root)))
 
 def potrace(trimmedpng, output_dir):
     """

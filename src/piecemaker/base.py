@@ -5,18 +5,12 @@ from tempfile import SpooledTemporaryFile
 from glob import glob
 import json
 
-from html import HTML
+#from html import HTML
 import svgwrite
 from PIL import Image
 from bs4 import BeautifulSoup
 from pixsaw.base import Handler
-from glue import (
-        ConfigManager,
-        SimpleSpriteManager,
-        Sprite,
-        DEFAULT_SETTINGS,
-        )
-
+from glue.managers.simple import SimpleManager
 
 from paths.interlockingnubs import HorizontalPath, VerticalPath
 from piecemaker.tools import rasterize_svgfiles, potrace
@@ -107,12 +101,12 @@ class Pieces(object):
         (sprite_width, sprite_height) = sprite.canvas_size
         sprite_layout = {} # used for showing example layout
         for image in sprite.images:
-            filename, ext = image.name.rsplit('.', 1)
+            filename, ext = image.filename.rsplit('.', 1)
             sprite_layout[int(filename)] = (image.x, image.y)
 
         self._generate_vector(sprite_width, sprite_height, sprite_layout)
 
-        self._sprite_proof(sprite_width, sprite_height, sprite_layout)
+        #self._sprite_proof(sprite_width, sprite_height, sprite_layout)
 
     def _sprite_proof(self, sprite_width, sprite_height, sprite_layout):
         """ Create a sprite proof showing how the image was cut. Should look like
@@ -147,25 +141,38 @@ class Pieces(object):
 
     def _generate_sprite(self):
         " create the css and sprite using glue "
-        settings = DEFAULT_SETTINGS
-        settings.update({
-            'namespace': 'pc',
-            'html': True,
-            })
-        config = ConfigManager( defaults=settings )
-        sprite_manager = SimpleSpriteManager(
-                self._raster_dir,
-                config, output=self._mydir)
-        sprite = Sprite(str(self.scale),
-                self._raster_dir,
-                sprite_manager)
-        sprite.process()
+        sprite_manager = SimpleManager(
+                source=self._raster_dir,
+                css_namespace='pc',
+                css_pseudo_class_separator='__',
+                css_sprite_namespace='',
+                css_url='',
+                html=True,
+                ratios='1',
+                follow_links=False,
+                quiet=False,
+                recursive=False,
+                force=False,
+                algorithm='square',
+                algorithm_ordering='maxside',
+                crop=False,
+                padding='0',
+                margin='0',
+                png8=False,
+                retina=False,
+                output=self._mydir,
+                img_dir=self._mydir,
+                css_dir=self._mydir,
+                html_dir=self._mydir,
+                css_cachebuster=True,
+                css_cachebuster_filename=False,
+                css_cachebuster_only_sprites=False,
+                css_separator='-',
+                enabled_formats=['css', 'html', 'img'],
+                )
+        sprite_manager.process()
 
-        sprite.save_css()
-        sprite.save_html()
-        sprite.save_image()
-
-        return sprite
+        return sprite_manager.sprites[0]
 
     def _generate_vector(self, sprite_width, sprite_height, sprite_layout):
         " parse the individual piece svg's and create the svg. "
@@ -334,7 +341,7 @@ class JigsawPieceClipsSVG(object):
             curveline = ' '.join(curvelines)
             path = g.add(self._dwg.path(curveline))
             path['stroke'] = 'black'
-            path['stroke-width'] = '.01'
+            path['stroke-width'] = '1'
             path['fill'] = 'none'
 
     def _horizontal_lines(self):
@@ -354,5 +361,5 @@ class JigsawPieceClipsSVG(object):
             curveline = ' '.join(curvelines)
             path = g.add(self._dwg.path(curveline))
             path['stroke'] = 'black'
-            path['stroke-width'] = '.01'
+            path['stroke-width'] = '1'
             path['fill'] = 'none'

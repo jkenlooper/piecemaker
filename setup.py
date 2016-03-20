@@ -28,12 +28,14 @@ setup(
     packages=find_packages('src'),
     zip_safe=False,
     install_requires=[
-        'Pillow == 1.7.8',
+        'Pillow',
         'pixsaw',
         'beautifulsoup4',
+        'lxml',
         'svgwrite',
         'html',
-        'glue',
+        'cairosvg',
+        'glue == 0.9.4',
       ],
     entry_points="""
     [console_scripts]
