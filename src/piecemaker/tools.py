@@ -18,8 +18,6 @@ def potrace(trimmedpng, output_dir):
     """
     Convert the mask into a svg file.
     """
-    #TODO: use pypotrace on each mask to convert to vector
-
     #TODO: convert the trimmedpng to a bmp, but not use imagemagick.
     # convert trimmed.png -alpha Extract trimmed.bmp
     #(bmp, ext) = os.path.splitext(trimmedpng)

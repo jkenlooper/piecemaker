@@ -75,10 +75,12 @@ class Pieces(object):
         os.mkdir(self._mask_dir)
         self._raster_dir = os.path.join(mydir, 'raster')
         os.mkdir(self._raster_dir)
+        self._jpg_dir = os.path.join(mydir, 'jpg')
+        os.mkdir(self._jpg_dir)
         self._vector_dir = os.path.join(mydir, 'vector')
         os.mkdir(self._vector_dir)
         self._pixsaw_handler = PMHandler(mydir, linesfile, mask_dir='mask',
-                raster_dir='raster')
+                raster_dir='raster', jpg_dir='jpg')
 
         self.width = width
         self.height = height
