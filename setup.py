@@ -1,20 +1,22 @@
+# https://packaging.python.org/en/latest/distributing.html
 from setuptools import setup, find_packages
 import os
 
 name = "piecemaker"
-version = "0.1.0"
 
 def read(*rnames):
     return open(os.path.join(os.path.dirname(__file__), *rnames)).read()
 
 setup(
     name=name,
-    version=version,
+    use_scm_version=True,
+    setup_requires=['setuptools_scm'],
     author='Jake Hickenlooper',
     author_email='jake@weboftomorrow.com',
     description="Create jigsaw puzzle pieces from an image",
     long_description=read('README.rst'),
     url='https://github.com/jkenlooper/piecemaker',
+    license='GPL',
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
         'Intended Audience :: Developers',
@@ -29,7 +31,7 @@ setup(
     zip_safe=False,
     install_requires=[
         'Pillow',
-        'pixsaw',
+        'pixsaw >= 0.0.2, < 0.1',
         'beautifulsoup4',
         'lxml',
         'svgwrite',
