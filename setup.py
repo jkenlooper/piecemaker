@@ -35,7 +35,6 @@ setup(
         'beautifulsoup4',
         'lxml',
         'svgwrite',
-        'html',
         'cairosvg',
         'glue == 0.9.4',
       ],

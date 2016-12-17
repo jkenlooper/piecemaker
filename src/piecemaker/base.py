@@ -5,7 +5,6 @@ from tempfile import SpooledTemporaryFile
 from glob import glob
 import json
 
-#from html import HTML
 import svgwrite
 from PIL import Image
 from bs4 import BeautifulSoup
@@ -108,36 +107,56 @@ class Pieces(object):
 
         self._generate_vector(sprite_width, sprite_height, sprite_layout)
 
-        #self._sprite_proof(sprite_width, sprite_height, sprite_layout)
+        self._sprite_proof(sprite_width, sprite_height, sprite_layout)
 
     def _sprite_proof(self, sprite_width, sprite_height, sprite_layout):
         """ Create a sprite proof showing how the image was cut. Should look like
         original. """
-        h = HTML('html')
-        head = h.head()
-        title = h.title('Sprite Proof')
-        stylesheet = head.link(href="%s.css" % self.scale, rel="stylesheet",
-                type="text/css")
-        style = head.style(type="text/css")
-        style.raw_text("""
-        .pc {
-            position: absolute;
-            text-indent: -999em;
-        }
-        .pc:hover {
-            text-indent: 0;
-        }
-        """)
-        body = h.body()
+        template = """
+<!doctype html>
+<html>
+<head>
+<title>Sprite Proof - {scale}</title>
+<link rel="stylesheet" href="raster.css">
+<style>
+{style}
+</style>
+</head>
+<body>
+{pieces}
+</body>
+</html>
+        """
+        style = """
+            .pc {
+                    position: absolute;
+                    text-indent: -999em;
+                }
+                .pc:hover {
+                    text-indent: 0;
+                }
+        """
+        pieces_html = []
         for (k, v) in self.pieces.items():
             x = v[0]
             y = v[1]
-            el = body.div(klass='pc pc-%s-%s' % (self.scale, k),
-                    style="left:%spx;top:%spx;" % (x, y))
-            el.text(str(k))
+            el = """<div class='pc pc--{scale} pc-{k}' style='left:{x}px;top:{y}px;'>{k}</div>""".format(**{
+                'scale': self.scale,
+                'k': k,
+                'x': x,
+                'y': y
+                })
+            pieces_html.append(el)
+
+        pieces = ''.join(pieces_html)
+        html = template.format(**{
+            'scale': self.scale,
+            'pieces': pieces,
+            'style': style
+            })
 
         f = open(os.path.join(self._mydir, 'sprite_proof.html'), 'w')
-        f.write(str(h))
+        f.write(html)
         f.close()
 
 
