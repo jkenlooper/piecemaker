@@ -35,7 +35,7 @@ setup(
         'beautifulsoup4',
         'lxml',
         'svgwrite',
-        'cairosvg',
+        'cairosvg == 1.0.22',
         'glue == 0.9.4',
       ],
     entry_points="""
