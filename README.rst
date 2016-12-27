@@ -33,6 +33,11 @@ Other Software needed:
 * `potrace <http://potrace.sourceforge.net/>`_
 * `imagemagick <http://www.imagemagick.org/script/index.php>`_
 
+If on ubuntu or other debian based distro::
+
+    $ apt-get install imagemagick potrace libffi-dev python-libxml2 libxml2-dev python-lxml
+
+
 Install with pip in editable mode for developing and such::
 
     $ pip install -e .

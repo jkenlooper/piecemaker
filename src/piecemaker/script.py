@@ -204,5 +204,10 @@ the minimum piece size.
         json.dump(data, f, indent=4)
         f.close()
 
-        # TODO: get adjacent pieces
+        if options.adjacent:
+            first_scaled_dir = os.path.join(mydir, 'scale-%i' % scaled_sizes[0])
+            adjacent = Adjacent(first_scaled_dir)
+            f = open(os.path.join(mydir, 'adjacent.json'), 'w')
+            json.dump(adjacent.adjacent_pieces, f)
+            f.close()
 
