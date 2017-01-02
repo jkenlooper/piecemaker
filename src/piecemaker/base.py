@@ -4,6 +4,7 @@ import math
 from tempfile import SpooledTemporaryFile
 from glob import glob
 import json
+import subprocess
 
 import svgwrite
 from PIL import Image
@@ -49,8 +50,10 @@ class Pieces(object):
             # resize the image using image magick @
             # TODO: how to do this with PIL?
             # '%i@' % max_pixels
-            assert False # TODO: not implemented
+            subprocess.call(['convert', self._scaled_image, '-resize', '{0}@'.format(max_pixels), '-strip', self._scaled_image])
+            im = Image.open(self._scaled_image)
             (width, height) = im.size
+        im.close()
 
         # scale the svg file
         svgfile_soup = BeautifulSoup(open(svgfile), 'xml')
@@ -302,7 +305,8 @@ class JigsawPieceClipsSVG(object):
 
         description = "Created with the piecemaker. Piece count: %i" % pieces
         # create a drawing
-        self._dwg = svgwrite.Drawing(size=(self._width,self._height), profile='full')
+        # Use shape-rendering='optimizeSpeed' to not anti-alias the lines
+        self._dwg = svgwrite.Drawing(size=(self._width,self._height), profile='full', **{'shape-rendering': 'optimizeSpeed'})
         self._dwg.viewbox(width=self._width, height=self._height)
         self._dwg.stretch()
         self._dwg.set_desc(title=self.title, desc=description)

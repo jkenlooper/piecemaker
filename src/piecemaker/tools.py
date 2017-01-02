@@ -12,6 +12,7 @@ def rasterize_svgfiles(svgfiles):
         output_dir = os.path.dirname(svgfile)
         name = os.path.basename(svgfile)
         (root, ext) = os.path.splitext(name)
+        subprocess.call(['svgo', '-i', svgfile, '-o', svgfile], shell=False)
         cairosvg.svg2png(url=svgfile, write_to=os.path.join(output_dir, '{0}.png'.format(root)))
 
 def potrace(trimmedpng, output_dir):

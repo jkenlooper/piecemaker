@@ -32,6 +32,7 @@ Other Software needed:
 
 * `potrace <http://potrace.sourceforge.net/>`_
 * `imagemagick <http://www.imagemagick.org/script/index.php>`_
+* `svgo <https://github.com/svg/svgo>`_
 
 If on ubuntu or other debian based distro::
 
