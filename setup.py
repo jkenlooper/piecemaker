@@ -31,7 +31,7 @@ setup(
     zip_safe=False,
     install_requires=[
         'Pillow',
-        'pixsaw >= 0.0.2, < 0.1',
+        'pixsaw >= 0.1.0, < 0.2',
         'beautifulsoup4',
         'lxml',
         'svgwrite',
