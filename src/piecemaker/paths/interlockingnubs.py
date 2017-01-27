@@ -17,15 +17,15 @@ class Path(object):
         return (t[0], t[1]*-1)
     def point(self, t):
         return ','.join([str(x) for x in t])
-    tongue_length = 0.30 # 0.30 including shoulder
     def __init__(self, start=(0,0), width=155.0, out=None):
         if out == None:
             self.out = choice(COIN)
         #self.out = False
         #self.out = True
-        self._middle = width/2
-        left_shoulder = (uniform(0.27,0.47),uniform(0.06,0.18)) # 0.37, 0.08
-        right_shoulder = (uniform(0.27,0.47),uniform(0.06,0.18)) # 0.37, 0.08
+        tongue_length = uniform(0.24,0.34) # 0.30 including shoulder
+        self._middle = width/uniform(2.0,3.0)
+        left_shoulder = (uniform(0.34,0.43),uniform(-0.02,0.22)) # 0.37, 0.08
+        right_shoulder = (uniform(0.34,0.43),uniform(-0.02,0.22)) # 0.37, 0.08
         self._start = retuple(start)
         self.width = width # total width of the path
         self._stop = (width,0)
@@ -34,7 +34,7 @@ class Path(object):
                 width*left_shoulder[1])
         self._anchor_center = (
                 (width/2) - self._anchor_left[0]
-                ,(width*self.tongue_length)-(left_shoulder[1]*width))
+                ,(width*tongue_length)-(left_shoulder[1]*width))
         self._anchor_right = (
                 (self._anchor_left[0]+self._anchor_center[0]) - width*right_shoulder[0],
                 ((self._anchor_left[1]+self._anchor_center[1]) - width*right_shoulder[1])*-1)
@@ -48,7 +48,7 @@ class Path(object):
 
         # relative to anchor_left
         self._control_start_a = (
-                0.16*width,
+                uniform(0.05,0.29)*width,
                 0)
         self._control_start_b = (
                 (0.07*width)+self._anchor_left[0],
@@ -56,7 +56,7 @@ class Path(object):
 
         self._control_left_a = (
                 (0.06*width)*-1,
-                uniform(0.31,0.91)*self._anchor_center[1])
+                uniform(0.21,1.01)*self._anchor_center[1])
         self._control_left_b = (
                 0,
                 self._anchor_center[1])
@@ -67,7 +67,7 @@ class Path(object):
                 0)
         self._control_center_b = (
                 0.06*width+self._anchor_right[0],
-                uniform(0.31,0.91)*self._anchor_right[1])
+                uniform(0.21,1.01)*self._anchor_right[1])
 
         self._control_right_a = (
                 (0.06*width)*-1,
