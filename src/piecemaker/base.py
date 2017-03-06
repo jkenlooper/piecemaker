@@ -23,8 +23,9 @@ class Pieces(object):
     """
     Creates the piece pngs and pieces info.
     """
-    def __init__(self, svgfile, image, mydir, scale=100, max_pixels=0):
+    def __init__(self, svgfile, image, mydir, scale=100, max_pixels=0, vector=True):
         " Resize the image if needed. "
+        self.vector = vector
         #self._image = image
         im = Image.open(image).copy()
         # work on a copy of the image that has been scaled
@@ -79,8 +80,9 @@ class Pieces(object):
         os.mkdir(self._raster_dir)
         self._jpg_dir = os.path.join(mydir, 'jpg')
         os.mkdir(self._jpg_dir)
-        self._vector_dir = os.path.join(mydir, 'vector')
-        os.mkdir(self._vector_dir)
+        if self.vector:
+            self._vector_dir = os.path.join(mydir, 'vector')
+            os.mkdir(self._vector_dir)
         self._pixsaw_handler = PMHandler(mydir, linesfile, mask_dir='mask',
                 raster_dir='raster', jpg_dir='jpg')
 
@@ -90,8 +92,9 @@ class Pieces(object):
     def cut(self):
         self._pixsaw_handler.process(self._scaled_image)
 
-        for piece in glob(os.path.join(self._raster_dir, "*.png")):
-            potrace(piece, self._vector_dir)
+        if self.vector:
+            for piece in glob(os.path.join(self._raster_dir, "*.png")):
+                potrace(piece, self._vector_dir)
 
         pieces_json = open(os.path.join(self._mydir, 'pieces.json'), 'r')
         self.pieces = json.load(pieces_json)
@@ -108,7 +111,8 @@ class Pieces(object):
             filename, ext = image.filename.rsplit('.', 1)
             sprite_layout[int(filename)] = (image.x, image.y)
 
-        self._generate_vector(sprite_width, sprite_height, sprite_layout)
+        if self.vector:
+            self._generate_vector(sprite_width, sprite_height, sprite_layout)
 
         self._sprite_proof(sprite_width, sprite_height, sprite_layout)
 

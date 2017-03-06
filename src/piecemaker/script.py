@@ -32,6 +32,14 @@ the minimum piece size.
             action="store",
             type="string",
             help="Set the clips svg file instead of creating jigsaw pieces.",)
+
+    parser.add_option("--no-svg-files",
+            action="store_true",
+            default=False,
+            help="""
+            Skip creating the pieces in svg format.
+            """,)
+
     parser.add_option("--minimum-piece-size",
             action="store",
             type="int",
@@ -154,7 +162,9 @@ the minimum piece size.
             scaled_dir = os.path.join(mydir, 'scale-%i' % scale)
             os.mkdir(scaled_dir)
 
-            pieces = Pieces(svgfile, imagefile, scaled_dir, scale=scale, max_pixels=options.max_pixels)
+            pieces = Pieces(svgfile, imagefile, scaled_dir, scale=scale,
+                            max_pixels=options.max_pixels,
+                            vector=not options.no_svg_files)
 
             pieces.cut()
 
