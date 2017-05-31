@@ -36,7 +36,7 @@ setup(
         'lxml',
         'svgwrite',
         'cairosvg == 1.0.22',
-        'glue == 0.9.4',
+        'glue == 0.13',
       ],
     entry_points="""
     [console_scripts]
