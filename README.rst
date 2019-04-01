@@ -39,8 +39,11 @@ If on ubuntu or other debian based distro::
     $ apt-get install imagemagick potrace libffi-dev python-libxml2 libxml2-dev python-lxml
 
 
-Install with pip in editable mode for developing and such::
+Install with pip in editable mode for developing and use virtualenv to isolate
+python dependencies::
 
+    $ virtualenv .
+    $ source ./bin/activate
     $ pip install -e .
 
 

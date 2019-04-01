@@ -51,7 +51,7 @@ class Pieces(object):
             # resize the image using image magick @
             # TODO: how to do this with PIL?
             # '%i@' % max_pixels
-            subprocess.call(['convert', self._scaled_image, '-resize', '{0}@'.format(max_pixels), '-strip', self._scaled_image])
+            subprocess.call(['convert', self._scaled_image, '-resize', '{0}@'.format(max_pixels), '-strip', '-quality', '85%', self._scaled_image])
             im = Image.open(self._scaled_image)
             (width, height) = im.size
         im.close()

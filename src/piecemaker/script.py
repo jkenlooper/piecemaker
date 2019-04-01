@@ -4,15 +4,16 @@ import subprocess
 from optparse import OptionParser
 from random import randint
 
-from setuptools_scm import get_version
 from PIL import Image
 
 from piecemaker.base import JigsawPieceClipsSVG, Pieces
 from piecemaker.adjacent import Adjacent
 
+execfile(os.path.join(os.path.dirname(__file__), '__version__.py'))
+
 def piecemaker():
     parser = OptionParser(usage="%prog [options] path/to/image",
-            version=get_version(),
+            version=__version__,
             description="create jigsaw puzzle pieces")
 
     parser.add_option("--dir", "-d",
