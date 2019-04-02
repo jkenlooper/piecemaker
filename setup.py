@@ -32,7 +32,7 @@ setup(
     zip_safe=False,
     install_requires=[
         # glue 0.13 -> Pillow>=2.2.2
-        'Pillow',
+        'Pillow == 3.3.0',
         'pixsaw >= 0.1.0, < 0.2',
         'beautifulsoup4',
         'lxml',
