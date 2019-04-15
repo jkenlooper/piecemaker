@@ -1,3 +1,4 @@
+from builtins import object
 import os
 import json
 
@@ -39,9 +40,9 @@ class Adjacent(object):
         else:
             pieces_info = json.load(open(os.path.join(directory,
                 'pieces.json')))
-        for (piece_id, piece_bbox) in pieces_info.items():
+        for (piece_id, piece_bbox) in list(pieces_info.items()):
             adjacent = []
-            for (other_piece_id, other_piece_bbox) in pieces_info.items():
+            for (other_piece_id, other_piece_bbox) in list(pieces_info.items()):
                 if piece_id == other_piece_id:
                     continue
                 if (self.are_adjacent(piece_bbox, other_piece_bbox)):

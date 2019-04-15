@@ -1,3 +1,9 @@
+from __future__ import absolute_import
+from __future__ import division
+from builtins import str
+from builtins import range
+from past.utils import old_div
+from builtins import object
 import os
 import decimal
 import math
@@ -12,7 +18,7 @@ from bs4 import BeautifulSoup
 from pixsaw.base import Handler
 from glue.managers.simple import SimpleManager
 
-from paths.interlockingnubs import HorizontalPath, VerticalPath
+from .paths.interlockingnubs import HorizontalPath, VerticalPath
 from piecemaker.tools import rasterize_svgfiles, potrace
 
 class PMHandler(Handler):
@@ -66,7 +72,7 @@ class Pieces(object):
         # directories
         scaled_svg = os.path.join(os.path.dirname(svgfile), '%s-%s.svg' % (linessvg_name, scale))
         scaled_svg_file = open(scaled_svg, 'w')
-        scaled_svg_file.write(unicode(svgfile_soup))
+        scaled_svg_file.write(str(svgfile_soup))
         scaled_svg_file.close()
 
         # rasterize the svgfile
@@ -144,7 +150,7 @@ class Pieces(object):
                 }
         """
         pieces_html = []
-        for (k, v) in self.pieces.items():
+        for (k, v) in list(self.pieces.items()):
             x = v[0]
             y = v[1]
             el = """<div class='pc pc--{scale} pc-{k}' style='left:{x}px;top:{y}px;'>{k}</div>""".format(**{
@@ -285,7 +291,7 @@ class JigsawPieceClipsSVG(object):
         if minimum_piece_size > 0:
             # Get the maximum number of pieces that can fit within the
             # dimensions depending on the minimum piece size.
-            max_pieces_that_will_fit = int((width/minimum_piece_size)*(height/minimum_piece_size))
+            max_pieces_that_will_fit = int((old_div(width,minimum_piece_size))*(old_div(height,minimum_piece_size)))
             if pieces > 0:
                 # Only use the piece count that is smaller to avoid getting too
                 # small of pieces.
@@ -325,13 +331,13 @@ class JigsawPieceClipsSVG(object):
         area = decimal.Decimal(width * height)
         s = area.sqrt()
         n = decimal.Decimal(pieces).sqrt()
-        piece_size = float(s/n)
+        piece_size = float(old_div(s,n))
         # use math.ceil to at least have the target count of pieces
         rounder = math.ceil
         if not add_more_pieces:
             rounder = math.floor
-        rows = int(rounder(height/piece_size))
-        cols = int(rounder(width/piece_size))
+        rows = int(rounder(old_div(height,piece_size)))
+        cols = int(rounder(old_div(width,piece_size)))
         return (rows, cols)
 
     def svg(self, filename=None):

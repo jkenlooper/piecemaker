@@ -2,7 +2,7 @@
 from setuptools import setup, find_packages
 import os
 
-execfile(os.path.join(os.path.dirname(__file__), 'src', 'piecemaker', '__version__.py'))
+__version__ = "0.2.3" # Also set in src/piecemaker/_version.py
 
 name = "piecemaker"
 
@@ -32,15 +32,16 @@ setup(
     zip_safe=False,
     install_requires=[
         # glue 0.13 -> Pillow>=2.2.2
-        'Pillow == 3.3.0',
+        'Pillow < 7',
         'pixsaw >= 0.1.0, < 0.2',
         'beautifulsoup4',
+        'future',
         'lxml',
         'svgwrite',
         'pycairo',
         'cairosvg == 1.0.22',
         # glue 0.13 -> Jinja2>=2.7,<2.10
-        'glue == 0.13',
+        'glue >= 0.13, <1.0',
       ],
     entry_points="""
     [console_scripts]

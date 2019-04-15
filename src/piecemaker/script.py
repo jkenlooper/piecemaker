@@ -1,3 +1,5 @@
+from builtins import str
+from builtins import range
 import os
 import json
 import subprocess
@@ -9,7 +11,7 @@ from PIL import Image
 from piecemaker.base import JigsawPieceClipsSVG, Pieces
 from piecemaker.adjacent import Adjacent
 
-execfile(os.path.join(os.path.dirname(__file__), '__version__.py'))
+from piecemaker._version import __version__
 
 def piecemaker():
     parser = OptionParser(usage="%prog [options] path/to/image",
