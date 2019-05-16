@@ -3,13 +3,15 @@ The Jigsaw Piece Maker
 
 A jigsaw puzzle pieces generator that levels the playing field.
 
-This script may change a lot as I have yet to really use it for any active
-projects.
+Currently in use by `Puzzle Massive <http://puzzle.massive.xyz>`_ to create
+puzzles with 5000+ pieces.
 
-It basically creates jigsaw puzzle pieces in two formats: svg, and png.  The
+It creates jigsaw puzzle pieces in multiple formats: svg, jpg, and png.  The
 number and size of pieces are set by passing the script different options.  It
 takes a while to run if doing a lot of pieces. It currently uses potrace, and
-imagemagick convert subprocesses.
+imagemagick convert subprocesses.  Extra JSON files are created with details on
+size of pieces and adjacent pieces information which is commonly used when
+verifying that two pieces can join together.
 
 
 Installing
@@ -23,9 +25,8 @@ Python Packages:
 * `pixsaw <http://github.com/jkenlooper/pixsaw>`_
 * `beautifulsoup4 <http://www.crummy.com/software/BeautifulSoup/bs4/>`_
 * `svgwrite <https://pypi.python.org/pypi/svgwrite>`_
-* `html <https://pypi.python.org/pypi/html>`_
 * lxml
-* cairosvg
+* `cairosvg <https://cairosvg.org>`_
 * `glue <https://github.com/jorgebastida/glue>`_
 
 Other Software needed:
@@ -42,7 +43,7 @@ If on ubuntu or other debian based distro::
 Install with pip in editable mode for developing and use virtualenv to isolate
 python dependencies::
 
-    $ virtualenv .
+    $ virtualenv . -p python3
     $ source ./bin/activate
     $ pip install -e .
 
@@ -53,42 +54,4 @@ Usage
 See the script.py for more.  Not everything has been implemented, but to create
 100 randomly generated jigsaw puzzle pieces::
 
-    ./bin/piecemaker --dir test  --number-of-pieces 100 test.jpg
-
-
-Some in progress notes and such
-*******************************
-
-``These notes and such are probably outdated...``
-
-just clips - only create a clips svg file
-
-clips - specify a clips svg file
-
-compute adjacent - adds the adjacent piece id's to each piece in JSON file.
-
-minimum piece size - Will change the count of pieces to meet this requirement
-
-max pixels - Will scale down the original image to meet this requirement
-
-scaled sizes - output multiple scaled versions of piece pngs
-
-Outputs:
-
-clips svg file
-
-adjacent.json - Lists each piece and their adjacent pieces
-
-Directory::
-
-    pieces/
-      full/ - unscaled version
-        pieces.json - JSON file with pieces info
-        pieces/
-          directory with piece png files
-      scaled-50/ - scaled 50% version (set by 'scaled sizes' option)
-        pieces.json - JSON file with pieces info
-        pieces/
-          directory with piece png files
-
-
+    piecemaker --dir test  --number-of-pieces 100 test.jpg

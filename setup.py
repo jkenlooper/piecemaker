@@ -24,7 +24,7 @@ setup(
         'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
         'Natural Language :: English',
         'Operating System :: POSIX',
-        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.6',
         'Topic :: Software Development :: Build Tools',
         ],
     package_dir={'': 'src'},
@@ -33,13 +33,12 @@ setup(
     install_requires=[
         # glue 0.13 -> Pillow>=2.2.2
         'Pillow < 7',
-        'pixsaw >= 0.1.0, < 0.2',
+        'pixsaw',
         'beautifulsoup4',
         'future',
-        'lxml',
+        'lxml', # wanted by beautifulsoup4
         'svgwrite',
-        'pycairo',
-        'cairosvg == 1.0.22',
+        'cairosvg',
         # glue 0.13 -> Jinja2>=2.7,<2.10
         'glue >= 0.13, <1.0',
       ],
