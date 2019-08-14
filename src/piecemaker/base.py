@@ -72,7 +72,9 @@ class Pieces(object):
         # directories
         scaled_svg = os.path.join(os.path.dirname(svgfile), '%s-%s.svg' % (linessvg_name, scale))
         scaled_svg_file = open(scaled_svg, 'w')
-        scaled_svg_file.write(str(svgfile_soup))
+        # Bit of a hack to work around the lxml parser not handling the default
+        # namespace.
+        scaled_svg_file.write(str(svgfile_soup.svg).replace('xmlns:=', 'xmlns='))
         scaled_svg_file.close()
 
         # rasterize the svgfile
