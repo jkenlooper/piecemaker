@@ -51,7 +51,9 @@ python dependencies::
 Usage
 -----
 
-See the script.py for more.  Not everything has been implemented, but to create
-100 randomly generated jigsaw puzzle pieces::
+See the script.py for more.  Not everything has been implemented. Use this
+example command to create 100 randomly generated jigsaw puzzle pieces from
+test.jpg image. This assumes that the 'test' directory (`mkdir test`) and
+test.jpg exist::
 
     piecemaker --dir test  --number-of-pieces 100 test.jpg
