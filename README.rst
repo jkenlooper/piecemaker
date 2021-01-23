@@ -37,13 +37,20 @@ Other Software needed:
 
 If on ubuntu or other debian based distro::
 
-    $ apt-get install imagemagick potrace libffi-dev python-libxml2 libxml2-dev python-lxml
+    $ sudo apt-get --yes install optipng
+    $ sudo curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -
+    $ sudo apt-get install -y nodejs
+    $ sudo apt-get --yes install python3-pil
+    $ sudo apt-get --yes install imagemagick potrace libffi-dev libxml2-dev python3-lxml python3-xcffib
+    $ sudo apt-get --yes install libcairo2-dev
+    $ sudo apt-get --yes install python3-cairo
+    $ sudo npm install -g svgo
 
 
 Install with pip in editable mode for developing and use virtualenv to isolate
 python dependencies::
 
-    $ virtualenv . -p python3
+    $ python3 -m venv .
     $ source ./bin/activate
     $ pip install -e .
 
