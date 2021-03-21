@@ -7,8 +7,10 @@ develop-eggs/
 /.eggs/
 /include/
 /lib/
-parts/
+/lib64
+/pyvenv.cfg
+/parts/
 /src/piecemaker.egg-info/
-var/
+/var/
 /local/
 /share/
