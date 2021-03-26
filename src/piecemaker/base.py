@@ -422,7 +422,7 @@ class JigsawPieceClipsSVG(object):
             curveline = " ".join(curvelines)
             path = g.add(self._dwg.path(curveline, class_="line"))
             path["stroke"] = "black"
-            path["stroke-width"] = "1"
+            path["stroke-width"] = "2"
             path["style"] = "vector-effect:non-scaling-stroke;"
             # svgo will optimize by moving the style for vector-effect to be an
             # attribute.  path["vector-effect"] = "non-scaling-stroke"
@@ -445,7 +445,7 @@ class JigsawPieceClipsSVG(object):
             curveline = " ".join(curvelines)
             path = g.add(self._dwg.path(curveline, class_="line"))
             path["stroke"] = "black"
-            path["stroke-width"] = "1"
+            path["stroke-width"] = "2"
             path["style"] = "vector-effect:non-scaling-stroke;"
             # svgo will optimize by moving the style for vector-effect to be an
             # attribute.  path["vector-effect"] = "non-scaling-stroke"
