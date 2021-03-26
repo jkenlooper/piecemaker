@@ -7,7 +7,6 @@ from builtins import object
 import os
 import decimal
 import math
-from tempfile import SpooledTemporaryFile
 from glob import glob
 import json
 import subprocess
@@ -19,7 +18,7 @@ from pixsaw.base import Handler
 from glue.managers.simple import SimpleManager
 
 from .paths.interlockingnubs import HorizontalPath, VerticalPath
-from piecemaker.tools import rasterize_svgfiles, potrace
+from piecemaker.tools import rasterize_svgfile, potrace
 
 
 class PMHandler(Handler):
@@ -43,8 +42,6 @@ class Pieces(object):
         (image_root, ext) = os.path.splitext(image)
         self._scaled_image = os.path.join(self.mydir, f"original-{self.scale}{ext}")
         im.save(self._scaled_image)
-
-
 
         if self.scale != 100:
             (w, h) = im.size
@@ -84,7 +81,7 @@ class Pieces(object):
         # scaled_svg is saved at the top level and not inside the scaled
         # directories
         scaled_svg = os.path.join(
-            os.path.dirname(svgfile), "%s-%s.svg" % (linessvg_name, self.scale)
+            os.path.dirname(svgfile), f"{linessvg_name}-{self.scale}.svg"
         )
         scaled_svg_file = open(scaled_svg, "w")
         # Bit of a hack to work around the lxml parser not handling the default
@@ -93,13 +90,7 @@ class Pieces(object):
         scaled_svg_file.close()
 
         # rasterize the svgfile
-        rasterize_svgfiles(
-            [
-                scaled_svg,
-            ]
-        )
-        (root, ext) = os.path.splitext(scaled_svg)
-        linesfile = "%s.png" % root
+        scaled_png = rasterize_svgfile(scaled_svg)
 
         self._mask_dir = os.path.join(self.mydir, "mask")
         os.mkdir(self._mask_dir)
@@ -111,7 +102,7 @@ class Pieces(object):
             self._vector_dir = os.path.join(self.mydir, "vector")
             os.mkdir(self._vector_dir)
         self._pixsaw_handler = PMHandler(
-            self.mydir, linesfile, mask_dir="mask", raster_dir="raster", jpg_dir="jpg"
+            self.mydir, scaled_png, mask_dir="mask", raster_dir="raster", jpg_dir="jpg"
         )
 
         self.width = width
@@ -121,7 +112,7 @@ class Pieces(object):
         self._pixsaw_handler.process(self._scaled_image)
 
         if self.vector:
-            for piece in glob(os.path.join(self._raster_dir, "*.png")):
+            for piece in glob(os.path.join(self._mask_dir, "*.bmp")):
                 potrace(piece, self._vector_dir)
 
         pieces_json = open(os.path.join(self.mydir, "pieces.json"), "r")
@@ -139,7 +130,16 @@ class Pieces(object):
             sprite_layout[int(filename)] = (image.x, image.y)
 
         if self.vector:
-            self._generate_vector(sprite_width, sprite_height, sprite_layout)
+            raster_png = sprite.sprite_path()
+            png_sprite = Image.open(raster_png)
+            jpg_sprite = png_sprite.convert("RGB")
+            png_sprite.close()
+            jpg_sprite_file_name = os.path.splitext(raster_png)[0] + ".jpg"
+            jpg_sprite.save(jpg_sprite_file_name)
+            jpg_sprite.close()
+            self._generate_vector(
+                sprite_width, sprite_height, sprite_layout, jpg_sprite_file_name
+            )
 
         self._sprite_proof(sprite_width, sprite_height, sprite_layout)
 
@@ -169,7 +169,7 @@ class Pieces(object):
   text-indent: 0;
 } """
         pieces_html = []
-        for (k, v) in list(self.pieces.items()):
+        for (k, v) in self.pieces.items():
             x = v[0]
             y = v[1]
             el = f"""<div class='pc pc--{self.scale} pc-{k}' style='left:{x}px;top:{y}px;'>{k}</div>"""
@@ -219,28 +219,32 @@ class Pieces(object):
 
         return sprite_manager.sprites[0]
 
-    def _generate_vector(self, sprite_width, sprite_height, sprite_layout):
+    def _generate_vector(
+        self, sprite_width, sprite_height, sprite_layout, jpg_sprite_file_name
+    ):
         " parse the individual piece svg's and create the svg. "
 
+        with open(
+            os.path.join(self.mydir, "piece_id_to_mask.json"), "r"
+        ) as piece_id_to_mask_json:
+            piece_id_to_mask = json.load(piece_id_to_mask_json)
         dwg = svgwrite.Drawing(size=(sprite_width, sprite_height), profile="full")
         dwg.viewbox(width=sprite_width, height=sprite_height)
         dwg.set_desc(title="svg preview", desc="")
 
         common_path = os.path.commonprefix([self._scaled_image, self.mydir])
-        relative_scaled_image = self._scaled_image[len(common_path) + 1:]
+        relative_scaled_image = jpg_sprite_file_name[len(common_path) + 1 :]
         source_image = dwg.defs.add(
             dwg.image(
                 relative_scaled_image,
                 id=f"source-image-{self.scale}",
-                width=self.width,
-                height=self.height,
             )
         )
 
-        for i in range(0, len(self.pieces)):
-            piece_svg = os.path.join(self._vector_dir, f"{i}.svg")
-            piece_bbox = self.pieces[str(i)]
-            preview_offset = sprite_layout[i]
+        for (i, piece_bbox) in self.pieces.items():
+            mask_id = piece_id_to_mask[i]
+            piece_svg = os.path.join(self._vector_dir, f"{mask_id}.svg")
+            preview_offset = sprite_layout[int(i)]
 
             piece_soup = BeautifulSoup(open(piece_svg), "xml")
             svg = piece_soup.svg
@@ -258,7 +262,10 @@ class Pieces(object):
             # TODO could also be separated by ','?
             (minx, miny, vbwidth, vbheight) = vb.split(" ")
             piece_fragment.viewbox(
-                minx=piece_bbox[0], miny=piece_bbox[1], width=vbwidth, height=vbheight
+                minx=preview_offset[0],
+                miny=preview_offset[1],
+                width=vbwidth,
+                height=vbheight,
             )
             piece_fragment["width"] = vbwidth
             piece_fragment["height"] = vbheight
@@ -266,9 +273,7 @@ class Pieces(object):
             use = piece_fragment.add(dwg.use(source_image))
 
             example_use = dwg.add(
-                dwg.use(
-                    piece_fragment, clip_path=f"url(#piece-mask-{self.scale}-{i})"
-                )
+                dwg.use(piece_fragment, clip_path=f"url(#piece-mask-{self.scale}-{i})")
             )
             # layout the svg pieces exactly like glue did.
             example_use["transform"] = "translate( %s, %s )" % (preview_offset)
@@ -276,8 +281,9 @@ class Pieces(object):
 
         preview_soup = BeautifulSoup(dwg.tostring(), "xml")
 
-        for i in range(0, len(self.pieces)):
-            piece_svg = os.path.join(self._vector_dir, f"{i}.svg")
+        for (i, piece_bbox) in self.pieces.items():
+            mask_id = piece_id_to_mask[i]
+            piece_svg = os.path.join(self._vector_dir, f"{mask_id}.svg")
             piece_soup = BeautifulSoup(open(piece_svg), "xml")
             svg = piece_soup.svg
             first_g = svg.find("g")
@@ -350,11 +356,14 @@ class JigsawPieceClipsSVG(object):
         self._dwg = svgwrite.Drawing(
             size=(self.width, self.height),
             profile="full",
-            **{"shape-rendering": "optimizeSpeed"}
+            **{"shape-rendering": "optimizeSpeed"},
         )
         self._dwg.viewbox(width=self.width, height=self.height)
         self._dwg.stretch()
         self._dwg.set_desc(title=self.title, desc=description)
+
+        # self._dwg.defs.add(self._dwg.style(""".line {vector-effect: non-scaling-stroke;}"""))
+        # dwg.add(dwg.path(d="M 0 0 L 1 1", class_='line'))
 
         self._create_lines()
 
@@ -411,9 +420,12 @@ class JigsawPieceClipsSVG(object):
 
             curvelines.append("L 0 %i " % self.height)  # end
             curveline = " ".join(curvelines)
-            path = g.add(self._dwg.path(curveline))
+            path = g.add(self._dwg.path(curveline, class_="line"))
             path["stroke"] = "black"
             path["stroke-width"] = "1"
+            path["style"] = "vector-effect:non-scaling-stroke;"
+            # svgo will optimize by moving the style for vector-effect to be an
+            # attribute.  path["vector-effect"] = "non-scaling-stroke"
             path["fill"] = "none"
 
     def _horizontal_lines(self):
@@ -431,7 +443,10 @@ class JigsawPieceClipsSVG(object):
 
             curvelines.append("L %i 0 " % self.width)  # end
             curveline = " ".join(curvelines)
-            path = g.add(self._dwg.path(curveline))
+            path = g.add(self._dwg.path(curveline, class_="line"))
             path["stroke"] = "black"
             path["stroke-width"] = "1"
+            path["style"] = "vector-effect:non-scaling-stroke;"
+            # svgo will optimize by moving the style for vector-effect to be an
+            # attribute.  path["vector-effect"] = "non-scaling-stroke"
             path["fill"] = "none"

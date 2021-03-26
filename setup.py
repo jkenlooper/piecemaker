@@ -39,8 +39,8 @@ setup(
         "beautifulsoup4",
         "future",
         "lxml",  # wanted by beautifulsoup4
-        "svgwrite >= 1.3.1",
-        "cairosvg",
+        "svgwrite >= 1.4.1",
+        "cairosvg >= 2.5.2",
         # glue 0.13 -> Jinja2>=2.7,<2.10
         "glue >= 0.13, <1.0",
     ],
