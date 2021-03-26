@@ -26,7 +26,6 @@ Python Packages:
 * `beautifulsoup4 <http://www.crummy.com/software/BeautifulSoup/bs4/>`_
 * `svgwrite <https://pypi.python.org/pypi/svgwrite>`_
 * lxml
-* `cairosvg <https://cairosvg.org>`_
 * `glue <https://github.com/jorgebastida/glue>`_
 
 Other Software needed:
@@ -34,6 +33,7 @@ Other Software needed:
 * `potrace <http://potrace.sourceforge.net/>`_
 * `imagemagick <http://www.imagemagick.org/script/index.php>`_
 * `svgo <https://github.com/svg/svgo>`_
+* `svpng <https://github.com/tylerjpeterson/svpng>`_
 
 If on ubuntu or other debian based distro::
 
@@ -42,9 +42,7 @@ If on ubuntu or other debian based distro::
     $ sudo apt-get install -y nodejs
     $ sudo apt-get --yes install python3-pil
     $ sudo apt-get --yes install imagemagick potrace libffi-dev libxml2-dev python3-lxml python3-xcffib
-    $ sudo apt-get --yes install libcairo2-dev
-    $ sudo apt-get --yes install python3-cairo
-    $ sudo npm install -g svgo
+    $ sudo npm install -g svgo svpng
 
 
 Install with pip in editable mode for developing and use virtualenv to isolate

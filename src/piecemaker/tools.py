@@ -1,7 +1,6 @@
 import subprocess
 import os
 import os.path
-import cairosvg
 
 
 def rasterize_svgfile(svgfile):
@@ -15,12 +14,8 @@ def rasterize_svgfile(svgfile):
     pngfile = os.path.join(output_dir, f"{root}.png")
     # Use svgo to optimize the svg and move vector-effect to an attribute.
     subprocess.call(["svgo", "-i", svgfile, "-o", svgfile], shell=False)
-
-    # TODO: switch to svpng
-    # subprocess.call(["svpng", svgfile, pngfile], shell=False)
-    cairosvg.svg2png(
-        url=svgfile, write_to=pngfile
-    )
+    pngfile = os.path.join(output_dir, f"{root}.png")
+    subprocess.call(["svpng", svgfile, pngfile], shell=False)
 
     return pngfile
 
