@@ -4,11 +4,13 @@ import os
 import json
 from optparse import OptionParser
 from random import randint
+import time
 
 from PIL import Image
 
 from piecemaker.base import JigsawPieceClipsSVG, Pieces
 from piecemaker.adjacent import Adjacent
+from piecemaker.tools import resize_to_max_pixels
 
 from piecemaker._version import __version__
 
@@ -56,9 +58,18 @@ the minimum piece size.""",
         "--minimum-piece-size",
         action="store",
         type="int",
-        default=42,
+        default=25,
         help="""Minimum piece size.
 Will change the count of pieces to meet this if not set to 0.""",
+    )
+
+    parser.add_option(
+        "--maximum-piece-size",
+        action="store",
+        type="int",
+        default=0,
+        help="""Maximum piece size.
+Will scale down the original image to meet this if not set to 0.""",
     )
 
     parser.add_option(
@@ -126,10 +137,14 @@ adjacent pieces for each piece.""",
     if args:
         imagefile = args[0]
 
+    max_pixels = options.max_pixels
+
     if not options.svg:
         # create a grid of puzzle pieces in svg
         if options.minimum_piece_size < 0:
             parser.error("Invalid minimum piece size")
+        if options.minimum_piece_size < 25:
+            print(f"Warning: a minimum piece size less than 25 is not recommended.")
 
         if options.number_of_pieces < 0:
             parser.error("Invalid number of pieces")
@@ -149,10 +164,21 @@ or set number of pieces greater than 0.
             # TODO: handle more than just one picture
             im = Image.open(imagefile)
             (width, height) = im.size
+            im.close()
         else:
             width = options.width
             height = options.height
 
+        resize_imagefile = imagefile
+        if max_pixels > 0:
+            (imagefile_name, imagefile_ext) = os.path.splitext(imagefile)
+            resize_imagefile = f"{imagefile_name}-resized{imagefile_ext}"
+            (width, height) = resize_to_max_pixels(imagefile, resize_imagefile, max_pixels)
+        if options.maximum_piece_size > 0 and options.number_of_pieces > 0 and max_pixels == 0:
+            (imagefile_name, imagefile_ext) = os.path.splitext(imagefile)
+            resize_imagefile = f"{imagefile_name}-resized{imagefile_ext}"
+            max_pixels = (options.maximum_piece_size * options.maximum_piece_size) * options.number_of_pieces
+            (width, height) = resize_to_max_pixels(imagefile, resize_imagefile, max_pixels)
         jpc = JigsawPieceClipsSVG(
             width=width,
             height=height,
@@ -177,24 +203,32 @@ or set number of pieces greater than 0.
 
         mydir = options.dir
 
-        piece_count = 0
         dimensions = {}
         for scale in scaled_sizes:
             scaled_dir = os.path.join(mydir, f"scale-{scale}")
             os.mkdir(scaled_dir)
 
+            start = time.perf_counter()
             pieces = Pieces(
                 svgfile,
                 imagefile,
                 scaled_dir,
                 scale=scale,
-                max_pixels=options.max_pixels,
+                max_pixels=max_pixels,
                 vector=not options.no_svg_files,
             )
+            stop = time.perf_counter()
+            print(f"Pieces init {stop - start}")
 
+            start = time.perf_counter()
             pieces.cut()
+            stop = time.perf_counter()
+            print(f"cut {stop - start}")
 
+            start = time.perf_counter()
             pieces.generate_resources()
+            stop = time.perf_counter()
+            print(f"generate_resources {stop - start}")
 
             piece_count = len(pieces.pieces)
             piece_bboxes = pieces.pieces
@@ -245,7 +279,10 @@ or set number of pieces greater than 0.
         if options.adjacent:
             largest_size = max(scaled_sizes)
             largest_scaled_dir = os.path.join(mydir, f"scale-{largest_size}")
+            start = time.perf_counter()
             adjacent = Adjacent(largest_scaled_dir)
+            stop = time.perf_counter()
+            print(f"adjacent {stop - start}")
             f = open(os.path.join(mydir, "adjacent.json"), "w")
             json.dump(adjacent.adjacent_pieces, f)
             f.close()

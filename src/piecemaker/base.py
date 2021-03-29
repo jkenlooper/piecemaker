@@ -9,7 +9,7 @@ import decimal
 import math
 from glob import glob
 import json
-import subprocess
+import time
 
 import svgwrite
 from PIL import Image
@@ -18,7 +18,7 @@ from pixsaw.base import Handler
 from glue.managers.simple import SimpleManager
 
 from .paths.interlockingnubs import HorizontalPath, VerticalPath
-from piecemaker.tools import rasterize_svgfile, potrace
+from piecemaker.tools import rasterize_svgfile, potrace, resize_to_max_pixels
 
 
 class PMHandler(Handler):
@@ -37,7 +37,9 @@ class Pieces(object):
         self.mydir = mydir
         self.scale = int(scale)
         # self._image = image
-        im = Image.open(image).copy()
+        original_im = Image.open(image)
+        im = original_im.copy()
+        original_im.close()
         # work on a copy of the image that has been scaled
         (image_root, ext) = os.path.splitext(image)
         self._scaled_image = os.path.join(self.mydir, f"original-{self.scale}{ext}")
@@ -51,26 +53,10 @@ class Pieces(object):
             im.save(self._scaled_image)
 
         (width, height) = im.size
+        im.close()
 
         if max_pixels > 0 and (width * height) > max_pixels:
-            # resize the image using image magick @
-            # TODO: how to do this with PIL?
-            # '%i@' % max_pixels
-            subprocess.call(
-                [
-                    "convert",
-                    self._scaled_image,
-                    "-resize",
-                    "{0}@".format(max_pixels),
-                    "-strip",
-                    "-quality",
-                    "85%",
-                    self._scaled_image,
-                ]
-            )
-            im = Image.open(self._scaled_image)
-            (width, height) = im.size
-        im.close()
+            (width, height) = resize_to_max_pixels(self._scaled_image, self._scaled_image, max_pixels)
 
         # scale the svg file
         svgfile_soup = BeautifulSoup(open(svgfile), "xml")
@@ -121,7 +107,10 @@ class Pieces(object):
     def generate_resources(self):
         " Create the extra resources to display the pieces. "
 
+        start = time.perf_counter()
         sprite = self._generate_sprite()
+        stop = time.perf_counter()
+        print(f"_generate_sprite {stop - start}")
 
         (sprite_width, sprite_height) = sprite.canvas_size
         sprite_layout = {}  # used for showing example layout
@@ -137,11 +126,21 @@ class Pieces(object):
             jpg_sprite_file_name = os.path.splitext(raster_png)[0] + ".jpg"
             jpg_sprite.save(jpg_sprite_file_name)
             jpg_sprite.close()
+            start = time.perf_counter()
             self._generate_vector(
                 sprite_width, sprite_height, sprite_layout, jpg_sprite_file_name
             )
+            stop = time.perf_counter()
+            print(f"_generate_vector {stop - start}")
+            start = time.perf_counter()
+            self._sprite_vector_proof(sprite_width, sprite_height, sprite_layout)
+            stop = time.perf_counter()
+            print(f"_sprite_vector_proof {stop - start}")
 
+        start = time.perf_counter()
         self._sprite_proof(sprite_width, sprite_height, sprite_layout)
+        stop = time.perf_counter()
+        print(f"_sprite_proof {stop - start}")
 
     def _sprite_proof(self, sprite_width, sprite_height, sprite_layout):
         """Create a sprite proof showing how the image was cut. Should look like
@@ -181,6 +180,60 @@ class Pieces(object):
         )
 
         f = open(os.path.join(self.mydir, "sprite_proof.html"), "w")
+        f.write(html)
+        f.close()
+
+    def _sprite_vector_proof(self, sprite_width, sprite_height, sprite_layout):
+        """Create a sprite proof showing how the image was cut. Should look like
+        original."""
+        template = """
+<!doctype html>
+<html>
+<head>
+<title>Sprite Vector Proof - {scale}</title>
+<link rel="stylesheet" href="raster.css">
+<style>
+{style}
+</style>
+</head>
+<body>
+
+<svg>
+ <defs>
+  <image id="source-image-100" xlink:href="raster.jpg"/>
+
+  <clipPath id="piece-mask-100-0" transform="translate(0.000000,220.000000) scale(0.100000,-0.100000)">
+    <path d="M54 1988 c-5 -117 -9 -301 -9 -408 0 -167 3 -200 17 -227 39 -71 79 -74 188 -15 56 32 73 36 135 37 120 0 233 -71 271 -171 25 -65 15 -214 -20 -289 -39 -85 -72 -122 -141 -156 -59 -29 -70 -31 -147 -27 -65 3 -96 9 -140 31 -76 36 -112 35 -149 -4 -42 -45 -54 -97 -53 -239 1 -140 40 -458 59 -478 29 -32 873 -52 983 -23 66 17 112 53 112 89 0 14 -11 53 -25 88 -67 167 -70 327 -8 396 102 113 392 71 454 -66 30 -66 24 -102 -29 -158 -17 -19 -26 -42 -29 -75 -4 -42 -1 -53 21 -80 53 -63 149 -85 491 -113 243 -20 429 -43 498 -61 20 -5 42 -7 47 -4 6 4 10 394 10 1086 l0 1079 -1264 0 -1263 0 -9 -212z"/>
+  </clipPath>
+  <symbol height="220.000000" id="piece-fragment-100-0" viewBox="1258,0,259.000000,220.000000" width="259.000000">
+   <use xlink:href="#source-image-100"/>
+  </symbol>
+
+</svg>
+
+
+<svg height="220.000000" id="pc-100-0" width="259.000000">
+  <use class="example" clip-path="url(#piece-mask-100-0)" xlink:href="#piece-fragment-100-0"/>
+</svg>
+
+
+{pieces}
+</body>
+</html>"""
+        style = """"""
+        pieces_html = []
+        # for (k, v) in self.pieces.items():
+        #    x = v[0]
+        #    y = v[1]
+        #    el = f"""<div class='pc pc--{self.scale} pc-{k}' style='left:{x}px;top:{y}px;'>{k}</div>"""
+        #    pieces_html.append(el)
+
+        pieces = "".join(pieces_html)
+        html = template.format(
+            **{"scale": self.scale, "pieces": pieces, "style": style}
+        )
+
+        f = open(os.path.join(self.mydir, "sprite_vector_proof.html"), "w")
         f.write(html)
         f.close()
 
@@ -362,9 +415,6 @@ class JigsawPieceClipsSVG(object):
         self._dwg.stretch()
         self._dwg.set_desc(title=self.title, desc=description)
 
-        # self._dwg.defs.add(self._dwg.style(""".line {vector-effect: non-scaling-stroke;}"""))
-        # dwg.add(dwg.path(d="M 0 0 L 1 1", class_='line'))
-
         self._create_lines()
 
     def _gridify(self, width, height, pieces, add_more_pieces=True):
@@ -420,7 +470,7 @@ class JigsawPieceClipsSVG(object):
 
             curvelines.append("L 0 %i " % self.height)  # end
             curveline = " ".join(curvelines)
-            path = g.add(self._dwg.path(curveline, class_="line"))
+            path = g.add(self._dwg.path(curveline))
             path["stroke"] = "black"
             path["stroke-width"] = "1"
             path["style"] = "vector-effect:non-scaling-stroke;"
@@ -443,7 +493,7 @@ class JigsawPieceClipsSVG(object):
 
             curvelines.append("L %i 0 " % self.width)  # end
             curveline = " ".join(curvelines)
-            path = g.add(self._dwg.path(curveline, class_="line"))
+            path = g.add(self._dwg.path(curveline))
             path["stroke"] = "black"
             path["stroke-width"] = "1"
             path["style"] = "vector-effect:non-scaling-stroke;"
