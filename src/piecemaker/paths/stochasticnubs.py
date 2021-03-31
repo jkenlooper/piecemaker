@@ -17,82 +17,115 @@ def retuple(p):
 
 
 class Path(object):
+    anchor_extremes = ["anchor_left-right-down", "none"]
+
     def invert(self, t):
         return (t[0], t[1] * -1)
 
     def point(self, t):
         return ",".join([str(x) for x in t])
 
-    def __init__(self, start=(0, 0), width=155.0, out=None):
+    def __init__(self, width=155.0, height=155.0, out=None):
         if out is None:
             self.out = choice(COIN)
-        # self.out = False
         # self.out = True
-        tongue_length = uniform(0.14, 0.34)  # 0.30 including shoulder
-        #tongue_length = 0.34
-        #tongue_length = 0.14
-        self._middle = width / uniform(2.0, 3.0)
-        left_shoulder = (uniform(0.34, 0.43), uniform(-0.14, 0.26))  # 0.37, 0.08
-        right_shoulder = (uniform(0.34, 0.43), uniform(-0.14, 0.26))  # 0.37, 0.08
-        self._start = retuple(start)
+
+        anchor_extreme = choice(self.anchor_extremes)
+        # anchor_extreme = self.anchor_extremes[0]
+
         self.width = width  # total width of the path
-        self._stop = (width, 0)
-        self._anchor_left = (width * left_shoulder[0], width * left_shoulder[1])
+        self.height = height  # total height of the path
+        if anchor_extreme == "anchor_left-right-down":
+            self._anchor_left = (
+                width * uniform(0.25, 0.50),
+                height * uniform(0.0, 0.15),
+            )
+        else:
+            self._anchor_left = (width * 0.25, height * 0)
         self._anchor_center = (
-            (width / 2) - self._anchor_left[0],
-            (width * tongue_length) - (left_shoulder[1] * width),
+            (width * 0.5) - self._anchor_left[0],
+            (height * 0.30) - self._anchor_left[1],
         )
         self._anchor_right = (
-            (self._anchor_left[0] + self._anchor_center[0]) - width * right_shoulder[0],
-            (
-                (self._anchor_left[1] + self._anchor_center[1])
-                - width * right_shoulder[1]
+            (width * 0.75) - (self._anchor_left[0] + self._anchor_center[0]),
+            (height * 0) - (self._anchor_left[1] + self._anchor_center[1]),
+        )
+        if anchor_extreme == "anchor_left-right-down":
+            self._relative_stop = (
+                width
+                - (
+                    self._anchor_left[0]
+                    + self._anchor_center[0]
+                    + self._anchor_right[0]
+                ),
+                (height * 0.0)
+                - (
+                    self._anchor_left[1]
+                    + self._anchor_center[1]
+                    + self._anchor_right[1]
+                ),
             )
-            * -1,
-        )
-        self._relative_stop = (
-            width
-            - (self._anchor_left[0] + self._anchor_center[0] + self._anchor_right[0]),
-            (self._anchor_left[1] + self._anchor_center[1] + self._anchor_right[1])
-            * -1,
-        )
-        self._relative_middle = (self._middle, (self._middle + width * 0.05) * -1)
-        # (self._middle + width*0.13)*-1)
+        else:
+            self._relative_stop = (
+                width
+                - (
+                    self._anchor_left[0]
+                    + self._anchor_center[0]
+                    + self._anchor_right[0]
+                ),
+                (self._anchor_left[1] + self._anchor_center[1] + self._anchor_right[1])
+                * -1,
+            )
 
-        # relative to anchor_left
-        self._control_start_a = (uniform(0.05, 0.29) * width, 0)
-        self._control_start_b = (
-            (uniform(0.02, 0.13) * width) + self._anchor_left[0],
-            (uniform(0.02, 0.18) * width) * -1,
+        if anchor_extreme == "anchor_left-right-down":
+            self._control_start_a = (width * 0.30, height * 0.2)
+        else:
+            self._control_start_a = (0.25 * width, 0)
+
+        if anchor_extreme == "anchor_left-right-down":
+            self._control_start_b = (
+                width * 0.0,
+                height * 0.3,
+            )
+        else:
+            self._control_start_b = (0.25 * width, 0)
+
+        if anchor_extreme == "anchor_left-right-down":
+            self._control_left_a = (0, 0)
+        else:
+            self._control_left_a = (
+                (width * 0.25) - (self._anchor_left[0]),
+                (height * 0.15) - (self._anchor_left[1]),
+            )
+
+        self._control_left_b = (
+            # (width * uniform(0.25, 0.50)) - (self._anchor_left[0]),
+            # (height * uniform(0.20, 0.40)) - (self._anchor_left[1])
+            (width * 0.25) - (self._anchor_left[0]),
+            (height * 0.30) - (self._anchor_left[1]),
         )
 
-        self._control_left_a = (
-            (uniform(0.03, 0.1) * width) * -1,
-            uniform(0.21, 1.01) * self._anchor_center[1],
+        self._control_center_a = (
+            (width * 0.75) - (self._anchor_left[0] + self._anchor_center[0]),
+            (height * 0.30) - (self._anchor_left[1] + self._anchor_center[1]),
         )
-        self._control_left_b = (0, self._anchor_center[1])
-
-        # relative to anchor_right
-        self._control_center_a = (self._anchor_right[0], 0)
         self._control_center_b = (
-            uniform(0.01, 0.20) * width + self._anchor_right[0],
-            uniform(0.21, 1.01) * self._anchor_right[1],
+            (width * 0.35) - (self._anchor_left[0] + self._anchor_center[0]),
+            (height * 0.0) - (self._anchor_left[1] + self._anchor_center[1]),
         )
 
-        self._control_right_a = ((uniform(0.01, 0.21) * width) * -1, (uniform(0.03, 0.23) * width) * -1)
-        self._control_right_b = (uniform(0.11, 0.31) * width, (uniform(0.01, 0.15) * width) * -1)
-
-    @Property
-    def start():
-        doc = "first anchor point in path"
-
-        def fget(self):
-            return self.point(self._start)
-
-        def fset(self, p):
-            self._start = retuple(p)
-
-        return locals()
+        self._control_right_a = (
+            (width * uniform(0.80, 0.82))
+            - (self._anchor_left[0] + self._anchor_center[0] + self._anchor_right[0]),
+            (height * uniform(0.10, -0.15))
+            - (self._anchor_left[1] + self._anchor_center[1] + self._anchor_right[1]),
+        )
+        self._control_right_b = (
+            (width * uniform(0.85, 1.0))
+            - (self._anchor_left[0] + self._anchor_center[0] + self._anchor_right[0]),
+            (height * uniform(-0.15, 0.15))
+            - (self._anchor_left[1] + self._anchor_center[1] + self._anchor_right[1]),
+        )
 
     @Property
     def control_start_a():
@@ -262,58 +295,14 @@ class Path(object):
 
         return locals()
 
-    @Property
-    def relative_middle():
-        doc = "last anchor point in path relative to previous anchor"
-
-        def fget(self):
-            return self.point(self._relative_middle)
-
-        def fset(self, p):
-            self._relative_middle = retuple(p)
-
-        return locals()
-
-    @Property
-    def stop():
-        doc = "last anchor point in path"
-
-        def fget(self):
-            return self.point(self._stop)
-
-        def fset(self, p):
-            self._stop = retuple(p)
-
-        return locals()
-
     def render(self):
         " Create all the 'curveto' points "
-        if not self.out:
-            m = list(self._relative_middle)
-            m[1] = m[1] * -1
-            self._relative_middle = tuple(m)
-
-        return (
-            u"c %(control_start_a)s %(control_start_b)s %(anchor_left)s c %(control_left_a)s %(control_left_b)s %(anchor_center)s c %(control_center_a)s %(control_center_b)s %(anchor_right)s c %(control_right_a)s %(control_right_b)s %(relative_stop)s"
-            % (
-                {
-                    "start": self.start,
-                    "control_start_a": self.control_start_a,
-                    "control_start_b": self.control_start_b,
-                    "control_left_a": self.control_left_a,
-                    "control_left_b": self.control_left_b,
-                    "anchor_left": self.anchor_left,
-                    "control_center_a": self.control_center_a,
-                    "control_center_b": self.control_center_b,
-                    "anchor_center": self.anchor_center,
-                    "control_right_a": self.control_right_a,
-                    "control_right_b": self.control_right_b,
-                    "anchor_right": self.anchor_right,
-                    "relative_stop": self.relative_stop,
-                    "relative_middle": self.relative_middle,
-                }
-            )
-        )
+        return f"""
+c {self.control_start_a} {self.control_start_b} {self.anchor_left}
+c {self.control_left_a} {self.control_left_b} {self.anchor_center}
+c {self.control_center_a} {self.control_center_b} {self.anchor_right}
+c {self.control_right_a} {self.control_right_b} {self.relative_stop}
+        """.strip()
 
 
 class VerticalPath(Path):

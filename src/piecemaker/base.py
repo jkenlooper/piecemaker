@@ -2,7 +2,6 @@ from __future__ import absolute_import
 from __future__ import division
 from builtins import str
 from builtins import range
-from past.utils import old_div
 from builtins import object
 import os
 import decimal
@@ -364,7 +363,8 @@ class JigsawPieceClipsSVG(object):
 
     title = "Jigsaw puzzle piece clips"
     minimum_count_of_pieces = 9
-    maximum_count_of_pieces = 50000  # how many is too many?
+    # TODO: what should the maximum_count_of_pieces be for this?
+    maximum_count_of_pieces = 150000
 
     def __init__(
         self,
@@ -382,8 +382,8 @@ class JigsawPieceClipsSVG(object):
             # Get the maximum number of pieces that can fit within the
             # dimensions depending on the minimum piece size.
             max_pieces_that_will_fit = int(
-                (old_div(width, minimum_piece_size))
-                * (old_div(height, minimum_piece_size))
+                (width / minimum_piece_size)
+                * (height / minimum_piece_size)
             )
             if _pieces > 0:
                 # Only use the piece count that is smaller to avoid getting too
@@ -425,13 +425,13 @@ class JigsawPieceClipsSVG(object):
         area = decimal.Decimal(width * height)
         s = area.sqrt()
         n = decimal.Decimal(pieces).sqrt()
-        piece_size = float(old_div(s, n))
+        piece_size = float(s / n)
         # use math.ceil to at least have the target count of pieces
         rounder = math.ceil
         if not add_more_pieces:
             rounder = math.floor
-        rows = int(rounder(old_div(height, piece_size)))
-        cols = int(rounder(old_div(width, piece_size)))
+        rows = int(rounder(height / piece_size))
+        cols = int(rounder(width / piece_size))
         return (rows, cols)
 
     def svg(self, filename=None):
@@ -465,7 +465,7 @@ class JigsawPieceClipsSVG(object):
                 "L %f 0 " % start,
             ]
             for j in range(0, self._rows):
-                interlockingnub_path = VerticalPath(width=self._piece_height)
+                interlockingnub_path = VerticalPath(width=self._piece_height, height=self._piece_width)
                 curvelines.append(interlockingnub_path.render())
 
             curvelines.append("L 0 %i " % self.height)  # end
@@ -488,7 +488,7 @@ class JigsawPieceClipsSVG(object):
                 "L 0 %f " % start,
             ]
             for j in range(0, self._cols):
-                interlockingnub_path = HorizontalPath(width=self._piece_width)
+                interlockingnub_path = HorizontalPath(width=self._piece_width, height=self._piece_height)
                 curvelines.append(interlockingnub_path.render())
 
             curvelines.append("L %i 0 " % self.width)  # end

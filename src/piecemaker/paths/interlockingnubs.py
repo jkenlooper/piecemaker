@@ -23,7 +23,7 @@ class Path(object):
     def point(self, t):
         return ",".join([str(x) for x in t])
 
-    def __init__(self, start=(0, 0), width=155.0, out=None):
+    def __init__(self, start=(0, 0), width=155.0, height=155.0, out=None):
         if out is None:
             self.out = choice(COIN)
         # self.out = False
