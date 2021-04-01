@@ -16,8 +16,13 @@ from bs4 import BeautifulSoup
 from pixsaw.base import Handler
 from glue.managers.simple import SimpleManager
 
-from .paths.interlockingnubs import HorizontalPath, VerticalPath
+from .paths import interlockingnubs, stochasticnubs
 from piecemaker.tools import rasterize_svgfile, potrace, resize_to_max_pixels
+
+variants = {
+    interlockingnubs.__name__.replace("piecemaker.paths.", ""),
+    stochasticnubs.__name__.replace("piecemaker.paths.", "")
+}
 
 
 class PMHandler(Handler):
@@ -372,10 +377,15 @@ class JigsawPieceClipsSVG(object):
         height,
         pieces=0,
         minimum_piece_size=42,
+        variant="interlockingnubs"
     ):
 
         self.width = width
         self.height = height
+        if variant not in variants:
+            raise Exception("invalid variant")
+        self.HorizontalPath = globals().get(variant).HorizontalPath
+        self.VerticalPath = globals().get(variant).VerticalPath
         _pieces = pieces
 
         if minimum_piece_size > 0:
@@ -465,7 +475,7 @@ class JigsawPieceClipsSVG(object):
                 "L %f 0 " % start,
             ]
             for j in range(0, self._rows):
-                interlockingnub_path = VerticalPath(width=self._piece_height, height=self._piece_width)
+                interlockingnub_path = stochasticnubs.VerticalPath(width=self._piece_height, height=self._piece_width)
                 curvelines.append(interlockingnub_path.render())
 
             curvelines.append("L 0 %i " % self.height)  # end
@@ -488,7 +498,7 @@ class JigsawPieceClipsSVG(object):
                 "L 0 %f " % start,
             ]
             for j in range(0, self._cols):
-                interlockingnub_path = HorizontalPath(width=self._piece_width, height=self._piece_height)
+                interlockingnub_path = self.HorizontalPath(width=self._piece_width, height=self._piece_height)
                 curvelines.append(interlockingnub_path.render())
 
             curvelines.append("L %i 0 " % self.width)  # end

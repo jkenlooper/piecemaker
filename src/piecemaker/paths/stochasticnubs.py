@@ -16,9 +16,309 @@ def retuple(p):
         return tuple(p.split(","))
 
 
-class Path(object):
-    anchor_extremes = ["anchor_left-right-down", "none"]
+class StochasticCurvePoints:
+    variants = [
+        "anchor_left_right_down",
+        "anchor_center_bump",
+        "left_hook",
+        "right_hook",
+        "standard",
+    ]
 
+    @staticmethod
+    def get_curve_points(width, height):
+        variant = choice(StochasticCurvePoints.variants)
+        _get_curve_points = getattr(StochasticCurvePoints, variant)
+        return _get_curve_points(width, height)
+
+    @staticmethod
+    def anchor_left_right_down(width, height):
+        _anchor_left = (
+            width * uniform(0.25, 0.50),
+            height * uniform(0.0, 0.15),
+        )
+        _anchor_center = (
+            (width * 0.5) - _anchor_left[0],
+            (height * 0.30) - _anchor_left[1],
+        )
+        _anchor_right = (
+            (width * 0.75) - (_anchor_left[0] + _anchor_center[0]),
+            (height * 0) - (_anchor_left[1] + _anchor_center[1]),
+        )
+        _relative_stop = (
+            width - (_anchor_left[0] + _anchor_center[0] + _anchor_right[0]),
+            (height * 0.0) - (_anchor_left[1] + _anchor_center[1] + _anchor_right[1]),
+        )
+        _control_start_a = (width * 0.30, height * 0.2)
+        _control_start_b = (
+            width * 0.15,
+            height * 0.0,
+        )
+        _control_left_a = (0, 0)
+        _control_left_b = (
+            # (width * uniform(0.25, 0.50)) - (_anchor_left[0]),
+            # (height * uniform(0.20, 0.40)) - (_anchor_left[1])
+            (width * 0.25) - (_anchor_left[0]),
+            (height * 0.30) - (_anchor_left[1]),
+        )
+        _control_center_a = (
+            (width * 0.75) - (_anchor_left[0] + _anchor_center[0]),
+            (height * 0.30) - (_anchor_left[1] + _anchor_center[1]),
+        )
+        _control_center_b = (
+            (width * 0.35) - (_anchor_left[0] + _anchor_center[0]),
+            (height * 0.0) - (_anchor_left[1] + _anchor_center[1]),
+        )
+        _control_right_a = (
+            (width * uniform(0.80, 0.82))
+            - (_anchor_left[0] + _anchor_center[0] + _anchor_right[0]),
+            (height * uniform(0.10, -0.15))
+            - (_anchor_left[1] + _anchor_center[1] + _anchor_right[1]),
+        )
+        _control_right_b = (
+            (width * uniform(0.85, 1.0))
+            - (_anchor_left[0] + _anchor_center[0] + _anchor_right[0]),
+            (height * uniform(-0.15, 0.15))
+            - (_anchor_left[1] + _anchor_center[1] + _anchor_right[1]),
+        )
+
+        return (
+            _control_start_a,
+            _control_start_b,
+            _anchor_left,
+            _control_left_a,
+            _control_left_b,
+            _anchor_center,
+            _control_center_a,
+            _control_center_b,
+            _anchor_right,
+            _control_right_a,
+            _control_right_b,
+            _relative_stop,
+        )
+
+    @staticmethod
+    def anchor_center_bump(width, height):
+        _anchor_left = (
+            width * uniform(0.05, 0.10),
+            height * uniform(-0.02, 0.02),
+        )
+        _anchor_center = (
+            (width * 0.5) - _anchor_left[0],
+            (height * uniform(-0.10, 0.30)) - _anchor_left[1],
+        )
+        _anchor_right = (
+            (width * uniform(0.90, 0.95)) - (_anchor_left[0] + _anchor_center[0]),
+            (height * uniform(-0.02, 0.02)) - (_anchor_left[1] + _anchor_center[1]),
+        )
+        _relative_stop = (
+            width - (_anchor_left[0] + _anchor_center[0] + _anchor_right[0]),
+            (height * 0.0) - (_anchor_left[1] + _anchor_center[1] + _anchor_right[1]),
+        )
+        _control_start_a = (0, 0)
+        _control_start_b = (
+            _anchor_left[0],
+            _anchor_left[1],
+        )
+        _control_left_a = (
+            (width * 0.15) - (_anchor_left[0]),
+            (height * 0) - (_anchor_left[1]),
+        )
+        _control_left_b = (
+            (width * uniform(0.10, 0.48)) - (_anchor_left[0]),
+            (height * uniform(-0.10, 0.30)) - (_anchor_left[1]),
+        )
+        _control_center_a = (
+            (width * uniform(0.52, 0.80)) - (_anchor_left[0] + _anchor_center[0]),
+            (height * uniform(-0.20, 0.30)) - (_anchor_left[1] + _anchor_center[1]),
+        )
+        _control_center_b = (0, 0)
+        _control_right_a = (0, 0)
+        _control_right_b = (0, 0)
+
+        return (
+            _control_start_a,
+            _control_start_b,
+            _anchor_left,
+            _control_left_a,
+            _control_left_b,
+            _anchor_center,
+            _control_center_a,
+            _control_center_b,
+            _anchor_right,
+            _control_right_a,
+            _control_right_b,
+            _relative_stop,
+        )
+
+    @staticmethod
+    def left_hook(width, height):
+        _anchor_left = (
+            width * 0.05,
+            height * 0.0,
+        )
+        _anchor_center = (
+            (width * uniform(0.45, 0.55)) - _anchor_left[0],
+            (height * uniform(0.05, 0.40)) - _anchor_left[1],
+        )
+        _anchor_right = (
+            (width * 0.95) - (_anchor_left[0] + _anchor_center[0]),
+            (height * 0.0) - (_anchor_left[1] + _anchor_center[1]),
+        )
+        _relative_stop = (
+            width - (_anchor_left[0] + _anchor_center[0] + _anchor_right[0]),
+            (height * 0.0) - (_anchor_left[1] + _anchor_center[1] + _anchor_right[1]),
+        )
+        _control_start_a = (0, 0)
+        _control_start_b = (0, 0)
+        _control_left_a = (
+            (width * uniform(0.05, 0.25)) - (_anchor_left[0]),
+            (height * uniform(-0.05, 0.05)) - (_anchor_left[1]),
+        )
+        _control_left_b = (
+            (width * uniform(0.50, 0.80)) - (_anchor_left[0]),
+            (height * uniform(-0.40, 0.0)) - (_anchor_left[1]),
+        )
+        _control_center_a = (
+            (width * uniform(0.75, 0.80)) - (_anchor_left[0] + _anchor_center[0]),
+            (height * uniform(0.05, 0.20)) - (_anchor_left[1] + _anchor_center[1]),
+        )
+        _control_center_b = (0, 0)
+        _control_right_a = (0, 0)
+        _control_right_b = (0, 0)
+
+        return (
+            _control_start_a,
+            _control_start_b,
+            _anchor_left,
+            _control_left_a,
+            _control_left_b,
+            _anchor_center,
+            _control_center_a,
+            _control_center_b,
+            _anchor_right,
+            _control_right_a,
+            _control_right_b,
+            _relative_stop,
+        )
+
+    @staticmethod
+    def right_hook(width, height):
+        _anchor_left = (
+            width * 0.05,
+            height * 0.0,
+        )
+        _anchor_center = (
+            (width * uniform(0.45, 0.55)) - _anchor_left[0],
+            (height * uniform(0.05, 0.40)) - _anchor_left[1],
+        )
+        _anchor_right = (
+            (width * 0.95) - (_anchor_left[0] + _anchor_center[0]),
+            (height * 0.0) - (_anchor_left[1] + _anchor_center[1]),
+        )
+        _relative_stop = (
+            width - (_anchor_left[0] + _anchor_center[0] + _anchor_right[0]),
+            (height * 0.0) - (_anchor_left[1] + _anchor_center[1] + _anchor_right[1]),
+        )
+        _control_start_a = (0, 0)
+        _control_start_b = (0, 0)
+        _control_left_a = (
+            (width * uniform(0.05, 0.25)) - (_anchor_left[0]),
+            (height * uniform(-0.05, 0.05)) - (_anchor_left[1]),
+        )
+        _control_left_b = (
+            (width * uniform(0.20, 0.25)) - (_anchor_left[0]),
+            (height * uniform(0.0, 0.15)) - (_anchor_left[1]),
+        )
+        _control_center_a = (
+            (width * uniform(0.05, 0.50)) - (_anchor_left[0] + _anchor_center[0]),
+            (height * uniform(-0.05, -0.45)) - (_anchor_left[1] + _anchor_center[1]),
+        )
+        _control_center_b = (0, 0)
+        _control_right_a = (0, 0)
+        _control_right_b = (0, 0)
+
+        return (
+            _control_start_a,
+            _control_start_b,
+            _anchor_left,
+            _control_left_a,
+            _control_left_b,
+            _anchor_center,
+            _control_center_a,
+            _control_center_b,
+            _anchor_right,
+            _control_right_a,
+            _control_right_b,
+            _relative_stop,
+        )
+
+    @staticmethod
+    def standard(width, height):
+        _anchor_left = (
+            width * uniform(0.25, 0.35),
+            height * uniform(-0.10, 0.10),
+        )
+        _anchor_center = (
+            (width * uniform(0.45, 0.55)) - _anchor_left[0],
+            (height * uniform(0.15, 0.30)) - _anchor_left[1],
+        )
+        _anchor_right = (
+            (width * uniform(0.70, 0.80)) - (_anchor_left[0] + _anchor_center[0]),
+            (height * uniform(-0.05, 0.05)) - (_anchor_left[1] + _anchor_center[1]),
+        )
+        _relative_stop = (
+            width - (_anchor_left[0] + _anchor_center[0] + _anchor_right[0]),
+            (height * 0.0) - (_anchor_left[1] + _anchor_center[1] + _anchor_right[1]),
+        )
+        _control_start_a = (width * 0.25, height * 0.0)
+        _control_start_b = (width * uniform(0.0, 0.25), height * uniform(-0.15, 0.15))
+        _control_left_a = (
+            (width * uniform(0.25, 0.5)) - (_anchor_left[0]),
+            (height * uniform(0.0, 0.15)) - (_anchor_left[1]),
+        )
+        _control_left_b = (
+            (width * uniform(0.25, 0.45)) - (_anchor_left[0]),
+            (height * uniform(-0.20, 0.30)) - (_anchor_left[1]),
+        )
+        _control_center_a = (
+            (width * uniform(0.55, 0.85)) - (_anchor_left[0] + _anchor_center[0]),
+            (height * uniform(0.20, 0.30)) - (_anchor_left[1] + _anchor_center[1]),
+        )
+        _control_center_b = (
+            (width * 0.55) - (_anchor_left[0] + _anchor_center[0]),
+            (height * uniform(-0.30, 0.30)) - (_anchor_left[1] + _anchor_center[1]),
+        )
+        _control_right_a = (
+            (width * uniform(0.80, 0.82))
+            - (_anchor_left[0] + _anchor_center[0] + _anchor_right[0]),
+            (height * uniform(0.10, -0.15))
+            - (_anchor_left[1] + _anchor_center[1] + _anchor_right[1]),
+        )
+        _control_right_b = (
+            (width * uniform(0.80, 1.0))
+            - (_anchor_left[0] + _anchor_center[0] + _anchor_right[0]),
+            (height * uniform(-0.15, 0.15))
+            - (_anchor_left[1] + _anchor_center[1] + _anchor_right[1]),
+        )
+
+        return (
+            _control_start_a,
+            _control_start_b,
+            _anchor_left,
+            _control_left_a,
+            _control_left_b,
+            _anchor_center,
+            _control_center_a,
+            _control_center_b,
+            _anchor_right,
+            _control_right_a,
+            _control_right_b,
+            _relative_stop,
+        )
+
+
+class Path(object):
     def invert(self, t):
         return (t[0], t[1] * -1)
 
@@ -30,102 +330,23 @@ class Path(object):
             self.out = choice(COIN)
         # self.out = True
 
-        anchor_extreme = choice(self.anchor_extremes)
-        # anchor_extreme = self.anchor_extremes[0]
-
         self.width = width  # total width of the path
         self.height = height  # total height of the path
-        if anchor_extreme == "anchor_left-right-down":
-            self._anchor_left = (
-                width * uniform(0.25, 0.50),
-                height * uniform(0.0, 0.15),
-            )
-        else:
-            self._anchor_left = (width * 0.25, height * 0)
-        self._anchor_center = (
-            (width * 0.5) - self._anchor_left[0],
-            (height * 0.30) - self._anchor_left[1],
-        )
-        self._anchor_right = (
-            (width * 0.75) - (self._anchor_left[0] + self._anchor_center[0]),
-            (height * 0) - (self._anchor_left[1] + self._anchor_center[1]),
-        )
-        if anchor_extreme == "anchor_left-right-down":
-            self._relative_stop = (
-                width
-                - (
-                    self._anchor_left[0]
-                    + self._anchor_center[0]
-                    + self._anchor_right[0]
-                ),
-                (height * 0.0)
-                - (
-                    self._anchor_left[1]
-                    + self._anchor_center[1]
-                    + self._anchor_right[1]
-                ),
-            )
-        else:
-            self._relative_stop = (
-                width
-                - (
-                    self._anchor_left[0]
-                    + self._anchor_center[0]
-                    + self._anchor_right[0]
-                ),
-                (self._anchor_left[1] + self._anchor_center[1] + self._anchor_right[1])
-                * -1,
-            )
 
-        if anchor_extreme == "anchor_left-right-down":
-            self._control_start_a = (width * 0.30, height * 0.2)
-        else:
-            self._control_start_a = (0.25 * width, 0)
-
-        if anchor_extreme == "anchor_left-right-down":
-            self._control_start_b = (
-                width * 0.0,
-                height * 0.3,
-            )
-        else:
-            self._control_start_b = (0.25 * width, 0)
-
-        if anchor_extreme == "anchor_left-right-down":
-            self._control_left_a = (0, 0)
-        else:
-            self._control_left_a = (
-                (width * 0.25) - (self._anchor_left[0]),
-                (height * 0.15) - (self._anchor_left[1]),
-            )
-
-        self._control_left_b = (
-            # (width * uniform(0.25, 0.50)) - (self._anchor_left[0]),
-            # (height * uniform(0.20, 0.40)) - (self._anchor_left[1])
-            (width * 0.25) - (self._anchor_left[0]),
-            (height * 0.30) - (self._anchor_left[1]),
-        )
-
-        self._control_center_a = (
-            (width * 0.75) - (self._anchor_left[0] + self._anchor_center[0]),
-            (height * 0.30) - (self._anchor_left[1] + self._anchor_center[1]),
-        )
-        self._control_center_b = (
-            (width * 0.35) - (self._anchor_left[0] + self._anchor_center[0]),
-            (height * 0.0) - (self._anchor_left[1] + self._anchor_center[1]),
-        )
-
-        self._control_right_a = (
-            (width * uniform(0.80, 0.82))
-            - (self._anchor_left[0] + self._anchor_center[0] + self._anchor_right[0]),
-            (height * uniform(0.10, -0.15))
-            - (self._anchor_left[1] + self._anchor_center[1] + self._anchor_right[1]),
-        )
-        self._control_right_b = (
-            (width * uniform(0.85, 1.0))
-            - (self._anchor_left[0] + self._anchor_center[0] + self._anchor_right[0]),
-            (height * uniform(-0.15, 0.15))
-            - (self._anchor_left[1] + self._anchor_center[1] + self._anchor_right[1]),
-        )
+        (
+            self._control_start_a,
+            self._control_start_b,
+            self._anchor_left,
+            self._control_left_a,
+            self._control_left_b,
+            self._anchor_center,
+            self._control_center_a,
+            self._control_center_b,
+            self._anchor_right,
+            self._control_right_a,
+            self._control_right_b,
+            self._relative_stop,
+        ) = StochasticCurvePoints.get_curve_points(width, height)
 
     @Property
     def control_start_a():
