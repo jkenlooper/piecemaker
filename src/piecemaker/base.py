@@ -188,53 +188,67 @@ class Pieces(object):
         f.close()
 
     def _sprite_vector_proof(self, sprite_width, sprite_height, sprite_layout):
-        """Create a sprite proof showing how the image was cut. Should look like
+        """Create a sprite vector proof showing how the image was cut. Should look like
         original."""
+
+        with open(os.path.join(self.mydir, "sprite.svg"), "r") as f:
+            sprite_svg = f.read().replace("""<?xml version="1.0" encoding="utf-8"?>""", "")
+
         template = """
 <!doctype html>
 <html>
 <head>
 <title>Sprite Vector Proof - {scale}</title>
-<link rel="stylesheet" href="raster.css">
 <style>
 {style}
 </style>
 </head>
 <body>
 
-<svg>
- <defs>
-  <image id="source-image-100" xlink:href="raster.jpg"/>
+<!-- Contents of sprite.svg file inlined -->
+{sprite_svg}
 
-  <clipPath id="piece-mask-100-0" transform="translate(0.000000,220.000000) scale(0.100000,-0.100000)">
-    <path d="M54 1988 c-5 -117 -9 -301 -9 -408 0 -167 3 -200 17 -227 39 -71 79 -74 188 -15 56 32 73 36 135 37 120 0 233 -71 271 -171 25 -65 15 -214 -20 -289 -39 -85 -72 -122 -141 -156 -59 -29 -70 -31 -147 -27 -65 3 -96 9 -140 31 -76 36 -112 35 -149 -4 -42 -45 -54 -97 -53 -239 1 -140 40 -458 59 -478 29 -32 873 -52 983 -23 66 17 112 53 112 89 0 14 -11 53 -25 88 -67 167 -70 327 -8 396 102 113 392 71 454 -66 30 -66 24 -102 -29 -158 -17 -19 -26 -42 -29 -75 -4 -42 -1 -53 21 -80 53 -63 149 -85 491 -113 243 -20 429 -43 498 -61 20 -5 42 -7 47 -4 6 4 10 394 10 1086 l0 1079 -1264 0 -1263 0 -9 -212z"/>
-  </clipPath>
-  <symbol height="220.000000" id="piece-fragment-100-0" viewBox="1258,0,259.000000,220.000000" width="259.000000">
-   <use xlink:href="#source-image-100"/>
-  </symbol>
-
-</svg>
-
-
-<svg height="220.000000" id="pc-100-0" width="259.000000">
-  <use class="example" clip-path="url(#piece-mask-100-0)" xlink:href="#piece-fragment-100-0"/>
-</svg>
-
-
+<!-- All the piece div elements -->
 {pieces}
+
 </body>
 </html>"""
-        style = """"""
+        style = """
+body {
+background: black;
+}
+.pc {
+position: absolute;
+background: black;
+}
+.pc:hover,
+.pc:active {
+background: white;
+}
+        """
         pieces_html = []
-        # for (k, v) in self.pieces.items():
-        #    x = v[0]
-        #    y = v[1]
-        #    el = f"""<div class='pc pc--{self.scale} pc-{k}' style='left:{x}px;top:{y}px;'>{k}</div>"""
-        #    pieces_html.append(el)
+        piece_style = []
+        for (i, piece_bbox) in self.pieces.items():
+            x = piece_bbox[0]
+            y = piece_bbox[1]
+            width = piece_bbox[2] - piece_bbox[0]
+            height = piece_bbox[3] - piece_bbox[1]
+            el = f"""
+<div id="pc-{self.scale}-{i}" class="pc" style="left:{x}px;top:{y}px;">
+  <svg width="{width}" height="{height}">
+    <use clip-path="url(#piece-mask-{self.scale}-{i})" xlink:href="#piece-fragment-{self.scale}-{i}"/>
+  </svg>
+</div>"""
+            pieces_html.append(el)
+            clip_path_style = "{" + f"clip-path: url(#piece-mask-{self.scale}-{i});" + "}"
+            piece_style.append(f"[id=pc-{self.scale}-{i}] {clip_path_style}")
 
         pieces = "".join(pieces_html)
         html = template.format(
-            **{"scale": self.scale, "pieces": pieces, "style": style}
+            **{"scale": self.scale,
+               "pieces": pieces,
+               "style": style + "".join(piece_style),
+               "sprite_svg": sprite_svg}
         )
 
         f = open(os.path.join(self.mydir, "sprite_vector_proof.html"), "w")
@@ -285,12 +299,13 @@ class Pieces(object):
             os.path.join(self.mydir, "piece_id_to_mask.json"), "r"
         ) as piece_id_to_mask_json:
             piece_id_to_mask = json.load(piece_id_to_mask_json)
-        dwg = svgwrite.Drawing(size=(sprite_width, sprite_height), profile="full")
-        dwg.viewbox(width=sprite_width, height=sprite_height)
+        dwg = svgwrite.Drawing(
+            size=(0, 0),
+        )
         dwg.set_desc(title="svg preview", desc="")
 
         common_path = os.path.commonprefix([self._scaled_image, self.mydir])
-        relative_scaled_image = jpg_sprite_file_name[len(common_path) + 1 :]
+        relative_scaled_image = jpg_sprite_file_name[len(common_path) + 1:]
         source_image = dwg.defs.add(
             dwg.image(
                 relative_scaled_image,
@@ -327,16 +342,9 @@ class Pieces(object):
             piece_fragment["width"] = vbwidth
             piece_fragment["height"] = vbheight
 
-            use = piece_fragment.add(dwg.use(source_image))
+            piece_fragment.add(dwg.use(source_image))
 
-            example_use = dwg.add(
-                dwg.use(piece_fragment, clip_path=f"url(#piece-mask-{self.scale}-{i})")
-            )
-            # layout the svg pieces exactly like glue did.
-            example_use["transform"] = "translate( %s, %s )" % (preview_offset)
-            example_use["class"] = "example"
-
-        preview_soup = BeautifulSoup(dwg.tostring(), "xml")
+        sprite_svg = BeautifulSoup(dwg.tostring(), "xml")
 
         for (i, piece_bbox) in self.pieces.items():
             mask_id = piece_id_to_mask[i]
@@ -344,18 +352,17 @@ class Pieces(object):
             piece_soup = BeautifulSoup(open(piece_svg), "xml")
             svg = piece_soup.svg
             first_g = svg.find("g")
-            piece_mask_tag = preview_soup.defs.find(
+            piece_mask_tag = sprite_svg.defs.find(
                 "clipPath", id=f"piece-mask-{self.scale}-{i}"
             )
             if piece_mask_tag:
-                new_g = first_g.wrap(preview_soup.new_tag("g"))
+                new_g = first_g.wrap(sprite_svg.new_tag("g"))
                 first_g.unwrap()  # don't need this g with it's attributes
                 piece_mask_tag.append(new_g)
                 piece_mask_tag.g.unwrap()  # strip out the g leaving contents
 
-        out = open(os.path.join(self.mydir, "preview.svg"), "w")
-        out.write(preview_soup.prettify())
-        out.close()
+        with open(os.path.join(self.mydir, "sprite.svg"), "w") as out:
+            out.write(sprite_svg.decode(formatter=None))
 
 
 # see adjacent.py
