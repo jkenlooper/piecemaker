@@ -475,7 +475,7 @@ class JigsawPieceClipsSVG(object):
                 "L %f 0 " % start,
             ]
             for j in range(0, self._rows):
-                interlockingnub_path = stochasticnubs.VerticalPath(width=self._piece_height, height=self._piece_width)
+                interlockingnub_path = self.VerticalPath(width=self._piece_height, height=self._piece_width)
                 curvelines.append(interlockingnub_path.render())
 
             curvelines.append("L 0 %i " % self.height)  # end

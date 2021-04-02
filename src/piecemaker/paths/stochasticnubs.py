@@ -23,6 +23,9 @@ class StochasticCurvePoints:
         "left_hook",
         "right_hook",
         "standard",
+        "standard",
+        "classic",
+        "classic",
     ]
 
     @staticmethod
@@ -316,6 +319,70 @@ class StochasticCurvePoints:
             _control_right_b,
             _relative_stop,
         )
+
+    @staticmethod
+    def classic(width, height):
+        _anchor_left = (
+            width * uniform(0.34, 0.43),
+            height * uniform(-0.02, 0.22)
+        )
+
+        _anchor_center = (
+            (width * 0.50) - _anchor_left[0],
+            (height * uniform(0.24, 0.34)) - _anchor_left[1],
+        )
+        _anchor_right = (
+            width * uniform(0.57, 0.66) - (_anchor_left[0] + _anchor_center[0]),
+            height * uniform(-0.02, 0.22) - (_anchor_left[1] + _anchor_center[1]),
+        )
+        _relative_stop = (
+            width - (_anchor_left[0] + _anchor_center[0] + _anchor_right[0]),
+            (height * 0.0) - (_anchor_left[1] + _anchor_center[1] + _anchor_right[1]),
+        )
+
+        # relative to anchor_left
+        _control_start_a = (
+            width * uniform(0.05, 0.29),
+            height * 0.0,
+        )
+        _control_start_b = (
+            (width * 0.07) + _anchor_left[0],
+            (height * -0.05),
+        )
+
+        _control_left_a = (
+            (width * -0.06),
+            uniform(0.21, 1.01) * _anchor_center[1],
+        )
+        _control_left_b = (0, _anchor_center[1])
+
+        # relative to anchor_right
+        _control_center_a = (_anchor_right[0], 0)
+        _control_center_b = (
+            (width * 0.06) + _anchor_right[0],
+            uniform(0.21, 1.01) * _anchor_right[1],
+        )
+
+        _control_right_a = (
+            (width * -0.06),
+            (height * -0.13),
+        )
+        _control_right_b = (width * 0.21, height * -0.08)
+        return (
+            _control_start_a,
+            _control_start_b,
+            _anchor_left,
+            _control_left_a,
+            _control_left_b,
+            _anchor_center,
+            _control_center_a,
+            _control_center_b,
+            _anchor_right,
+            _control_right_a,
+            _control_right_b,
+            _relative_stop,
+        )
+
 
 
 class Path(object):

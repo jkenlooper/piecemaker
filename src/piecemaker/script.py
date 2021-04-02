@@ -119,6 +119,14 @@ Will scale to this height if image is set.""",
 adjacent pieces for each piece.""",
     )
 
+    parser.add_option(
+        "--variant",
+        action="store",
+        type="string",
+        default="interlockingnubs",
+        help="""Piece cut variant to use. interlockingnubs or stochasticnubs""",
+    )
+
     (options, args) = parser.parse_args()
 
     if not options.dir:
@@ -184,6 +192,7 @@ or set number of pieces greater than 0.
             height=height,
             pieces=options.number_of_pieces,
             minimum_piece_size=options.minimum_piece_size,
+            variant=options.variant
         )
         svgfile = os.path.join(options.dir, "lines.svg")
         f = open(svgfile, "w")
