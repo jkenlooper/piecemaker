@@ -32,7 +32,20 @@ def potrace(trimmedbmp, output_dir):
     masksvg = os.path.join(output_dir, f"{mask_name}.svg")
     # TODO: add --flat to set the whole image as single path
     # TODO: suppress speckle size with --turdsize 10
-    potrace = ["potrace", trimmedbmp, "--turnpolicy", "majority", "--opttolerance", "0", "--alphamax", "0", "--invert", "--svg", "--output", masksvg]
+    potrace = [
+        "potrace",
+        trimmedbmp,
+        "--turnpolicy",
+        "majority",
+        "--opttolerance",
+        "0",
+        "--alphamax",
+        "0",
+        "--invert",
+        "--svg",
+        "--output",
+        masksvg,
+    ]
     subprocess.call(potrace, shell=False)
 
 

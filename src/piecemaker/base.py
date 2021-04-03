@@ -24,7 +24,7 @@ HALF_BLEED = BLEED * 0.5
 
 variants = {
     interlockingnubs.__name__.replace("piecemaker.paths.", ""),
-    stochasticnubs.__name__.replace("piecemaker.paths.", "")
+    stochasticnubs.__name__.replace("piecemaker.paths.", ""),
 }
 
 
@@ -63,7 +63,9 @@ class Pieces(object):
         im.close()
 
         if max_pixels > 0 and (width * height) > max_pixels:
-            (width, height) = resize_to_max_pixels(self._scaled_image, self._scaled_image, max_pixels)
+            (width, height) = resize_to_max_pixels(
+                self._scaled_image, self._scaled_image, max_pixels
+            )
 
         # scale the svg file
         svgfile_soup = BeautifulSoup(open(svgfile), "xml")
@@ -203,9 +205,12 @@ opacity: 0;
 
         pieces = "".join(pieces_html)
         html = template.format(
-            **{"scale": self.scale, "pieces": pieces,
-               "piece_count": len(self.pieces.items()),
-               "style": style}
+            **{
+                "scale": self.scale,
+                "pieces": pieces,
+                "piece_count": len(self.pieces.items()),
+                "style": style,
+            }
         )
 
         f = open(os.path.join(self.mydir, "sprite_proof.html"), "w")
@@ -217,7 +222,9 @@ opacity: 0;
         original."""
 
         with open(os.path.join(self.mydir, "sprite.svg"), "r") as f:
-            sprite_svg = f.read().replace("""<?xml version="1.0" encoding="utf-8"?>""", "")
+            sprite_svg = f.read().replace(
+                """<?xml version="1.0" encoding="utf-8"?>""", ""
+            )
 
         template = """
 <!doctype html>
@@ -278,16 +285,20 @@ opacity: 0;
   </svg>
 </div>"""
             pieces_html.append(el)
-            clip_path_style = "{" + f"clip-path: url(#piece-mask-{self.scale}-{i});" + "}"
+            clip_path_style = (
+                "{" + f"clip-path: url(#piece-mask-{self.scale}-{i});" + "}"
+            )
             piece_style.append(f"[id=pc-{self.scale}-{i}] {clip_path_style}")
 
         pieces = "".join(pieces_html)
         html = template.format(
-            **{"scale": self.scale,
-               "pieces": pieces,
-               "piece_count": len(self.pieces.items()),
-               "style": style + "".join(piece_style),
-               "sprite_svg": sprite_svg}
+            **{
+                "scale": self.scale,
+                "pieces": pieces,
+                "piece_count": len(self.pieces.items()),
+                "style": style + "".join(piece_style),
+                "sprite_svg": sprite_svg,
+            }
         )
 
         f = open(os.path.join(self.mydir, "sprite_vector_proof.html"), "w")
@@ -344,7 +355,7 @@ opacity: 0;
         dwg.set_desc(title="svg preview", desc="")
 
         common_path = os.path.commonprefix([self._scaled_image, self.mydir])
-        relative_scaled_image = jpg_sprite_file_name[len(common_path) + 1:]
+        relative_scaled_image = jpg_sprite_file_name[len(common_path) + 1 :]
         source_image = dwg.defs.add(
             dwg.image(
                 relative_scaled_image,
@@ -419,12 +430,7 @@ class JigsawPieceClipsSVG(object):
     maximum_count_of_pieces = 150000
 
     def __init__(
-        self,
-        width,
-        height,
-        pieces=0,
-        minimum_piece_size=42,
-        variant="interlockingnubs"
+        self, width, height, pieces=0, minimum_piece_size=42, variant="interlockingnubs"
     ):
 
         self.width = width
@@ -439,8 +445,7 @@ class JigsawPieceClipsSVG(object):
             # Get the maximum number of pieces that can fit within the
             # dimensions depending on the minimum piece size.
             max_pieces_that_will_fit = int(
-                (width / minimum_piece_size)
-                * (height / minimum_piece_size)
+                (width / minimum_piece_size) * (height / minimum_piece_size)
             )
             if _pieces > 0:
                 # Only use the piece count that is smaller to avoid getting too
@@ -522,7 +527,9 @@ class JigsawPieceClipsSVG(object):
                 "L %f 0 " % start,
             ]
             for j in range(0, self._rows):
-                interlockingnub_path = self.VerticalPath(width=self._piece_height, height=self._piece_width)
+                interlockingnub_path = self.VerticalPath(
+                    width=self._piece_height, height=self._piece_width
+                )
                 curvelines.append(interlockingnub_path.render())
 
             curvelines.append("L 0 %i " % self.height)  # end
@@ -545,7 +552,9 @@ class JigsawPieceClipsSVG(object):
                 "L 0 %f " % start,
             ]
             for j in range(0, self._cols):
-                interlockingnub_path = self.HorizontalPath(width=self._piece_width, height=self._piece_height)
+                interlockingnub_path = self.HorizontalPath(
+                    width=self._piece_width, height=self._piece_height
+                )
                 curvelines.append(interlockingnub_path.render())
 
             curvelines.append("L %i 0 " % self.width)  # end
