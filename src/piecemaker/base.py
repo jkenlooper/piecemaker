@@ -19,6 +19,9 @@ from glue.managers.simple import SimpleManager
 from .paths import interlockingnubs, stochasticnubs
 from piecemaker.tools import rasterize_svgfile, potrace, resize_to_max_pixels
 
+BLEED = 2
+HALF_BLEED = BLEED * 0.5
+
 variants = {
     interlockingnubs.__name__.replace("piecemaker.paths.", ""),
     stochasticnubs.__name__.replace("piecemaker.paths.", "")
@@ -120,7 +123,7 @@ class Pieces(object):
         sprite_layout = {}  # used for showing example layout
         for image in sprite.images:
             filename, ext = image.filename.rsplit(".", 1)
-            sprite_layout[int(filename)] = (image.x, image.y)
+            sprite_layout[int(filename)] = (image.x, image.y, image.width, image.height)
 
         if self.vector:
             raster_png = sprite.sprite_path()
@@ -154,33 +157,55 @@ class Pieces(object):
 <html>
 <head>
 <title>Sprite Proof - {scale}</title>
-<link rel="stylesheet" href="raster.css">
 <style>
 {style}
 </style>
 </head>
 <body>
+<p>
+Piece count: {piece_count}
+</p>
+
+<!-- All the piece div elements -->
+<div class="container">
 {pieces}
+</div>
 </body>
 </html>"""
         style = """
-.pc {
-  position: absolute;
-  text-indent: -999em;
+body {
+background: black;
+color: white;
 }
-.pc:hover {
-  text-indent: 0;
-} """
+.container {
+position: relative;
+}
+.pc {
+position: absolute;
+transition: opacity linear 0.5s;
+}
+.pc:hover,
+.pc:active {
+opacity: 0;
+}
+"""
         pieces_html = []
-        for (k, v) in self.pieces.items():
+        for (i, v) in self.pieces.items():
+            i = int(i)
             x = v[0]
             y = v[1]
-            el = f"""<div class='pc pc--{self.scale} pc-{k}' style='left:{x}px;top:{y}px;'>{k}</div>"""
+            width = v[2] - v[0]
+            height = v[3] - v[1]
+            el = f"""<div class='pc pc--{self.scale} pc-{i}' style='left:{x}px;top:{y}px;'>
+<img src="raster/{i}.png" width="{width}" height="{height}">
+            </div>"""
             pieces_html.append(el)
 
         pieces = "".join(pieces_html)
         html = template.format(
-            **{"scale": self.scale, "pieces": pieces, "style": style}
+            **{"scale": self.scale, "pieces": pieces,
+               "piece_count": len(self.pieces.items()),
+               "style": style}
         )
 
         f = open(os.path.join(self.mydir, "sprite_proof.html"), "w")
@@ -204,39 +229,52 @@ class Pieces(object):
 </style>
 </head>
 <body>
+<p>
+Piece count: {piece_count}
+</p>
 
 <!-- Contents of sprite.svg file inlined -->
 {sprite_svg}
 
 <!-- All the piece div elements -->
+<div class="container">
 {pieces}
+</div>
+
 
 </body>
 </html>"""
         style = """
 body {
 background: black;
+color: white;
+}
+.container {
+position: relative;
 }
 .pc {
 position: absolute;
-background: black;
+transition: opacity linear 0.5s;
 }
 .pc:hover,
 .pc:active {
-background: white;
+opacity: 0;
 }
         """
         pieces_html = []
         piece_style = []
+        hb = HALF_BLEED
         for (i, piece_bbox) in self.pieces.items():
+            i = int(i)
             x = piece_bbox[0]
             y = piece_bbox[1]
-            width = piece_bbox[2] - piece_bbox[0]
-            height = piece_bbox[3] - piece_bbox[1]
+            width = sprite_layout[i][2]
+            height = sprite_layout[i][3]
+
             el = f"""
 <div id="pc-{self.scale}-{i}" class="pc" style="left:{x}px;top:{y}px;">
-  <svg width="{width}" height="{height}">
-    <use clip-path="url(#piece-mask-{self.scale}-{i})" xlink:href="#piece-fragment-{self.scale}-{i}"/>
+  <svg viewBox="0 0 {width} {height}" width="{width}" height="{height}" style="margin-left:-{hb}px;margin-top:-{hb}px">
+    <use xlink:href="#piece-fragment-{self.scale}-{i}"/>
   </svg>
 </div>"""
             pieces_html.append(el)
@@ -247,6 +285,7 @@ background: white;
         html = template.format(
             **{"scale": self.scale,
                "pieces": pieces,
+               "piece_count": len(self.pieces.items()),
                "style": style + "".join(piece_style),
                "sprite_svg": sprite_svg}
         )
@@ -258,17 +297,17 @@ background: white;
     def _generate_sprite(self):
         " create the css and sprite using glue "
         sprite_manager = SimpleManager(
-            source=self._raster_dir,
+            source=self._jpg_dir,
             css_namespace="pc",
             css_pseudo_class_separator="__",
             css_sprite_namespace="",
             css_url="",
-            html=True,
+            html=False,
             ratios="1",
             follow_links=False,
-            quiet=False,
+            quiet=True,
             recursive=False,
-            force=False,
+            force=True,
             algorithm="square",
             algorithm_ordering="maxside",
             crop=False,
@@ -284,7 +323,7 @@ background: white;
             css_cachebuster_filename=False,
             css_cachebuster_only_sprites=False,
             css_separator="-",
-            enabled_formats=["css", "html", "img"],
+            enabled_formats=["img"],
         )
         sprite_manager.process()
 
@@ -325,6 +364,7 @@ background: white;
             clip_path = dwg.defs.add(dwg.clipPath())
             clip_path["id"] = f"piece-mask-{self.scale}-{i}"
             clip_path["transform"] = first_g.get("transform")
+            clip_path["shape-rendering"] = "crispEdges"
             # Later the clip_path gets filled in with the contents
 
             piece_fragment = dwg.defs.add(dwg.svg())
@@ -332,15 +372,15 @@ background: white;
 
             vb = svg.get("viewBox")
             # TODO could also be separated by ','?
-            (minx, miny, vbwidth, vbheight) = vb.split(" ")
+            (minx, miny, vbwidth, vbheight) = map(float, vb.split(" "))
             piece_fragment.viewbox(
                 minx=preview_offset[0],
                 miny=preview_offset[1],
-                width=vbwidth,
-                height=vbheight,
+                width=preview_offset[2],
+                height=preview_offset[3],
             )
-            piece_fragment["width"] = vbwidth
-            piece_fragment["height"] = vbheight
+            piece_fragment["width"] = preview_offset[2]
+            piece_fragment["height"] = preview_offset[3]
 
             piece_fragment.add(dwg.use(source_image))
 
