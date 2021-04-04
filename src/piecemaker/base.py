@@ -91,13 +91,13 @@ class Pieces(object):
         os.mkdir(self._mask_dir)
         self._raster_dir = os.path.join(self.mydir, "raster")
         os.mkdir(self._raster_dir)
-        self._jpg_dir = os.path.join(self.mydir, "jpg")
-        os.mkdir(self._jpg_dir)
+        self._raster_with_padding_dir = os.path.join(self.mydir, "raster_with_padding")
+        os.mkdir(self._raster_with_padding_dir)
         if self.vector:
             self._vector_dir = os.path.join(self.mydir, "vector")
             os.mkdir(self._vector_dir)
         self._pixsaw_handler = PMHandler(
-            self.mydir, scaled_png, mask_dir="mask", raster_dir="raster", jpg_dir="jpg"
+            self.mydir, scaled_png, mask_dir="mask", raster_dir="raster", jpg_dir="raster_with_padding"
         )
 
         self.width = width
@@ -132,7 +132,8 @@ class Pieces(object):
             png_sprite = Image.open(raster_png)
             jpg_sprite = png_sprite.convert("RGB")
             png_sprite.close()
-            jpg_sprite_file_name = os.path.splitext(raster_png)[0] + ".jpg"
+            os.unlink(raster_png)
+            jpg_sprite_file_name = os.path.join(self.mydir, "sprite_with_padding.jpg")
             jpg_sprite.save(jpg_sprite_file_name)
             jpg_sprite.close()
             start = time.perf_counter()
@@ -308,7 +309,7 @@ opacity: 0;
     def _generate_sprite(self):
         " create the css and sprite using glue "
         sprite_manager = SimpleManager(
-            source=self._jpg_dir,
+            source=self._raster_with_padding_dir,
             css_namespace="pc",
             css_pseudo_class_separator="__",
             css_sprite_namespace="",

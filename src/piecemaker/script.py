@@ -138,9 +138,11 @@ adjacent pieces for each piece.""",
     if len(args) > 1:
         parser.error("Multiple pictures are not supported, yet.")
 
-    if "100" not in options.scaled_sizes:
-        parser.error("Must have at least a '100' in scaled sizes.")
     scaled_sizes = [int(x) for x in options.scaled_sizes.split(",")]
+    if 100 not in scaled_sizes:
+        parser.error("Must have at least a '100' in scaled sizes.")
+    scaled_sizes.remove(100)
+    scaled_sizes.insert(0, 100)
 
     if args:
         imagefile = args[0]
@@ -213,6 +215,8 @@ or set number of pieces greater than 0.
         mydir = options.dir
 
         dimensions = {}
+        # First one will always be '100'
+        piece_count_at_100_scale = None
         for scale in scaled_sizes:
             scaled_dir = os.path.join(mydir, f"scale-{scale}")
             os.mkdir(scaled_dir)
@@ -241,13 +245,18 @@ or set number of pieces greater than 0.
 
             piece_count = len(pieces.pieces)
             piece_bboxes = pieces.pieces
-            dimensions[scale] = {
-                "width": pieces.width,
-                "height": pieces.height,
-                "table_width": int(pieces.width * 2.5),
-                "table_height": int(pieces.height * 2.5),
-                "board_url": f"puzzle_board-{scale}.html",
-            }
+            if scale == 100:
+                piece_count_at_100_scale = piece_count
+            if piece_count_at_100_scale == piece_count:
+                dimensions[scale] = {
+                    "width": pieces.width,
+                    "height": pieces.height,
+                    "table_width": int(pieces.width * 2.5),
+                    "table_height": int(pieces.height * 2.5),
+                    "board_url": f"puzzle_board-{scale}.html",
+                }
+            else:
+                print(f"Skipping scale {scale} since the piece count is not equal to piece count at 100 scale.")
 
         tw = dimensions[100]["table_width"]
         th = dimensions[100]["table_height"]
@@ -267,17 +276,17 @@ or set number of pieces greater than 0.
             )
         # create index.json
         data = {
-            "version": "alpha",
-            "generator": "piecemaker cli",
+            "version": __version__,
+            "generator": "piecemaker",
             "scaled": scaled_sizes,
             "sides": [0],
             "piece_count": piece_count,
-            "image_author": "none",
-            "image_link": "none",
-            "image_title": "none",
-            "image_description": "none",
-            "puzzle_author": "yup",
-            "puzzle_link": "yup",
+            "image_author": "",
+            "image_link": "",
+            "image_title": "",
+            "image_description": "",
+            "puzzle_author": "",
+            "puzzle_link": "",
             "scaled_dimensions": dimensions,
             "piece_properties": piece_properties,
         }
