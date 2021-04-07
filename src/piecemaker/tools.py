@@ -2,9 +2,6 @@ import subprocess
 import os
 import os.path
 
-from PIL import Image
-
-
 def rasterize_svgfile(svgfile):
     """
     Converts a svg file to png file with same basename.
@@ -47,25 +44,3 @@ def potrace(trimmedbmp, output_dir):
         masksvg,
     ]
     subprocess.call(potrace, shell=False)
-
-
-def resize_to_max_pixels(image, resize_image, max_pixels):
-    # resize the image using image magick @
-    # TODO: how to do this with PIL?
-    # '%i@' % max_pixels
-    subprocess.call(
-        [
-            "convert",
-            image,
-            "-resize",
-            "{0}@".format(max_pixels),
-            "-strip",
-            "-quality",
-            "85%",
-            resize_image,
-        ]
-    )
-    im = Image.open(resize_image)
-    (width, height) = im.size
-    im.close()
-    return (width, height)

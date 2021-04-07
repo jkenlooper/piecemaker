@@ -35,7 +35,7 @@ setup(
     install_requires=[
         # glue 0.13 -> Pillow>=2.2.2
         "Pillow < 9",
-        "pixsaw",
+        "pixsaw >= 0.3, <0.4",
         "beautifulsoup4",
         "future",
         "lxml",  # wanted by beautifulsoup4

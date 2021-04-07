@@ -8,10 +8,9 @@ puzzles with 5000+ pieces.
 
 It creates jigsaw puzzle pieces in multiple formats: svg, jpg, and png.  The
 number and size of pieces are set by passing the script different options.  It
-takes a while to run if doing a lot of pieces. It currently uses potrace, and
-imagemagick convert subprocesses.  Extra JSON files are created with details on
-size of pieces and adjacent pieces information which is commonly used when
-verifying that two pieces can join together.
+takes a while to run if doing a lot of pieces.  Extra JSON files are created
+with details on size of pieces and adjacent pieces information which is commonly
+used when verifying that two pieces can join together.
 
 
 Installing
@@ -31,7 +30,6 @@ Python Packages:
 Other Software needed:
 
 * `potrace <http://potrace.sourceforge.net/>`_
-* `imagemagick <http://www.imagemagick.org/script/index.php>`_
 * `svgo <https://github.com/svg/svgo>`_
 * `svpng <https://github.com/tylerjpeterson/svpng>`_
 
@@ -41,7 +39,7 @@ If on ubuntu or other debian based distro::
     $ sudo curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -
     $ sudo apt-get install -y nodejs
     $ sudo apt-get --yes install python3-pil
-    $ sudo apt-get --yes install imagemagick potrace libffi-dev libxml2-dev python3-lxml python3-xcffib
+    $ sudo apt-get --yes install potrace libffi-dev libxml2-dev python3-lxml python3-xcffib
     $ sudo npm install -g svgo svpng
 
 

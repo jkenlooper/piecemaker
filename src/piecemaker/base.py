@@ -8,7 +8,7 @@ import decimal
 import math
 from glob import glob
 import json
-import time
+#import time
 
 import svgwrite
 from PIL import Image
@@ -17,7 +17,7 @@ from pixsaw.base import Handler
 from glue.managers.simple import SimpleManager
 
 from .paths import interlockingnubs, stochasticnubs
-from piecemaker.tools import rasterize_svgfile, potrace, resize_to_max_pixels
+from piecemaker.tools import rasterize_svgfile, potrace
 
 BLEED = 2
 HALF_BLEED = BLEED * 0.5
@@ -33,6 +33,16 @@ class PMHandler(Handler):
     piece_prefix = ""
 
 
+def cap_dimensions(width, height, max_pixels):
+    pixels = width * height
+    if (pixels <= max_pixels):
+        return (width, height)
+    ratio = float(width) / height
+    scale = (float(pixels) / max_pixels)**(width/(height*2))
+    height2 = round(float(height) / scale)
+    width2 = round(ratio * height2)
+    return (width2, height2)
+
 class Pieces(object):
     """
     Creates the piece pngs and pieces info.
@@ -43,7 +53,6 @@ class Pieces(object):
         self.vector = vector
         self.mydir = mydir
         self.scale = int(scale)
-        # self._image = image
         original_im = Image.open(image)
         im = original_im.copy()
         original_im.close()
@@ -54,18 +63,12 @@ class Pieces(object):
 
         if self.scale != 100:
             (w, h) = im.size
-            w = int(w * (self.scale / 100.0))
-            h = int(h * (self.scale / 100.0))
+            (w, h) = cap_dimensions(w, h, max_pixels * (self.scale / 100.0))
             im = im.resize((w, h))
             im.save(self._scaled_image)
 
         (width, height) = im.size
         im.close()
-
-        if max_pixels > 0 and (width * height) > max_pixels:
-            (width, height) = resize_to_max_pixels(
-                self._scaled_image, self._scaled_image, max_pixels
-            )
 
         # scale the svg file
         svgfile_soup = BeautifulSoup(open(svgfile), "xml")
@@ -116,10 +119,10 @@ class Pieces(object):
     def generate_resources(self):
         " Create the extra resources to display the pieces. "
 
-        start = time.perf_counter()
+        #start = time.perf_counter()
         sprite = self._generate_sprite()
-        stop = time.perf_counter()
-        print(f"_generate_sprite {stop - start}")
+        #stop = time.perf_counter()
+        #print(f"_generate_sprite {stop - start}")
 
         (sprite_width, sprite_height) = sprite.canvas_size
         sprite_layout = {}  # used for showing example layout
@@ -136,21 +139,21 @@ class Pieces(object):
             jpg_sprite_file_name = os.path.join(self.mydir, "sprite_with_padding.jpg")
             jpg_sprite.save(jpg_sprite_file_name)
             jpg_sprite.close()
-            start = time.perf_counter()
+            #start = time.perf_counter()
             self._generate_vector(
                 sprite_width, sprite_height, sprite_layout, jpg_sprite_file_name
             )
-            stop = time.perf_counter()
-            print(f"_generate_vector {stop - start}")
-            start = time.perf_counter()
+            #stop = time.perf_counter()
+            #print(f"_generate_vector {stop - start}")
+            #start = time.perf_counter()
             self._sprite_vector_proof(sprite_width, sprite_height, sprite_layout)
-            stop = time.perf_counter()
-            print(f"_sprite_vector_proof {stop - start}")
+            #stop = time.perf_counter()
+            #print(f"_sprite_vector_proof {stop - start}")
 
-        start = time.perf_counter()
+        #start = time.perf_counter()
         self._sprite_proof(sprite_width, sprite_height, sprite_layout)
-        stop = time.perf_counter()
-        print(f"_sprite_proof {stop - start}")
+        #stop = time.perf_counter()
+        #print(f"_sprite_proof {stop - start}")
 
     def _sprite_proof(self, sprite_width, sprite_height, sprite_layout):
         """Create a sprite proof showing how the image was cut. Should look like
@@ -426,9 +429,6 @@ class JigsawPieceClipsSVG(object):
     """
 
     title = "Jigsaw puzzle piece clips"
-    minimum_count_of_pieces = 9
-    # TODO: what should the maximum_count_of_pieces be for this?
-    maximum_count_of_pieces = 150000
 
     def __init__(
         self, width, height, pieces=0, minimum_piece_size=42, variant="interlockingnubs"
@@ -436,11 +436,12 @@ class JigsawPieceClipsSVG(object):
 
         self.width = width
         self.height = height
+        self.minimum_piece_size = minimum_piece_size
         if variant not in variants:
             raise Exception("invalid variant")
         self.HorizontalPath = globals().get(variant).HorizontalPath
         self.VerticalPath = globals().get(variant).VerticalPath
-        _pieces = pieces
+        self.pieces = pieces
 
         if minimum_piece_size > 0:
             # Get the maximum number of pieces that can fit within the
@@ -448,25 +449,28 @@ class JigsawPieceClipsSVG(object):
             max_pieces_that_will_fit = int(
                 (width / minimum_piece_size) * (height / minimum_piece_size)
             )
-            if _pieces > 0:
+            print(f"max pieces that will fit {max_pieces_that_will_fit}")
+            print(f"pieces requested {self.pieces}")
+
+            if self.pieces > 0:
                 # Only use the piece count that is smaller to avoid getting too
                 # small of pieces.
-                _pieces = min(max_pieces_that_will_fit, _pieces)
+                self.pieces = min(max_pieces_that_will_fit, self.pieces)
             else:
-                _pieces = max_pieces_that_will_fit
+                self.pieces = max_pieces_that_will_fit
 
-        _pieces = max(_pieces, self.minimum_count_of_pieces)
-        _pieces = min(_pieces, self.maximum_count_of_pieces)
+        #print(f"max pieces that will fit {max_pieces_that_will_fit}")
+        print(f"pieces adjusted {self.pieces}")
 
-        (self._rows, self._cols) = self._gridify(width, height, _pieces)
+        (self._rows, self._cols) = self._gridify(width, height, self.pieces)
 
         # adjust piece count
-        _pieces = self._rows * self._cols
+        self.pieces = self._rows * self._cols
         # set piece dimensions
         self._piece_width = float(width) / float(self._cols)
         self._piece_height = float(height) / float(self._rows)
 
-        description = f"Created with the piecemaker. Piece count: {_pieces}"
+        description = f"Created with the piecemaker. Piece count: {self.pieces}"
         # create a drawing
         # Use shape-rendering='optimizeSpeed' to not anti-alias the lines
         self._dwg = svgwrite.Drawing(
@@ -488,7 +492,8 @@ class JigsawPieceClipsSVG(object):
         area = decimal.Decimal(width * height)
         s = area.sqrt()
         n = decimal.Decimal(pieces).sqrt()
-        piece_size = float(s / n)
+        piece_size = max(float(s / n), self.minimum_piece_size)
+        #print(f"gridify {piece_size}")
         # use math.ceil to at least have the target count of pieces
         rounder = math.ceil
         if not add_more_pieces:

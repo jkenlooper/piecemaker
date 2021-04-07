@@ -4,13 +4,13 @@ import os
 import json
 from optparse import OptionParser
 from random import randint
-import time
+#import time
+from math import ceil, sqrt
 
 from PIL import Image
 
 from piecemaker.base import JigsawPieceClipsSVG, Pieces
 from piecemaker.adjacent import Adjacent
-from piecemaker.tools import resize_to_max_pixels
 
 from piecemaker._version import __version__
 
@@ -63,23 +63,6 @@ the minimum piece size.""",
 Will change the count of pieces to meet this if not set to 0.""",
     )
 
-    parser.add_option(
-        "--maximum-piece-size",
-        action="store",
-        type="int",
-        default=0,
-        help="""Maximum piece size.
-Will scale down the original image to meet this if not set to 0.""",
-    )
-
-    parser.add_option(
-        "--max-pixels",
-        action="store",
-        type="int",
-        default=0,
-        help="""Maximum pixels for the image.
-Will scale down the original image to meet this if not set to 0.""",
-    )
     parser.add_option(
         "--scaled-sizes",
         action="store",
@@ -147,19 +130,19 @@ adjacent pieces for each piece.""",
     if args:
         imagefile = args[0]
 
-    max_pixels = options.max_pixels
+    minimum_piece_size = options.minimum_piece_size
 
     if not options.svg:
         # create a grid of puzzle pieces in svg
-        if options.minimum_piece_size < 0:
+        if minimum_piece_size < 0:
             parser.error("Invalid minimum piece size")
-        if options.minimum_piece_size < 25:
+        if minimum_piece_size < 25:
             print(f"Warning: a minimum piece size less than 25 is not recommended.")
 
         if options.number_of_pieces < 0:
             parser.error("Invalid number of pieces")
 
-        if options.minimum_piece_size < 1 and options.number_of_pieces < 1:
+        if minimum_piece_size < 1 and options.number_of_pieces < 1:
             parser.error(
                 """
 Must set minimum piece size greater than 0
@@ -179,21 +162,26 @@ or set number of pieces greater than 0.
             width = options.width
             height = options.height
 
-        resize_imagefile = imagefile
-        if max_pixels > 0:
-            (imagefile_name, imagefile_ext) = os.path.splitext(imagefile)
-            resize_imagefile = f"{imagefile_name}-resized{imagefile_ext}"
-            (width, height) = resize_to_max_pixels(imagefile, resize_imagefile, max_pixels)
-        if options.maximum_piece_size > 0 and options.number_of_pieces > 0 and max_pixels == 0:
-            (imagefile_name, imagefile_ext) = os.path.splitext(imagefile)
-            resize_imagefile = f"{imagefile_name}-resized{imagefile_ext}"
-            max_pixels = (options.maximum_piece_size * options.maximum_piece_size) * options.number_of_pieces
-            (width, height) = resize_to_max_pixels(imagefile, resize_imagefile, max_pixels)
+        #extra_width = (width % options.minimum_piece_size) - options.minimum_piece_size
+        #extra_height = height % options.minimum_piece_size
+        minimum_piece_size = max(
+            minimum_piece_size + (abs((width % minimum_piece_size) / minimum_piece_size - 1)),
+            minimum_piece_size + (abs((height % minimum_piece_size) / minimum_piece_size - 1))
+        )
+        minimum_piece_size = max(
+            minimum_piece_size + (abs((width % minimum_piece_size) / minimum_piece_size - 1)),
+            minimum_piece_size + (abs((height % minimum_piece_size) / minimum_piece_size - 1))
+        )
+        minimum_piece_size = max(
+            minimum_piece_size + (abs((width % minimum_piece_size) / minimum_piece_size - 1)),
+            minimum_piece_size + (abs((height % minimum_piece_size) / minimum_piece_size - 1))
+        )
+        print(f"minimum_piece_size {minimum_piece_size}")
         jpc = JigsawPieceClipsSVG(
             width=width,
             height=height,
             pieces=options.number_of_pieces,
-            minimum_piece_size=options.minimum_piece_size,
+            minimum_piece_size=minimum_piece_size,
             variant=options.variant
         )
         svgfile = os.path.join(options.dir, "lines.svg")
@@ -214,34 +202,71 @@ or set number of pieces greater than 0.
 
         mydir = options.dir
 
+        max_piece_side = max(jpc._piece_width, jpc._piece_height)
+        #print(f"max piece side {max_piece_side}")
+        max_piece_size = sqrt(width * height) / sqrt(jpc.pieces)
+        #print(f"max piece size {max_piece_size}")
+        #minimum_scale = min(100, ceil(((minimum_piece_size * minimum_piece_size) / (max_piece_side * max_piece_side)) * 100.0))
+        minimum_pixels = jpc.pieces * (minimum_piece_size * minimum_piece_size)
+        #print(f"minimum_pixels {minimum_pixels}")
+        minimum_side = sqrt(minimum_pixels)
+        #print(f"minimum_side {minimum_side}")
+        side_count = sqrt(jpc.pieces)
+        #print(f"side_count {side_count}")
+        new_minimum_piece_size = ceil(minimum_side / side_count)
+        #print(f"new_minimum_piece_size {new_minimum_piece_size}")
+
+        minimum_scale = ceil((new_minimum_piece_size / max_piece_side) * 100.0)
+
+        #minimum_pixels = max_pixels * (minimum_scale / 100.0)
+
+        #minimum_scale = min(100, ceil(max(
+        #    (((minimum_piece_size) * (jpc._cols * 1)) / width) * 100.0,
+        #    (((minimum_piece_size) * (jpc._rows * 1)) / height) * 100.0
+        #)))
+        #print(f"minimum scale {minimum_scale}")
+        scaled_sizes = list(filter(lambda x: x >= minimum_scale, scaled_sizes))
+        if minimum_scale not in scaled_sizes:
+            scaled_sizes.insert(1, minimum_scale)
         dimensions = {}
         # First one will always be '100'
         piece_count_at_100_scale = None
         for scale in scaled_sizes:
+            #print(f"minimum_piece_size * (width / ceil(jpc._piece_width)) > width * (scale / 100.0)")
+            #print(f"{minimum_piece_size} * ({width} / {ceil(jpc._piece_width)}) > {width} * ({scale} / 100.0)")
+            #print(f"{minimum_piece_size * (width / ceil(jpc._piece_width))} > {width * (scale / 100.0)}")
+            #if minimum_piece_size * (width / ceil(jpc._piece_width)) > width * (scale / 100.0):
+            #    print(f"Skipping {scale} since width is too small")
+            #    continue
+            #print(f"minimum_piece_size * (height / jpc._piece_height) > height * (scale / 100.0)")
+            #print(f"{minimum_piece_size * (height / jpc._piece_height)} > {height * (scale / 100.0)}")
+            #if minimum_piece_size * (height / ceil(jpc._piece_height)) > height * (scale / 100.0):
+            #    print(f"Skipping {scale} since height is too small")
+            #    continue
             scaled_dir = os.path.join(mydir, f"scale-{scale}")
             os.mkdir(scaled_dir)
 
-            start = time.perf_counter()
+            #start = time.perf_counter()
             pieces = Pieces(
                 svgfile,
                 imagefile,
                 scaled_dir,
                 scale=scale,
-                max_pixels=max_pixels,
+                max_pixels=(width * height),
                 vector=not options.no_svg_files,
             )
-            stop = time.perf_counter()
-            print(f"Pieces init {stop - start}")
+            #stop = time.perf_counter()
+            #print(f"Pieces init {stop - start}")
 
-            start = time.perf_counter()
+            #start = time.perf_counter()
             pieces.cut()
-            stop = time.perf_counter()
-            print(f"cut {stop - start}")
+            #stop = time.perf_counter()
+            #print(f"cut {stop - start}")
 
-            start = time.perf_counter()
+            #start = time.perf_counter()
             pieces.generate_resources()
-            stop = time.perf_counter()
-            print(f"generate_resources {stop - start}")
+            #stop = time.perf_counter()
+            #print(f"generate_resources {stop - start}")
 
             piece_count = len(pieces.pieces)
             piece_bboxes = pieces.pieces
@@ -275,10 +300,12 @@ or set number of pieces greater than 0.
                 }
             )
         # create index.json
+        successful_scaled_sizes = list(dimensions.keys())
+        successful_scaled_sizes.sort()
         data = {
             "version": __version__,
             "generator": "piecemaker",
-            "scaled": scaled_sizes,
+            "scaled": successful_scaled_sizes,
             "sides": [0],
             "piece_count": piece_count,
             "image_author": "",
@@ -295,12 +322,11 @@ or set number of pieces greater than 0.
         f.close()
 
         if options.adjacent:
-            largest_size = max(scaled_sizes)
-            largest_scaled_dir = os.path.join(mydir, f"scale-{largest_size}")
-            start = time.perf_counter()
-            adjacent = Adjacent(largest_scaled_dir)
-            stop = time.perf_counter()
-            print(f"adjacent {stop - start}")
+            scaled_dir = os.path.join(mydir, f"scale-100")
+            #start = time.perf_counter()
+            adjacent = Adjacent(scaled_dir)
+            #stop = time.perf_counter()
+            #print(f"adjacent {stop - start}")
             f = open(os.path.join(mydir, "adjacent.json"), "w")
             json.dump(adjacent.adjacent_pieces, f)
             f.close()
