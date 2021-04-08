@@ -34,6 +34,7 @@ class PMHandler(Handler):
 
 
 def cap_dimensions(width, height, max_pixels):
+    "https://stackoverflow.com/questions/10106792/resize-image-by-pixel-amount"
     pixels = width * height
     if (pixels <= max_pixels):
         return (width, height)
@@ -132,6 +133,11 @@ class Pieces(object):
 
         if self.vector:
             raster_png = sprite.sprite_path()
+
+            # No warning about possible DecompressionBombWarning since the png
+            # here has been generated on this side.
+            Image.MAX_IMAGE_PIXELS = None
+
             png_sprite = Image.open(raster_png)
             jpg_sprite = png_sprite.convert("RGB")
             png_sprite.close()
@@ -469,6 +475,8 @@ class JigsawPieceClipsSVG(object):
         # set piece dimensions
         self._piece_width = float(width) / float(self._cols)
         self._piece_height = float(height) / float(self._rows)
+        print(f"pieces actual {self.pieces}")
+        print(f"piece size {self._piece_width} x {self._piece_height}")
 
         description = f"Created with the piecemaker. Piece count: {self.pieces}"
         # create a drawing

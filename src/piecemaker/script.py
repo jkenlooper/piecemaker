@@ -68,8 +68,10 @@ Will change the count of pieces to meet this if not set to 0.""",
         action="store",
         type="string",
         default="100",
-        help="""Comma separated list of sizes to scale for. Example:
-33,68,100,150 for 4 scaled puzzles with the last one being at 150%.""",
+        help="""Comma separated list of sizes to scale for. Must include 100 at least.
+Any that are too small will not be created and a minimum scale will be
+done for the ones that were dropped.
+Example: 33,68,100,150 for 4 scaled puzzles with the last one being at 150%.""",
     )
 
     parser.add_option(
@@ -105,9 +107,10 @@ adjacent pieces for each piece.""",
     parser.add_option(
         "--variant",
         action="store",
-        type="string",
+        type="choice",
         default="interlockingnubs",
-        help="""Piece cut variant to use. interlockingnubs or stochasticnubs""",
+        choices=["interlockingnubs", "stochasticnubs"],
+        help="""Piece cut variant to use.""",
     )
 
     (options, args) = parser.parse_args()
@@ -216,7 +219,7 @@ or set number of pieces greater than 0.
         new_minimum_piece_size = ceil(minimum_side / side_count)
         #print(f"new_minimum_piece_size {new_minimum_piece_size}")
 
-        minimum_scale = ceil((new_minimum_piece_size / max_piece_side) * 100.0)
+        minimum_scale = min(100, ceil((new_minimum_piece_size / max_piece_side) * 100.0))
 
         #minimum_pixels = max_pixels * (minimum_scale / 100.0)
 
