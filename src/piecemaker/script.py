@@ -9,7 +9,7 @@ from math import ceil, sqrt
 
 from PIL import Image
 
-from piecemaker.base import JigsawPieceClipsSVG, Pieces
+from piecemaker.base import JigsawPieceClipsSVG, Pieces, variants, gridify, cap_dimensions
 from piecemaker.adjacent import Adjacent
 
 from piecemaker._version import __version__
@@ -64,6 +64,16 @@ Will change the count of pieces to meet this if not set to 0.""",
     )
 
     parser.add_option(
+        "--maximum-piece-size",
+        action="store",
+        type="int",
+        default=0,
+        help="""Maximum piece size.
+Will resize the image if not set to 0 and is at least greater than double the
+set minimum piece size.""",
+    )
+
+    parser.add_option(
         "--scaled-sizes",
         action="store",
         type="string",
@@ -109,8 +119,8 @@ adjacent pieces for each piece.""",
         action="store",
         type="choice",
         default="interlockingnubs",
-        choices=["interlockingnubs", "stochasticnubs"],
-        help="""Piece cut variant to use.""",
+        choices=list(variants),
+        help=f"""Piece cut variant to use. Defaults to 'interlockingnubs'.  Other choices are: {list(variants)}""",
     )
 
     (options, args) = parser.parse_args()
@@ -134,6 +144,8 @@ adjacent pieces for each piece.""",
         imagefile = args[0]
 
     minimum_piece_size = options.minimum_piece_size
+    maximum_piece_size = options.maximum_piece_size
+    mydir = options.dir
 
     if not options.svg:
         # create a grid of puzzle pieces in svg
@@ -180,6 +192,18 @@ or set number of pieces greater than 0.
             minimum_piece_size + (abs((height % minimum_piece_size) / minimum_piece_size - 1))
         )
         print(f"minimum_piece_size {minimum_piece_size}")
+        (rows, cols, piece_width, piece_height) = gridify(width, height, options.number_of_pieces, minimum_piece_size)
+        _imagefile = imagefile
+        if maximum_piece_size != 0 and maximum_piece_size > minimum_piece_size * 2 and maximum_piece_size + minimum_piece_size < max(piece_width, piece_height):
+            im = Image.open(_imagefile)
+            # TODO: set new width, height
+            mxpx = (maximum_piece_size * maximum_piece_size) * (rows * cols)
+            (width, height) = cap_dimensions(width, height, mxpx)
+            im = im.resize((width, height))
+            (width, height) = im.size
+            _imagefile = os.path.join(mydir, f"resized-{os.path.basename(_imagefile)}")
+            im.save(_imagefile)
+            im.close()
         jpc = JigsawPieceClipsSVG(
             width=width,
             height=height,
@@ -187,7 +211,7 @@ or set number of pieces greater than 0.
             minimum_piece_size=minimum_piece_size,
             variant=options.variant
         )
-        svgfile = os.path.join(options.dir, "lines.svg")
+        svgfile = os.path.join(mydir, "lines.svg")
         f = open(svgfile, "w")
         f.write(jpc.svg())
         f.close()
@@ -203,7 +227,6 @@ or set number of pieces greater than 0.
         else:
             size = (options.width, options.height)
 
-        mydir = options.dir
 
         max_piece_side = max(jpc._piece_width, jpc._piece_height)
         #print(f"max piece side {max_piece_side}")
@@ -235,24 +258,13 @@ or set number of pieces greater than 0.
         # First one will always be '100'
         piece_count_at_100_scale = None
         for scale in scaled_sizes:
-            #print(f"minimum_piece_size * (width / ceil(jpc._piece_width)) > width * (scale / 100.0)")
-            #print(f"{minimum_piece_size} * ({width} / {ceil(jpc._piece_width)}) > {width} * ({scale} / 100.0)")
-            #print(f"{minimum_piece_size * (width / ceil(jpc._piece_width))} > {width * (scale / 100.0)}")
-            #if minimum_piece_size * (width / ceil(jpc._piece_width)) > width * (scale / 100.0):
-            #    print(f"Skipping {scale} since width is too small")
-            #    continue
-            #print(f"minimum_piece_size * (height / jpc._piece_height) > height * (scale / 100.0)")
-            #print(f"{minimum_piece_size * (height / jpc._piece_height)} > {height * (scale / 100.0)}")
-            #if minimum_piece_size * (height / ceil(jpc._piece_height)) > height * (scale / 100.0):
-            #    print(f"Skipping {scale} since height is too small")
-            #    continue
             scaled_dir = os.path.join(mydir, f"scale-{scale}")
             os.mkdir(scaled_dir)
 
             #start = time.perf_counter()
             pieces = Pieces(
                 svgfile,
-                imagefile,
+                _imagefile,
                 scaled_dir,
                 scale=scale,
                 max_pixels=(width * height),

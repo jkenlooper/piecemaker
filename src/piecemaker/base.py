@@ -44,6 +44,26 @@ def cap_dimensions(width, height, max_pixels):
     width2 = round(ratio * height2)
     return (width2, height2)
 
+def gridify(width, height, pieces, minimum_piece_size, add_more_pieces=True):
+    """
+    Based on area of the box, determine the count of rows and cols that
+    will meet the number of pieces.
+    """
+    area = decimal.Decimal(width * height)
+    s = area.sqrt()
+    n = decimal.Decimal(pieces).sqrt()
+    piece_size = max(float(s / n), minimum_piece_size)
+    #print(f"gridify {piece_size}")
+    # use math.ceil to at least have the target count of pieces
+    rounder = math.ceil
+    if not add_more_pieces:
+        rounder = math.floor
+    rows = int(rounder(height / piece_size))
+    cols = int(rounder(width / piece_size))
+    piece_width = float(width) / float(cols)
+    piece_height = float(height) / float(rows)
+    return (rows, cols, piece_width, piece_height)
+
 class Pieces(object):
     """
     Creates the piece pngs and pieces info.
@@ -465,16 +485,15 @@ class JigsawPieceClipsSVG(object):
             else:
                 self.pieces = max_pieces_that_will_fit
 
-        #print(f"max pieces that will fit {max_pieces_that_will_fit}")
         print(f"pieces adjusted {self.pieces}")
 
-        (self._rows, self._cols) = self._gridify(width, height, self.pieces)
+        (self._rows, self._cols, self._piece_width, self._piece_height) = gridify(width, height, self.pieces, self.minimum_piece_size)
 
         # adjust piece count
         self.pieces = self._rows * self._cols
         # set piece dimensions
-        self._piece_width = float(width) / float(self._cols)
-        self._piece_height = float(height) / float(self._rows)
+        #self._piece_width = float(width) / float(self._cols)
+        #self._piece_height = float(height) / float(self._rows)
         print(f"pieces actual {self.pieces}")
         print(f"piece size {self._piece_width} x {self._piece_height}")
 
@@ -491,24 +510,6 @@ class JigsawPieceClipsSVG(object):
         self._dwg.set_desc(title=self.title, desc=description)
 
         self._create_lines()
-
-    def _gridify(self, width, height, pieces, add_more_pieces=True):
-        """
-        Based on area of the box, determine the count of rows and cols that
-        will meet the number of pieces.
-        """
-        area = decimal.Decimal(width * height)
-        s = area.sqrt()
-        n = decimal.Decimal(pieces).sqrt()
-        piece_size = max(float(s / n), self.minimum_piece_size)
-        #print(f"gridify {piece_size}")
-        # use math.ceil to at least have the target count of pieces
-        rounder = math.ceil
-        if not add_more_pieces:
-            rounder = math.floor
-        rows = int(rounder(height / piece_size))
-        cols = int(rounder(width / piece_size))
-        return (rows, cols)
 
     def svg(self, filename=None):
         if filename is None:
