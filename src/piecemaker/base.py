@@ -4,9 +4,7 @@ from builtins import str
 from builtins import range
 from builtins import object
 import os
-import decimal
-import math
-from glob import glob
+from glob import iglob
 import json
 #import time
 
@@ -17,10 +15,14 @@ from pixsaw.base import Handler
 from glue.managers.simple import SimpleManager
 
 from .paths import interlockingnubs, stochasticnubs
-from piecemaker.tools import rasterize_svgfile, potrace
-
-BLEED = 2
-HALF_BLEED = BLEED * 0.5
+from piecemaker.tools import (
+    rasterize_svgfile,
+    potrace,
+    cap_dimensions,
+    gridify,
+)
+from piecemaker.sprite_proof import generate_sprite_proof_html
+from piecemaker.sprite_vector_proof import generate_sprite_vector_proof_html
 
 variants = {
     interlockingnubs.__name__.replace("piecemaker.paths.", ""),
@@ -32,37 +34,6 @@ class PMHandler(Handler):
     mask_prefix = ""
     piece_prefix = ""
 
-
-def cap_dimensions(width, height, max_pixels):
-    "https://stackoverflow.com/questions/10106792/resize-image-by-pixel-amount"
-    pixels = width * height
-    if (pixels <= max_pixels):
-        return (width, height)
-    ratio = float(width) / height
-    scale = (float(pixels) / max_pixels)**(width/(height*2))
-    height2 = round(float(height) / scale)
-    width2 = round(ratio * height2)
-    return (width2, height2)
-
-def gridify(width, height, pieces, minimum_piece_size, add_more_pieces=True):
-    """
-    Based on area of the box, determine the count of rows and cols that
-    will meet the number of pieces.
-    """
-    area = decimal.Decimal(width * height)
-    s = area.sqrt()
-    n = decimal.Decimal(pieces).sqrt()
-    piece_size = max(float(s / n), minimum_piece_size)
-    #print(f"gridify {piece_size}")
-    # use math.ceil to at least have the target count of pieces
-    rounder = math.ceil
-    if not add_more_pieces:
-        rounder = math.floor
-    rows = int(rounder(height / piece_size))
-    cols = int(rounder(width / piece_size))
-    piece_width = float(width) / float(cols)
-    piece_height = float(height) / float(rows)
-    return (rows, cols, piece_width, piece_height)
 
 class Pieces(object):
     """
@@ -131,7 +102,7 @@ class Pieces(object):
         self._pixsaw_handler.process(self._scaled_image)
 
         if self.vector:
-            for piece in glob(os.path.join(self._mask_dir, "*.bmp")):
+            for piece in iglob(os.path.join(self._mask_dir, "*.bmp")):
                 potrace(piece, self._vector_dir)
 
         pieces_json = open(os.path.join(self.mydir, "pieces.json"), "r")
@@ -172,168 +143,25 @@ class Pieces(object):
             #stop = time.perf_counter()
             #print(f"_generate_vector {stop - start}")
             #start = time.perf_counter()
-            self._sprite_vector_proof(sprite_width, sprite_height, sprite_layout)
+            generate_sprite_vector_proof_html(
+                pieces_json_file=os.path.join(self.mydir, "pieces.json"),
+                sprite_svg_file=os.path.join(self.mydir, "sprite.svg"),
+                output_dir=self.mydir,
+                sprite_layout=sprite_layout,
+                scale=self.scale,
+            )
             #stop = time.perf_counter()
             #print(f"_sprite_vector_proof {stop - start}")
 
         #start = time.perf_counter()
-        self._sprite_proof(sprite_width, sprite_height, sprite_layout)
+        #self._sprite_proof(sprite_width, sprite_height, sprite_layout)
+        generate_sprite_proof_html(
+            pieces_json_file=os.path.join(self.mydir, "pieces.json"),
+            output_dir=self.mydir,
+            scale=self.scale
+        )
         #stop = time.perf_counter()
         #print(f"_sprite_proof {stop - start}")
-
-    def _sprite_proof(self, sprite_width, sprite_height, sprite_layout):
-        """Create a sprite proof showing how the image was cut. Should look like
-        original."""
-        template = """
-<!doctype html>
-<html>
-<head>
-<title>Sprite Proof - {scale}</title>
-<style>
-{style}
-</style>
-</head>
-<body>
-<p>
-Piece count: {piece_count}
-</p>
-
-<!-- All the piece div elements -->
-<div class="container">
-{pieces}
-</div>
-</body>
-</html>"""
-        style = """
-body {
-background: black;
-color: white;
-}
-.container {
-position: relative;
-}
-.pc {
-position: absolute;
-transition: opacity linear 0.5s;
-}
-.pc:hover,
-.pc:active {
-opacity: 0;
-}
-"""
-        pieces_html = []
-        for (i, v) in self.pieces.items():
-            i = int(i)
-            x = v[0]
-            y = v[1]
-            width = v[2] - v[0]
-            height = v[3] - v[1]
-            el = f"""<div class='pc pc--{self.scale} pc-{i}' style='left:{x}px;top:{y}px;'>
-<img src="raster/{i}.png" width="{width}" height="{height}">
-            </div>"""
-            pieces_html.append(el)
-
-        pieces = "".join(pieces_html)
-        html = template.format(
-            **{
-                "scale": self.scale,
-                "pieces": pieces,
-                "piece_count": len(self.pieces.items()),
-                "style": style,
-            }
-        )
-
-        f = open(os.path.join(self.mydir, "sprite_proof.html"), "w")
-        f.write(html)
-        f.close()
-
-    def _sprite_vector_proof(self, sprite_width, sprite_height, sprite_layout):
-        """Create a sprite vector proof showing how the image was cut. Should look like
-        original."""
-
-        with open(os.path.join(self.mydir, "sprite.svg"), "r") as f:
-            sprite_svg = f.read().replace(
-                """<?xml version="1.0" encoding="utf-8"?>""", ""
-            )
-
-        template = """
-<!doctype html>
-<html>
-<head>
-<title>Sprite Vector Proof - {scale}</title>
-<style>
-{style}
-</style>
-</head>
-<body>
-<p>
-Piece count: {piece_count}
-</p>
-
-<!-- Contents of sprite.svg file inlined -->
-{sprite_svg}
-
-<!-- All the piece div elements -->
-<div class="container">
-{pieces}
-</div>
-
-
-</body>
-</html>"""
-        style = """
-body {
-background: black;
-color: white;
-}
-.container {
-position: relative;
-}
-.pc {
-position: absolute;
-transition: opacity linear 0.5s;
-}
-.pc:hover,
-.pc:active {
-opacity: 0;
-}
-        """
-        pieces_html = []
-        piece_style = []
-        hb = HALF_BLEED
-        for (i, piece_bbox) in self.pieces.items():
-            i = int(i)
-            x = piece_bbox[0]
-            y = piece_bbox[1]
-            width = sprite_layout[i][2]
-            height = sprite_layout[i][3]
-
-            el = f"""
-<div id="pc-{self.scale}-{i}" class="pc" style="left:{x}px;top:{y}px;">
-  <svg viewBox="0 0 {width} {height}" width="{width}" height="{height}" style="margin-left:-{hb}px;margin-top:-{hb}px">
-    <use xlink:href="#piece-fragment-{self.scale}-{i}"/>
-  </svg>
-</div>"""
-            pieces_html.append(el)
-            clip_path_style = (
-                "{" + f"clip-path: url(#piece-mask-{self.scale}-{i});" + "}"
-            )
-            piece_style.append(f"[id=pc-{self.scale}-{i}] {clip_path_style}")
-
-        pieces = "".join(pieces_html)
-        html = template.format(
-            **{
-                "scale": self.scale,
-                "pieces": pieces,
-                "piece_count": len(self.pieces.items()),
-                "style": style + "".join(piece_style),
-                "sprite_svg": sprite_svg,
-            }
-        )
-
-        f = open(os.path.join(self.mydir, "sprite_vector_proof.html"), "w")
-        f.write(html)
-        f.close()
 
     def _generate_sprite(self):
         " create the css and sprite using glue "
@@ -385,7 +213,7 @@ opacity: 0;
         dwg.set_desc(title="svg preview", desc="")
 
         common_path = os.path.commonprefix([self._scaled_image, self.mydir])
-        relative_scaled_image = jpg_sprite_file_name[len(common_path) + 1 :]
+        relative_scaled_image = jpg_sprite_file_name[len(common_path) + 1:]
         source_image = dwg.defs.add(
             dwg.image(
                 relative_scaled_image,

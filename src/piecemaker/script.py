@@ -6,11 +6,14 @@ from optparse import OptionParser
 from random import randint
 #import time
 from math import ceil, sqrt
+import shutil
+from glob import iglob
 
 from PIL import Image
 
-from piecemaker.base import JigsawPieceClipsSVG, Pieces, variants, gridify, cap_dimensions
+from piecemaker.base import JigsawPieceClipsSVG, Pieces, variants
 from piecemaker.adjacent import Adjacent
+from piecemaker.tools import scale_down_imgfile, potrace, gridify, cap_dimensions
 
 from piecemaker._version import __version__
 
@@ -251,13 +254,13 @@ or set number of pieces greater than 0.
         #    (((minimum_piece_size) * (jpc._rows * 1)) / height) * 100.0
         #)))
         #print(f"minimum scale {minimum_scale}")
-        scaled_sizes = list(filter(lambda x: x >= minimum_scale, scaled_sizes))
-        if minimum_scale not in scaled_sizes:
-            scaled_sizes.insert(1, minimum_scale)
+        scaled_sizes_greater_than_minimum = list(filter(lambda x: x >= minimum_scale, scaled_sizes))
+        if minimum_scale not in scaled_sizes_greater_than_minimum:
+            scaled_sizes_greater_than_minimum.insert(1, minimum_scale)
         dimensions = {}
         # First one will always be '100'
         piece_count_at_100_scale = None
-        for scale in scaled_sizes:
+        for scale in scaled_sizes_greater_than_minimum:
             scaled_dir = os.path.join(mydir, f"scale-{scale}")
             os.mkdir(scaled_dir)
 
@@ -297,6 +300,47 @@ or set number of pieces greater than 0.
                 }
             else:
                 print(f"Skipping scale {scale} since the piece count is not equal to piece count at 100 scale.")
+
+        scaled_sizes_less_than_minimum = list(filter(lambda x: x < minimum_scale, scaled_sizes))
+        for scale in scaled_sizes_less_than_minimum:
+            factor = scale / minimum_scale
+            minimum_scaled_dir = os.path.join(mydir, f"scale-{minimum_scale}")
+            scaled_dir = os.path.join(mydir, f"scale-{scale}")
+
+            shutil.copytree(minimum_scaled_dir, scaled_dir)
+            os.rename(
+                os.path.join(scaled_dir, f"lines-{minimum_scale}.png"),
+                os.path.join(scaled_dir, f"lines-{scale}.png")
+            )
+            os.rename(
+                os.path.join(scaled_dir, f"original-{minimum_scale}.jpg"),
+                os.path.join(scaled_dir, f"original-{scale}.jpg")
+            )
+
+            for filename in ["masks.json", "sprite_proof.html", "sprite.svg", "sprite_vector_proof.html"]:
+                os.unlink(
+                    os.path.join(scaled_dir, filename)
+                )
+            shutil.rmtree(os.path.join(scaled_dir, "vector"))
+
+
+            [scale_down_imgfile(imgfile, factor) for imgfile in iglob(f"{scaled_dir}/**/*.jpg", recursive=True)]
+            [scale_down_imgfile(imgfile, factor) for imgfile in iglob(f"{scaled_dir}/**/*.png", recursive=True)]
+            [scale_down_imgfile(imgfile, factor) for imgfile in iglob(f"{scaled_dir}/**/*.bmp", recursive=True)]
+
+            # TODO: modify "pieces.json"
+
+            os.mkdir(os.path.join(scaled_dir, "vector"))
+            for piece in iglob(os.path.join(scaled_dir, "mask", "*.bmp")):
+                potrace(piece, os.path.join(scaled_dir, "vector"))
+
+            # TODO: rebuild svg resources
+            #self._generate_vector(
+            #    sprite_width, sprite_height, sprite_layout, jpg_sprite_file_name
+            #)
+            #self._sprite_vector_proof(sprite_width, sprite_height, sprite_layout)
+            #self._sprite_proof(sprite_width, sprite_height, sprite_layout)
+
 
         tw = dimensions[100]["table_width"]
         th = dimensions[100]["table_height"]
