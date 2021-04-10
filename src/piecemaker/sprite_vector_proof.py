@@ -46,7 +46,12 @@ transition: opacity linear 0.5s;
 .pc:active {
 opacity: 0;
 }
-    """
+
+.pc > svg {
+""" + f"margin-left: -{HALF_BLEED}px; margin-top: -{HALF_BLEED}px;" + """
+display: block;
+}
+"""
 
 
 def generate_sprite_vector_proof_html(pieces_json_file, sprite_svg_file, output_dir, sprite_layout, scale):
@@ -63,7 +68,6 @@ def generate_sprite_vector_proof_html(pieces_json_file, sprite_svg_file, output_
 
     pieces_html = []
     piece_style = []
-    hb = HALF_BLEED
     for (i, piece_bbox) in piece_bboxes.items():
         i = int(i)
         x = piece_bbox[0]
@@ -75,7 +79,7 @@ def generate_sprite_vector_proof_html(pieces_json_file, sprite_svg_file, output_
 
         el = f"""
 <div id="pc-{scale}-{i}" class="pc" style="left:{x}px;top:{y}px;">
-<svg viewBox="0 0 {width} {height}" width="{width}" height="{height}" style="margin-left:-{hb}px;margin-top:-{hb}px">
+<svg viewBox="0 0 {width} {height}" width="{width}" height="{height}">
 <use xlink:href="#piece-fragment-{scale}-{i}"/>
 </svg>
 </div>"""
