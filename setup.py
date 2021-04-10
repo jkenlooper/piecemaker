@@ -34,7 +34,7 @@ setup(
     zip_safe=False,
     install_requires=[
         # glue 0.13 -> Pillow>=2.2.2
-        "Pillow < 9",
+        "Pillow >= 8.1.1, < 9",
         "pixsaw >= 0.3, <0.4",
         "beautifulsoup4",
         "future",
