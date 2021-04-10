@@ -30,7 +30,8 @@ Piece count: {piece_count}
 </body>
 </html>"""
 
-style = """
+style = (
+    """
 body {
 background: black;
 color: white;
@@ -48,13 +49,18 @@ opacity: 0;
 }
 
 .pc > svg {
-""" + f"margin-left: -{HALF_BLEED}px; margin-top: -{HALF_BLEED}px;" + """
+"""
+    + f"margin-left: -{HALF_BLEED}px; margin-top: -{HALF_BLEED}px;"
+    + """
 display: block;
 }
 """
+)
 
 
-def generate_sprite_vector_proof_html(pieces_json_file, sprite_svg_file, output_dir, sprite_layout, scale):
+def generate_sprite_vector_proof_html(
+    pieces_json_file, sprite_svg_file, output_dir, sprite_layout, scale
+):
     """Create a sprite vector proof showing how the image was cut. Should look like
     original."""
 
@@ -62,9 +68,7 @@ def generate_sprite_vector_proof_html(pieces_json_file, sprite_svg_file, output_
         piece_bboxes = json.load(pieces_json)
 
     with open(sprite_svg_file, "r") as f:
-        sprite_svg = f.read().replace(
-            """<?xml version="1.0" encoding="utf-8"?>""", ""
-        )
+        sprite_svg = f.read().replace("""<?xml version="1.0" encoding="utf-8"?>""", "")
 
     pieces_html = []
     piece_style = []
@@ -84,9 +88,7 @@ def generate_sprite_vector_proof_html(pieces_json_file, sprite_svg_file, output_
 </svg>
 </div>"""
         pieces_html.append(el)
-        clip_path_style = (
-            "{" + f"clip-path: url(#piece-mask-{scale}-{i});" + "}"
-        )
+        clip_path_style = "{" + f"clip-path: url(#piece-mask-{scale}-{i});" + "}"
         piece_style.append(f"[id=pc-{scale}-{i}] {clip_path_style}")
 
     pieces = "".join(pieces_html)

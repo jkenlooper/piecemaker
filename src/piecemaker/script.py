@@ -180,26 +180,35 @@ or set number of pieces greater than 0.
             width = options.width
             height = options.height
 
-        #extra_width = (width % options.minimum_piece_size) - options.minimum_piece_size
-        #extra_height = height % options.minimum_piece_size
         minimum_piece_size = max(
-            minimum_piece_size + (abs((width % minimum_piece_size) / minimum_piece_size - 1)),
-            minimum_piece_size + (abs((height % minimum_piece_size) / minimum_piece_size - 1))
+            minimum_piece_size
+            + (abs((width % minimum_piece_size) / minimum_piece_size - 1)),
+            minimum_piece_size
+            + (abs((height % minimum_piece_size) / minimum_piece_size - 1)),
         )
         minimum_piece_size = max(
-            minimum_piece_size + (abs((width % minimum_piece_size) / minimum_piece_size - 1)),
-            minimum_piece_size + (abs((height % minimum_piece_size) / minimum_piece_size - 1))
+            minimum_piece_size
+            + (abs((width % minimum_piece_size) / minimum_piece_size - 1)),
+            minimum_piece_size
+            + (abs((height % minimum_piece_size) / minimum_piece_size - 1)),
         )
         minimum_piece_size = max(
-            minimum_piece_size + (abs((width % minimum_piece_size) / minimum_piece_size - 1)),
-            minimum_piece_size + (abs((height % minimum_piece_size) / minimum_piece_size - 1))
+            minimum_piece_size
+            + (abs((width % minimum_piece_size) / minimum_piece_size - 1)),
+            minimum_piece_size
+            + (abs((height % minimum_piece_size) / minimum_piece_size - 1)),
         )
         print(f"minimum_piece_size {minimum_piece_size}")
-        (rows, cols, piece_width, piece_height) = gridify(width, height, options.number_of_pieces, minimum_piece_size)
+        (rows, cols, piece_width, piece_height) = gridify(
+            width, height, options.number_of_pieces, minimum_piece_size
+        )
         _imagefile = imagefile
-        if maximum_piece_size != 0 and maximum_piece_size > minimum_piece_size * 2 and maximum_piece_size + minimum_piece_size < max(piece_width, piece_height):
+        if (
+            maximum_piece_size != 0
+            and maximum_piece_size > minimum_piece_size * 2
+            and maximum_piece_size + minimum_piece_size < max(piece_width, piece_height)
+        ):
             im = Image.open(_imagefile)
-            # TODO: set new width, height
             mxpx = (maximum_piece_size * maximum_piece_size) * (rows * cols)
             (width, height) = cap_dimensions(width, height, mxpx)
             im = im.resize((width, height))
@@ -212,7 +221,7 @@ or set number of pieces greater than 0.
             height=height,
             pieces=options.number_of_pieces,
             minimum_piece_size=minimum_piece_size,
-            variant=options.variant
+            variant=options.variant,
         )
         svgfile = os.path.join(mydir, "lines.svg")
         f = open(svgfile, "w")
@@ -230,31 +239,26 @@ or set number of pieces greater than 0.
         else:
             size = (options.width, options.height)
 
-
         max_piece_side = max(jpc._piece_width, jpc._piece_height)
-        #print(f"max piece side {max_piece_side}")
+        # print(f"max piece side {max_piece_side}")
         max_piece_size = sqrt(width * height) / sqrt(jpc.pieces)
-        #print(f"max piece size {max_piece_size}")
-        #minimum_scale = min(100, ceil(((minimum_piece_size * minimum_piece_size) / (max_piece_side * max_piece_side)) * 100.0))
+        # print(f"max piece size {max_piece_size}")
         minimum_pixels = jpc.pieces * (minimum_piece_size * minimum_piece_size)
-        #print(f"minimum_pixels {minimum_pixels}")
+        # print(f"minimum_pixels {minimum_pixels}")
         minimum_side = sqrt(minimum_pixels)
-        #print(f"minimum_side {minimum_side}")
+        # print(f"minimum_side {minimum_side}")
         side_count = sqrt(jpc.pieces)
-        #print(f"side_count {side_count}")
+        # print(f"side_count {side_count}")
         new_minimum_piece_size = ceil(minimum_side / side_count)
-        #print(f"new_minimum_piece_size {new_minimum_piece_size}")
+        # print(f"new_minimum_piece_size {new_minimum_piece_size}")
 
-        minimum_scale = min(100, ceil((new_minimum_piece_size / max_piece_side) * 100.0))
+        minimum_scale = min(
+            100, ceil((new_minimum_piece_size / max_piece_side) * 100.0)
+        )
 
-        #minimum_pixels = max_pixels * (minimum_scale / 100.0)
-
-        #minimum_scale = min(100, ceil(max(
-        #    (((minimum_piece_size) * (jpc._cols * 1)) / width) * 100.0,
-        #    (((minimum_piece_size) * (jpc._rows * 1)) / height) * 100.0
-        #)))
-        #print(f"minimum scale {minimum_scale}")
-        scaled_sizes_greater_than_minimum = list(filter(lambda x: x >= minimum_scale, scaled_sizes))
+        scaled_sizes_greater_than_minimum = list(
+            filter(lambda x: x >= minimum_scale, scaled_sizes)
+        )
         if minimum_scale not in scaled_sizes_greater_than_minimum:
             scaled_sizes_greater_than_minimum.insert(1, minimum_scale)
         dimensions = {}
@@ -296,7 +300,9 @@ or set number of pieces greater than 0.
         # Reset minimum_scale in case it was dropped out of the dimensions.
         minimum_scale = min(100, sorted(dimensions.keys())[0])
 
-        scaled_sizes_less_than_minimum = list(filter(lambda x: x < minimum_scale, scaled_sizes))
+        scaled_sizes_less_than_minimum = list(
+            filter(lambda x: x < minimum_scale, scaled_sizes)
+        )
         for scale in scaled_sizes_less_than_minimum:
             factor = scale / minimum_scale
             minimum_scaled_dir = os.path.join(mydir, f"scale-{minimum_scale}")
@@ -305,30 +311,39 @@ or set number of pieces greater than 0.
             shutil.copytree(minimum_scaled_dir, scaled_dir)
             os.rename(
                 os.path.join(scaled_dir, f"lines-{minimum_scale}.png"),
-                os.path.join(scaled_dir, f"lines-{scale}.png")
+                os.path.join(scaled_dir, f"lines-{scale}.png"),
             )
             os.rename(
                 os.path.join(scaled_dir, f"original-{minimum_scale}.jpg"),
-                os.path.join(scaled_dir, f"original-{scale}.jpg")
+                os.path.join(scaled_dir, f"original-{scale}.jpg"),
             )
 
-            for filename in ["masks.json", "sprite_proof.html", "sprite.svg",
-                "sprite_vector_proof.html", "sprite_with_padding.jpg",
-                             "sprite_layout.json"]:
-                os.unlink(
-                    os.path.join(scaled_dir, filename)
-                )
+            for filename in [
+                "masks.json",
+                "sprite_proof.html",
+                "sprite.svg",
+                "sprite_vector_proof.html",
+                "sprite_with_padding.jpg",
+                "sprite_layout.json",
+            ]:
+                os.unlink(os.path.join(scaled_dir, filename))
             shutil.rmtree(os.path.join(scaled_dir, "vector"))
 
+            [
+                scale_down_imgfile(imgfile, factor)
+                for imgfile in iglob(f"{scaled_dir}/**/*.jpg", recursive=True)
+            ]
+            [
+                scale_down_imgfile(imgfile, factor)
+                for imgfile in iglob(f"{scaled_dir}/**/*.png", recursive=True)
+            ]
+            [
+                scale_down_imgfile(imgfile, factor)
+                for imgfile in iglob(f"{scaled_dir}/**/*.bmp", recursive=True)
+            ]
 
-            [scale_down_imgfile(imgfile, factor) for imgfile in iglob(f"{scaled_dir}/**/*.jpg", recursive=True)]
-            [scale_down_imgfile(imgfile, factor) for imgfile in iglob(f"{scaled_dir}/**/*.png", recursive=True)]
-            [scale_down_imgfile(imgfile, factor) for imgfile in iglob(f"{scaled_dir}/**/*.bmp", recursive=True)]
-
-            # TODO: modify "pieces.json"
             with open(os.path.join(scaled_dir, "pieces.json"), "r") as pieces_json:
                 piece_bboxes = json.load(pieces_json)
-
             with open(
                 os.path.join(scaled_dir, "piece_id_to_mask.json"), "r"
             ) as piece_id_to_mask_json:
@@ -336,7 +351,9 @@ or set number of pieces greater than 0.
             for (i, bbox) in piece_bboxes.items():
                 # TODO: open each png in raster/ or open each non-padded bmp in mask/
                 # update the width and height on bbox
-                im = Image.open(os.path.join(scaled_dir, "mask", f"{piece_id_to_mask[i]}.bmp"))
+                im = Image.open(
+                    os.path.join(scaled_dir, "mask", f"{piece_id_to_mask[i]}.bmp")
+                )
                 (width, height) = im.size
                 im.close()
                 bbox[0] = round(bbox[0] * factor)
@@ -376,10 +393,8 @@ or set number of pieces greater than 0.
             generate_sprite_proof_html(
                 pieces_json_file=os.path.join(scaled_dir, "pieces.json"),
                 output_dir=scaled_dir,
-                scale=scale
+                scale=scale,
             )
-
-
 
         tw = dimensions[100]["table_width"]
         th = dimensions[100]["table_height"]

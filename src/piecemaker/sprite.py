@@ -47,7 +47,9 @@ def generate_sprite_layout(raster_dir, output_dir):
         filename, ext = image.filename.rsplit(".", 1)
         sprite_layout[int(filename)] = (image.x, image.y, image.width, image.height)
 
-    with open(os.path.join(output_dir, "sprite_layout.json"), "w") as sprite_layout_json:
+    with open(
+        os.path.join(output_dir, "sprite_layout.json"), "w"
+    ) as sprite_layout_json:
         json.dump(sprite_layout, sprite_layout_json)
 
     raster_png = sprite.sprite_path()
@@ -67,7 +69,15 @@ def generate_sprite_layout(raster_dir, output_dir):
     return sprite_layout
 
 
-def generate_sprite_svg(sprite_layout, jpg_sprite_file_name, scaled_image, output_dir, scale, pieces_json_file, vector_dir):
+def generate_sprite_svg(
+    sprite_layout,
+    jpg_sprite_file_name,
+    scaled_image,
+    output_dir,
+    scale,
+    pieces_json_file,
+    vector_dir,
+):
     " parse the individual piece svg's and create the svg. "
 
     with open(
@@ -84,7 +94,7 @@ def generate_sprite_svg(sprite_layout, jpg_sprite_file_name, scaled_image, outpu
     dwg.set_desc(title="svg preview", desc="")
 
     common_path = os.path.commonprefix([scaled_image, output_dir])
-    relative_scaled_image = jpg_sprite_file_name[len(common_path) + 1:]
+    relative_scaled_image = jpg_sprite_file_name[len(common_path) + 1 :]
     source_image = dwg.defs.add(
         dwg.image(
             relative_scaled_image,
@@ -132,9 +142,7 @@ def generate_sprite_svg(sprite_layout, jpg_sprite_file_name, scaled_image, outpu
         piece_soup = BeautifulSoup(open(piece_svg), "xml")
         svg = piece_soup.svg
         first_g = svg.find("g")
-        piece_mask_tag = sprite_svg.defs.find(
-            "clipPath", id=f"piece-mask-{scale}-{i}"
-        )
+        piece_mask_tag = sprite_svg.defs.find("clipPath", id=f"piece-mask-{scale}-{i}")
         if piece_mask_tag:
             new_g = first_g.wrap(sprite_svg.new_tag("g"))
             first_g.unwrap()  # don't need this g with it's attributes

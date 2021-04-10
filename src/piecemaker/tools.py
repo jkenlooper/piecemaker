@@ -64,10 +64,10 @@ def scale_down_imgfile(imgfile, factor):
 def cap_dimensions(width, height, max_pixels):
     "https://stackoverflow.com/questions/10106792/resize-image-by-pixel-amount"
     pixels = width * height
-    if (pixels <= max_pixels):
+    if pixels <= max_pixels:
         return (width, height)
     ratio = float(width) / height
-    scale = (float(pixels) / max_pixels)**(width/(height*2))
+    scale = (float(pixels) / max_pixels) ** (width / (height * 2))
     height2 = round(float(height) / scale)
     width2 = round(ratio * height2)
     return (width2, height2)
@@ -82,7 +82,7 @@ def gridify(width, height, pieces, minimum_piece_size, add_more_pieces=True):
     s = area.sqrt()
     n = decimal.Decimal(pieces).sqrt()
     piece_size = max(float(s / n), minimum_piece_size)
-    #print(f"gridify {piece_size}")
+    # print(f"gridify {piece_size}")
     # use math.ceil to at least have the target count of pieces
     rounder = math.ceil
     if not add_more_pieces:

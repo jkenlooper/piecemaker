@@ -89,7 +89,11 @@ class Pieces(object):
         self._vector_dir = os.path.join(self.mydir, "vector")
         os.mkdir(self._vector_dir)
         self._pixsaw_handler = PMHandler(
-            self.mydir, scaled_png, mask_dir="mask", raster_dir="raster", jpg_dir="raster_with_padding"
+            self.mydir,
+            scaled_png,
+            mask_dir="mask",
+            raster_dir="raster",
+            jpg_dir="raster_with_padding",
         )
 
         self.width = width
@@ -133,8 +137,9 @@ class Pieces(object):
         generate_sprite_proof_html(
             pieces_json_file=os.path.join(self.mydir, "pieces.json"),
             output_dir=self.mydir,
-            scale=self.scale
+            scale=self.scale,
         )
+
 
 # see adjacent.py
 
@@ -177,13 +182,15 @@ class JigsawPieceClipsSVG(object):
 
         print(f"pieces adjusted {self.pieces}")
 
-        (self._rows, self._cols, self._piece_width, self._piece_height) = gridify(width, height, self.pieces, self.minimum_piece_size)
+        (self._rows, self._cols, self._piece_width, self._piece_height) = gridify(
+            width, height, self.pieces, self.minimum_piece_size
+        )
 
         # adjust piece count
         self.pieces = self._rows * self._cols
         # set piece dimensions
-        #self._piece_width = float(width) / float(self._cols)
-        #self._piece_height = float(height) / float(self._rows)
+        # self._piece_width = float(width) / float(self._cols)
+        # self._piece_height = float(height) / float(self._rows)
         print(f"pieces actual {self.pieces}")
         print(f"piece size {self._piece_width} x {self._piece_height}")
 

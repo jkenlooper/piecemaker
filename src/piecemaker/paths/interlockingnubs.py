@@ -19,10 +19,7 @@ def retuple(p):
 class InterlockingCurvePoints:
     @staticmethod
     def get_curve_points(width, height):
-        _anchor_left = (
-            width * uniform(0.34, 0.43),
-            height * uniform(-0.02, 0.22)
-        )
+        _anchor_left = (width * uniform(0.34, 0.43), height * uniform(-0.02, 0.22))
 
         _anchor_center = (
             (width * 0.50) - _anchor_left[0],
