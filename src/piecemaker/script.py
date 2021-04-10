@@ -231,6 +231,9 @@ or set number of pieces greater than 0.
         # TODO:
         svgfile = options.svg
 
+    table_width = int(width * 2.5)
+    table_height = int(height * 2.5)
+
     if not options.just_clips:
         # should be at least one image set in args: imagefile
         if not (options.width and options.height):
@@ -261,7 +264,7 @@ or set number of pieces greater than 0.
         )
         if minimum_scale not in scaled_sizes_greater_than_minimum:
             scaled_sizes_greater_than_minimum.insert(1, minimum_scale)
-        dimensions = {}
+        successful_scaled_sizes = []
         # First one will always be '100'
         piece_count_at_100_scale = None
         for scale in scaled_sizes_greater_than_minimum:
@@ -281,24 +284,19 @@ or set number of pieces greater than 0.
             pieces.generate_resources()
 
             piece_count = len(pieces.pieces)
-            piece_bboxes = pieces.pieces
+            # piece_bboxes = pieces.pieces
             if scale == 100:
                 piece_count_at_100_scale = piece_count
             if piece_count_at_100_scale == piece_count:
-                dimensions[scale] = {
-                    "width": pieces.width,
-                    "height": pieces.height,
-                    "table_width": int(pieces.width * 2.5),
-                    "table_height": int(pieces.height * 2.5),
-                    "board_url": f"puzzle_board-{scale}.html",
-                }
+                successful_scaled_sizes.append(scale)
             else:
                 print(
                     f"Skipping scale {scale} since the piece count is not equal to piece count at 100 scale."
                 )
 
-        # Reset minimum_scale in case it was dropped out of the dimensions.
-        minimum_scale = min(100, sorted(dimensions.keys())[0])
+        # Reset minimum_scale in case it was dropped out of the successful_scaled_sizes.
+        successful_scaled_sizes.sort()
+        minimum_scale = min(100, successful_scaled_sizes[0])
 
         scaled_sizes_less_than_minimum = list(
             filter(lambda x: x < minimum_scale, scaled_sizes)
@@ -358,8 +356,8 @@ or set number of pieces greater than 0.
                 im.close()
                 bbox[0] = round(bbox[0] * factor)
                 bbox[1] = round(bbox[1] * factor)
-                bbox[2] = width
-                bbox[3] = height
+                bbox[2] = bbox[0] + width
+                bbox[3] = bbox[1] + height
             with open(os.path.join(scaled_dir, "pieces.json"), "w") as pieces_json:
                 json.dump(piece_bboxes, pieces_json)
 
@@ -396,29 +394,39 @@ or set number of pieces greater than 0.
                 scale=scale,
             )
 
-        tw = dimensions[100]["table_width"]
-        th = dimensions[100]["table_height"]
+        with open(os.path.join(mydir, "scale-100", "pieces.json"), "r") as pieces_json:
+            piece_bboxes = json.load(pieces_json)
         piece_properties = []
-        for i in range(0, piece_count):
+        # TODO: Distribute pieces starting at the top and working down. Skip
+        # placing pieces in the center box.
+        for (i, bbox) in piece_bboxes.items():
+            # TODO: set rotation of pieces
+            # TODO: implement multiple sided pieces
+            # TODO: set grouping ids to pieces.
+            #   Example:
+            #   red pieces = group id 1,
+            #   blue pieces = group id 2,
+            #   ungrouped pieces = group id 0,
             piece_properties.append(
                 {
                     "id": i,
-                    "x": randint(0, tw),
-                    "y": randint(0, th),
-                    "w": piece_bboxes[str(i)][2] - piece_bboxes[str(i)][0],
-                    "h": piece_bboxes[str(i)][3] - piece_bboxes[str(i)][1],
-                    "r": 0,
-                    "s": 0,
-                    "g": 0,
+                    "x": randint(0, table_width - (bbox[2] - bbox[0])),
+                    "y": randint(0, table_height - (bbox[3] - bbox[1])),
+                    "r": 0, # random rotation of piece
+                    "s": 0, # random piece side
+                    "w": bbox[2] - bbox[0],
+                    "h": bbox[3] - bbox[1],
+                    "rotate": 0, # correct rotation of piece
+                    "g": 0, # grouping id
                 }
             )
         # create index.json
-        successful_scaled_sizes = list(dimensions.keys())
-        successful_scaled_sizes.sort()
         data = {
             "version": __version__,
             "generator": "piecemaker",
+            "piece_cut_variant": options.variant,
             "scaled": successful_scaled_sizes,
+            "reduced": scaled_sizes_less_than_minimum,
             "sides": [0],
             "piece_count": piece_count,
             "image_author": "",
@@ -427,7 +435,8 @@ or set number of pieces greater than 0.
             "image_description": "",
             "puzzle_author": "",
             "puzzle_link": "",
-            "scaled_dimensions": dimensions,
+            "table_width": table_width,
+            "table_height": table_height,
             "piece_properties": piece_properties,
         }
         f = open(os.path.join(mydir, "index.json"), "w")

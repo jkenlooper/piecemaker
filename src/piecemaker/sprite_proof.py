@@ -57,8 +57,8 @@ def generate_sprite_proof_html(pieces_json_file, output_dir, scale):
         i = int(i)
         x = v[0]
         y = v[1]
-        width = v[2]
-        height = v[3]
+        width = v[2] - v[0]
+        height = v[3] - v[1]
         el = f"""
 <div class='pc pc--{scale} pc-{i}' style='left:{x}px;top:{y}px;'>
 <img src="raster/{i}.png" width="{width}" height="{height}">

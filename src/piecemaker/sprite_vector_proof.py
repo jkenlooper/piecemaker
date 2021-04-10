@@ -77,7 +77,7 @@ def generate_sprite_vector_proof_html(
         x = piece_bbox[0]
         y = piece_bbox[1]
         # TODO: store and retrieve mask-padding dimensions instead of using
-        # sprite_layout.
+        # sprite_layout?
         width = sprite_layout[i][2]
         height = sprite_layout[i][3]
 
