@@ -67,7 +67,7 @@ Will change the count of pieces to meet this if not set to 0.""",
         type="int",
         default=0,
         help="""Maximum piece size.
-Will resize the image if not set to 0 and is at least greater than double the
+Will resize the image if not set to 0 and should be at least greater than double the
 set minimum piece size.""",
     )
 
@@ -144,6 +144,11 @@ adjacent pieces for each piece.""",
     minimum_piece_size = options.minimum_piece_size
     maximum_piece_size = options.maximum_piece_size
     mydir = options.dir
+
+    if maximum_piece_size != 0 and maximum_piece_size <= minimum_piece_size * 2:
+        parser.error(
+            "Maximum piece size should be more than double of minimum piece size if set."
+        )
 
     if not options.svg:
         # create a grid of puzzle pieces in svg
@@ -284,7 +289,12 @@ or set number of pieces greater than 0.
                     "board_url": f"puzzle_board-{scale}.html",
                 }
             else:
-                print(f"Skipping scale {scale} since the piece count is not equal to piece count at 100 scale.")
+                print(
+                    f"Skipping scale {scale} since the piece count is not equal to piece count at 100 scale."
+                )
+
+        # Reset minimum_scale in case it was dropped out of the dimensions.
+        minimum_scale = min(100, sorted(dimensions.keys())[0])
 
         scaled_sizes_less_than_minimum = list(filter(lambda x: x < minimum_scale, scaled_sizes))
         for scale in scaled_sizes_less_than_minimum:
