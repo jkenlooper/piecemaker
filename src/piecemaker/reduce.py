@@ -6,7 +6,11 @@ from glob import iglob
 from PIL import Image
 
 from piecemaker.tools import scale_down_imgfile, potrace
-from piecemaker.sprite import generate_sprite_layout, generate_sprite_svg
+from piecemaker.sprite import (
+    generate_sprite_without_padding_layout,
+    generate_sprite_with_padding_layout,
+    generate_sprite_svg,
+)
 from piecemaker.cut_proof import generate_cut_proof_html
 from piecemaker.sprite_vector_proof import generate_sprite_vector_proof_html
 
@@ -32,7 +36,7 @@ def reduce_size(scale, minimum_scale, output_dir):
         "sprite.svg",
         "sprite_vector_proof.html",
         "sprite_with_padding.jpg",
-        "sprite_layout.json",
+        "sprite_with_padding_layout.json",
     ]:
         os.unlink(os.path.join(scaled_dir, filename))
     shutil.rmtree(os.path.join(scaled_dir, "vector"))
@@ -62,14 +66,19 @@ def reduce_size(scale, minimum_scale, output_dir):
     for piece in iglob(os.path.join(scaled_dir, "mask", "*.bmp")):
         potrace(piece, os.path.join(scaled_dir, "vector"))
 
-    sprite_layout = generate_sprite_layout(
+    sprite_without_padding_layout = generate_sprite_without_padding_layout(
+        raster_dir=os.path.join(scaled_dir, "raster"),
+        output_dir=scaled_dir,
+    )
+    jpg_sprite_file_name = os.path.join(scaled_dir, "sprite_with_padding.jpg")
+    sprite_with_padding_layout = generate_sprite_with_padding_layout(
         raster_dir=os.path.join(scaled_dir, "raster_with_padding"),
         output_dir=scaled_dir,
     )
     jpg_sprite_file_name = os.path.join(scaled_dir, "sprite_with_padding.jpg")
 
     generate_sprite_svg(
-        sprite_layout=sprite_layout,
+        sprite_layout=sprite_with_padding_layout,
         jpg_sprite_file_name=jpg_sprite_file_name,
         scaled_image=os.path.join(scaled_dir, f"original-{scale}.jpg"),
         output_dir=scaled_dir,
@@ -82,7 +91,7 @@ def reduce_size(scale, minimum_scale, output_dir):
         pieces_json_file=os.path.join(scaled_dir, "pieces.json"),
         sprite_svg_file=os.path.join(scaled_dir, "sprite.svg"),
         output_dir=scaled_dir,
-        sprite_layout=sprite_layout,
+        sprite_layout=sprite_with_padding_layout,
         scale=scale,
     )
 

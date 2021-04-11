@@ -19,7 +19,11 @@ from piecemaker.tools import (
     cap_dimensions,
     gridify,
 )
-from piecemaker.sprite import generate_sprite_layout, generate_sprite_svg
+from piecemaker.sprite import (
+    generate_sprite_without_padding_layout,
+    generate_sprite_with_padding_layout,
+    generate_sprite_svg,
+)
 from piecemaker.cut_proof import generate_cut_proof_html
 from piecemaker.sprite_vector_proof import generate_sprite_vector_proof_html
 
@@ -111,14 +115,18 @@ class Pieces(object):
     def generate_resources(self):
         " Create the extra resources to display the pieces. "
 
-        sprite_layout = generate_sprite_layout(
+        sprite_without_padding_layout = generate_sprite_without_padding_layout(
+            raster_dir=os.path.join(self.mydir, "raster"),
+            output_dir=self.mydir,
+        )
+        sprite_with_padding_layout = generate_sprite_with_padding_layout(
             raster_dir=os.path.join(self.mydir, "raster_with_padding"),
             output_dir=self.mydir,
         )
         jpg_sprite_file_name = os.path.join(self.mydir, "sprite_with_padding.jpg")
 
         generate_sprite_svg(
-            sprite_layout=sprite_layout,
+            sprite_layout=sprite_with_padding_layout,
             jpg_sprite_file_name=jpg_sprite_file_name,
             scaled_image=self._scaled_image,
             output_dir=self.mydir,
@@ -131,7 +139,7 @@ class Pieces(object):
             pieces_json_file=os.path.join(self.mydir, "pieces.json"),
             sprite_svg_file=os.path.join(self.mydir, "sprite.svg"),
             output_dir=self.mydir,
-            sprite_layout=sprite_layout,
+            sprite_layout=sprite_with_padding_layout,
             scale=self.scale,
         )
         generate_cut_proof_html(
