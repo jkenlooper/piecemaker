@@ -48,6 +48,8 @@ class Adjacent(object):
         else:
             with open(os.path.join(directory, "pieces.json"), "r") as f:
                 pieces_info = json.load(f)
+
+        # TODO: create index to optimize this.
         for (piece_id, piece_bbox) in pieces_info.items():
             adjacent = []
             for (other_piece_id, other_piece_bbox) in pieces_info.items():

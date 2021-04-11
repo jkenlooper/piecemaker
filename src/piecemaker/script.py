@@ -167,9 +167,6 @@ or set number of pieces greater than 0.
         svgfile = options.svg
         minimum_scale = min(scaled_sizes)
 
-    table_width = int(width * 2.5)
-    table_height = int(height * 2.5)
-
     scaled_sizes_greater_than_minimum = list(
         filter(lambda x: x >= minimum_scale, scaled_sizes)
     )
@@ -218,6 +215,12 @@ or set number of pieces greater than 0.
             output_dir=mydir,
         )
 
+    im = Image.open(imagefile)
+    (width, height) = im.size
+    im.close()
+    table_width = int(width * 2.5)
+    table_height = int(height * 2.5)
+
     with open(os.path.join(mydir, "scale-100", "pieces.json"), "r") as pieces_json:
         piece_bboxes = json.load(pieces_json)
     piece_properties = []
@@ -257,6 +260,8 @@ or set number of pieces greater than 0.
         "image_link": "",
         "image_title": "",
         "image_description": "",
+        "image_width": width,
+        "image_height": height,
         "puzzle_author": "",
         "puzzle_link": "",
         "table_width": table_width,

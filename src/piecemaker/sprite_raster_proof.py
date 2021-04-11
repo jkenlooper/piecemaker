@@ -1,6 +1,6 @@
 import os.path
 import json
-from uuid import uuid4
+import time
 
 from PIL import Image
 
@@ -60,7 +60,7 @@ def generate_sprite_raster_proof_html(pieces_json_file, output_dir, sprite_layou
     (bg_image_width, bg_image_height) = im.size
     im.close()
 
-    cachebust = str(uuid4())
+    cachebust = str(int(time.time()))
     pieces_style = [
         f".pc.pc--{scale}"
         + "{"
@@ -69,6 +69,7 @@ background-size: {bg_image_width}px {bg_image_height}px;
 """
         + "}"
     ]
+
     for (i, v) in sprite_layout.items():
         x = v[0]
         y = v[1]
