@@ -7,7 +7,7 @@ from PIL import Image
 
 from piecemaker.tools import scale_down_imgfile, potrace
 from piecemaker.sprite import generate_sprite_layout, generate_sprite_svg
-from piecemaker.sprite_proof import generate_sprite_proof_html
+from piecemaker.cut_proof import generate_cut_proof_html
 from piecemaker.sprite_vector_proof import generate_sprite_vector_proof_html
 
 
@@ -28,7 +28,7 @@ def reduce_size(scale, minimum_scale, output_dir):
 
     for filename in [
         "masks.json",
-        "sprite_proof.html",
+        "cut_proof.html",
         "sprite.svg",
         "sprite_vector_proof.html",
         "sprite_with_padding.jpg",
@@ -85,7 +85,8 @@ def reduce_size(scale, minimum_scale, output_dir):
         sprite_layout=sprite_layout,
         scale=scale,
     )
-    generate_sprite_proof_html(
+
+    generate_cut_proof_html(
         pieces_json_file=os.path.join(scaled_dir, "pieces.json"),
         output_dir=scaled_dir,
         scale=scale,

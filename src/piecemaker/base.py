@@ -20,7 +20,7 @@ from piecemaker.tools import (
     gridify,
 )
 from piecemaker.sprite import generate_sprite_layout, generate_sprite_svg
-from piecemaker.sprite_proof import generate_sprite_proof_html
+from piecemaker.cut_proof import generate_cut_proof_html
 from piecemaker.sprite_vector_proof import generate_sprite_vector_proof_html
 
 variants = {
@@ -134,7 +134,7 @@ class Pieces(object):
             sprite_layout=sprite_layout,
             scale=self.scale,
         )
-        generate_sprite_proof_html(
+        generate_cut_proof_html(
             pieces_json_file=os.path.join(self.mydir, "pieces.json"),
             output_dir=self.mydir,
             scale=self.scale,

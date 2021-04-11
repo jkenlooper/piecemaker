@@ -5,7 +5,7 @@ template = """
 <!doctype html>
 <html>
 <head>
-<title>Sprite Proof - {scale}</title>
+<title>Cut Proof - {scale}</title>
 <style>
 {style}
 </style>
@@ -45,8 +45,8 @@ display: block;
 """
 
 
-def generate_sprite_proof_html(pieces_json_file, output_dir, scale):
-    """Create a sprite proof showing how the image was cut. Should look like
+def generate_cut_proof_html(pieces_json_file, output_dir, scale):
+    """Create a cut proof showing how the image was cut. Should look like
     original."""
 
     with open(pieces_json_file, "r") as pieces_json:
@@ -75,6 +75,6 @@ def generate_sprite_proof_html(pieces_json_file, output_dir, scale):
         }
     )
 
-    f = open(os.path.join(output_dir, "sprite_proof.html"), "w")
+    f = open(os.path.join(output_dir, "cut_proof.html"), "w")
     f.write(html)
     f.close()
