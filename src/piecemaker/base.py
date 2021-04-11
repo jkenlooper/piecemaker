@@ -25,6 +25,7 @@ from piecemaker.sprite import (
     generate_sprite_svg,
 )
 from piecemaker.cut_proof import generate_cut_proof_html
+from piecemaker.sprite_raster_proof import generate_sprite_raster_proof_html
 from piecemaker.sprite_vector_proof import generate_sprite_vector_proof_html
 
 variants = {
@@ -135,6 +136,12 @@ class Pieces(object):
             vector_dir=self._vector_dir,
         )
 
+        generate_sprite_raster_proof_html(
+            pieces_json_file=os.path.join(self.mydir, "pieces.json"),
+            output_dir=self.mydir,
+            sprite_layout=sprite_without_padding_layout,
+            scale=self.scale,
+        )
         generate_sprite_vector_proof_html(
             pieces_json_file=os.path.join(self.mydir, "pieces.json"),
             sprite_svg_file=os.path.join(self.mydir, "sprite.svg"),

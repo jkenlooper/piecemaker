@@ -12,6 +12,7 @@ from piecemaker.sprite import (
     generate_sprite_svg,
 )
 from piecemaker.cut_proof import generate_cut_proof_html
+from piecemaker.sprite_raster_proof import generate_sprite_raster_proof_html
 from piecemaker.sprite_vector_proof import generate_sprite_vector_proof_html
 
 
@@ -34,6 +35,8 @@ def reduce_size(scale, minimum_scale, output_dir):
         "masks.json",
         "cut_proof.html",
         "sprite.svg",
+        "sprite_raster.css",
+        "sprite_raster_proof.html",
         "sprite_vector_proof.html",
         "sprite_with_padding.jpg",
         "sprite_with_padding_layout.json",
@@ -87,6 +90,12 @@ def reduce_size(scale, minimum_scale, output_dir):
         vector_dir=os.path.join(scaled_dir, "vector"),
     )
 
+    generate_sprite_raster_proof_html(
+        pieces_json_file=os.path.join(scaled_dir, "pieces.json"),
+        output_dir=scaled_dir,
+        sprite_layout=sprite_without_padding_layout,
+        scale=scale,
+    )
     generate_sprite_vector_proof_html(
         pieces_json_file=os.path.join(scaled_dir, "pieces.json"),
         sprite_svg_file=os.path.join(scaled_dir, "sprite.svg"),

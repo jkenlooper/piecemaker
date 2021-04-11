@@ -9,8 +9,6 @@ from glue.managers.simple import SimpleManager
 
 def generate_sprite_without_padding_layout(raster_dir, output_dir):
     " create the sprite using glue "
-    # Spread the images out slightly with the margin option set to 1. This will
-    # help if the image is reduced in size later.
     sprite_manager = SimpleManager(
         source=raster_dir,
         css_namespace="pc",
@@ -27,7 +25,7 @@ def generate_sprite_without_padding_layout(raster_dir, output_dir):
         algorithm_ordering="maxside",
         crop=False,
         padding="0",
-        margin="1",
+        margin="0",
         png8=False,
         retina=False,
         output=output_dir,
