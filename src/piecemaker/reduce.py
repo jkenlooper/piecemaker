@@ -36,6 +36,7 @@ def reduce_size(scale, minimum_scale, output_dir):
         "cut_proof.html",
         "sprite.svg",
         "sprite_raster.css",
+        "sprite_vector.css",
         "sprite_raster_proof.html",
         "sprite_vector_proof.html",
         "sprite_with_padding.jpg",

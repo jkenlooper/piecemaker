@@ -12,6 +12,7 @@ template = """
 <style>
 {style}
 </style>
+<link rel="stylesheet" media="all" href="sprite_vector.css">
 </head>
 <body>
 <p>
@@ -39,22 +40,18 @@ color: white;
 .container {
 position: relative;
 }
-.pc {
+.p {
 position: absolute;
 transition: opacity linear 0.5s;
 }
-.pc:hover,
-.pc:active {
+.p:hover,
+.p:active {
 opacity: 0;
 }
-
-.pc > svg {
 """
-    + f"margin-left: -{HALF_BLEED}px; margin-top: -{HALF_BLEED}px;"
-    + """
-display: block;
-}
-"""
+    + ".p-f {"
+    + f"margin-left:-{HALF_BLEED}px;margin-top:-{HALF_BLEED}px;"
+    + "display: block;}"
 )
 
 
@@ -71,7 +68,7 @@ def generate_sprite_vector_proof_html(
         sprite_svg = f.read().replace("""<?xml version="1.0" encoding="utf-8"?>""", "")
 
     pieces_html = []
-    piece_style = []
+    pieces_style = []
     for (i, piece_bbox) in piece_bboxes.items():
         i = int(i)
         x = piece_bbox[0]
@@ -82,14 +79,21 @@ def generate_sprite_vector_proof_html(
         height = sprite_layout[i][3]
 
         el = f"""
-<div id="pc-{scale}-{i}" class="pc" style="left:{x}px;top:{y}px;">
-<svg viewBox="0 0 {width} {height}" width="{width}" height="{height}">
+<div id="p-{i}" class="p pc-{i}" style="left:{x}px;top:{y}px;">
+<svg class="p-f" viewBox="0 0 {width} {height}" width="{width}" height="{height}">
 <use xlink:href="#piece-fragment-{scale}-{i}"/>
 </svg>
 </div>"""
         pieces_html.append(el)
-        clip_path_style = "{" + f"clip-path: url(#piece-mask-{scale}-{i});" + "}"
-        piece_style.append(f"[id=pc-{scale}-{i}] {clip_path_style}")
+        pieces_style.append(
+            f".pc-{i}"
+            + "{"
+            + f"clip-path:url(#piece-mask-{scale}-{i});"
+            + "}"
+        )
+
+    with open(os.path.join(output_dir, "sprite_vector.css"), "w") as css:
+        css.write("".join(pieces_style))
 
     pieces = "".join(pieces_html)
     html = template.format(
@@ -97,7 +101,7 @@ def generate_sprite_vector_proof_html(
             "scale": scale,
             "pieces": pieces,
             "piece_count": len(piece_bboxes.items()),
-            "style": style + "".join(piece_style),
+            "style": style,
             "sprite_svg": sprite_svg,
         }
     )

@@ -34,17 +34,13 @@ color: white;
 .container {
 position: relative;
 }
-.pc {
+.p {
 position: absolute;
 transition: opacity linear 0.5s;
 }
-.pc:hover,
-.pc:active {
+.p:hover,
+.p:active {
 opacity: 0;
-}
-
-.pc > img {
-display: block;
 }
 """
 
@@ -62,11 +58,9 @@ def generate_sprite_raster_proof_html(pieces_json_file, output_dir, sprite_layou
 
     cachebust = str(int(time.time()))
     pieces_style = [
-        f".pc.pc--{scale}"
-        + "{"
-        + f"""background-image: url('sprite_without_padding.png?{cachebust}');
-background-size: {bg_image_width}px {bg_image_height}px;
-"""
+        ".p{"
+        + f"background-image:url('sprite_without_padding.png?{cachebust}');"
+        + f"background-size:{bg_image_width}px {bg_image_height}px;"
         + "}"
     ]
 
@@ -76,7 +70,7 @@ background-size: {bg_image_width}px {bg_image_height}px;
         width = v[2]
         height = v[3]
         pieces_style.append(
-            f"[data-pc='{i}'].pc.pc--{scale}"
+            f".pc-{i}"
             + "{"
             + f"background-position:{x * -1}px {y * -1}px;"
             + f"width:{width}px;height:{height}px;"
@@ -94,7 +88,7 @@ background-size: {bg_image_width}px {bg_image_height}px;
         width = v[2] - v[0]
         height = v[3] - v[1]
         el = f"""
-<div class='pc pc--{scale}' data-pc='{i}' style='left:{x}px;top:{y}px;'></div>"""
+<div id='p-{i}' class='p pc-{i}' style='left:{x}px;top:{y}px;'></div>"""
         pieces_html.append(el)
 
     pieces = "".join(pieces_html)

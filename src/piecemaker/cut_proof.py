@@ -30,16 +30,16 @@ color: white;
 .container {
 position: relative;
 }
-.pc {
+.p {
 position: absolute;
 transition: opacity linear 0.5s;
 }
-.pc:hover,
-.pc:active {
+.p:hover,
+.p:active {
 opacity: 0;
 }
 
-.pc > img {
+.p-img {
 display: block;
 }
 """
@@ -59,10 +59,11 @@ def generate_cut_proof_html(pieces_json_file, output_dir, scale):
         y = v[1]
         width = v[2] - v[0]
         height = v[3] - v[1]
-        el = f"""
-<div class='pc pc--{scale} pc-{i}' style='left:{x}px;top:{y}px;'>
-<img src="raster/{i}.png" width="{width}" height="{height}">
-</div>"""
+        el = "".join([
+            f"<div id='p-{i}' class='p pc-{i}' style='left:{x}px;top:{y}px;'>",
+            f"<img class='p-img' src='raster/{i}.png' width='{width}' height='{height}'>",
+            "</div>"
+        ])
         pieces_html.append(el)
 
     pieces = "".join(pieces_html)
