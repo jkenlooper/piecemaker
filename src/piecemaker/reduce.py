@@ -41,6 +41,8 @@ def reduce_size(scale, minimum_scale, output_dir):
         "sprite_vector_proof.html",
         "sprite_with_padding.jpg",
         "sprite_with_padding_layout.json",
+        "sprite_without_padding.png",
+        "sprite_without_padding_layout.json",
     ]:
         os.unlink(os.path.join(scaled_dir, filename))
     shutil.rmtree(os.path.join(scaled_dir, "vector"))
