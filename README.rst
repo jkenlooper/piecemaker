@@ -35,6 +35,7 @@ Other Software needed:
 
 If on ubuntu or other debian based distro::
 
+    $ sudo apt-get --yes install libspatialindex6
     $ sudo apt-get --yes install optipng
     $ sudo curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -
     $ sudo apt-get install -y nodejs

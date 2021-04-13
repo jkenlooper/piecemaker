@@ -49,14 +49,27 @@ class Adjacent(object):
             with open(os.path.join(directory, "pieces.json"), "r") as f:
                 self.pieces_info = json.load(f)
 
-        # TODO: create index to optimize this.
+        # create the rtree index
+        #
+        from rtree import index
+
+        rtree_idx = index.Index(interleaved=True)
+
         for (piece_id, piece_bbox) in self.pieces_info.items():
-            adjacent = []
-            for (other_piece_id, other_piece_bbox) in self.pieces_info.items():
-                if piece_id == other_piece_id:
-                    continue
-                if self.are_adjacent(piece_bbox, other_piece_bbox):
-                    adjacent.append(other_piece_id)
+            rtree_idx.insert(int(piece_id), piece_bbox)
+
+        for (piece_id, piece_bbox) in self.pieces_info.items():
+            expanded_piece_bbox = (
+                piece_bbox[0] - 1,
+                piece_bbox[1] - 1,
+                piece_bbox[2] + 1,
+                piece_bbox[3] + 1,
+            )
+            adjacent = list(map(str, rtree_idx.intersection(expanded_piece_bbox)))
+            adjacent.remove(piece_id)
+            if len(adjacent) == 0:
+                adjacent = list(map(str, rtree_idx.nearest(piece_bbox, num_results=2)))
+                adjacent.remove(piece_id)
             self.adjacent_pieces[piece_id] = adjacent
 
         if ignore_corners:
@@ -65,6 +78,7 @@ class Adjacent(object):
                 filtered_adjacent_pieces[target_id] = self.filter_out_corner_adjacent(target_id, target_adjacent_list)
             self.adjacent_pieces = filtered_adjacent_pieces
 
+        # TODO: WIP
         if by_overlap:
             pass
             # TODO: further filter out the adjacent pieces by doing the
