@@ -64,6 +64,7 @@ Will resize the image if not set to 0 and should be at least greater than double
 set minimum piece size.""",
     )
 
+    # TODO: use percent instead of 'scale'
     parser.add_option(
         "--scaled-sizes",
         action="store",
@@ -76,11 +77,10 @@ Example: 33,68,100,150 for 4 scaled puzzles with the last one being at 150%.""",
     )
 
     parser.add_option(
-        "--adjacent",
+        "--use-max-size",
         action="store_true",
-        default=True,
-        help="""Create the adjacent.json file with list of
-adjacent pieces for each piece.""",
+        default=False,
+        help="""Use the largest size when creating the size-100 directory instead of the smallest possible.""",
     )
 
     parser.add_option(
@@ -121,6 +121,7 @@ adjacent pieces for each piece.""",
             "Maximum piece size should be more than double of minimum piece size if set."
         )
 
+    minimum_scale = min(scaled_sizes)
     if not options.svg:
         # create a grid of puzzle pieces in svg
         if minimum_piece_size < 0:
@@ -160,58 +161,41 @@ or set number of pieces greater than 0.
         minimum_side = sqrt(minimum_pixels)
         side_count = sqrt(jpc.pieces)
         new_minimum_piece_size = ceil(minimum_side / side_count)
-        minimum_scale = min(
-            100, ceil((new_minimum_piece_size / max_piece_side) * 100.0)
-        )
+        if minimum_scale < 100:
+            minimum_scale = min(
+                100, ceil((new_minimum_piece_size / max_piece_side) * 100.0)
+            )
     else:
         svgfile = options.svg
-        minimum_scale = min(scaled_sizes)
 
-    scaled_sizes_greater_than_minimum = list(
-        filter(lambda x: x >= minimum_scale, scaled_sizes)
+    sizes = [minimum_scale] + scaled_sizes
+    sizes.sort()
+
+    scale_for_size_100 = 100 if options.use_max_size else minimum_scale
+
+    full_size_dir = os.path.join(mydir, f"size-{scale_for_size_100}")
+    os.mkdir(full_size_dir)
+
+    pieces = Pieces(
+        svgfile,
+        imagefile,
+        full_size_dir,
+        scale=scale_for_size_100,
+        max_pixels=(width * height),
     )
-    if minimum_scale not in scaled_sizes_greater_than_minimum:
-        scaled_sizes_greater_than_minimum.insert(1, minimum_scale)
-    successful_scaled_sizes = []
-    # First one will always be '100'
-    piece_count_at_100_scale = None
-    for scale in scaled_sizes_greater_than_minimum:
-        scaled_dir = os.path.join(mydir, f"scale-{scale}")
-        os.mkdir(scaled_dir)
 
-        pieces = Pieces(
-            svgfile,
-            imagefile,
-            scaled_dir,
-            scale=scale,
-            max_pixels=(width * height),
-        )
+    pieces.cut()
 
-        pieces.cut()
+    pieces.generate_resources()
 
-        pieces.generate_resources()
+    piece_count = len(pieces.pieces)
 
-        piece_count = len(pieces.pieces)
-        if scale == 100:
-            piece_count_at_100_scale = piece_count
-        if piece_count_at_100_scale == piece_count:
-            successful_scaled_sizes.append(scale)
-        else:
-            print(
-                f"Skipping scale {scale} since the piece count is not equal to piece count at 100 scale."
-            )
-
-    # Reset minimum_scale in case it was dropped out of the successful_scaled_sizes.
-    successful_scaled_sizes.sort()
-    minimum_scale = min(100, successful_scaled_sizes[0])
-
-    scaled_sizes_less_than_minimum = list(
-        filter(lambda x: x < minimum_scale, scaled_sizes)
-    )
-    for scale in scaled_sizes_less_than_minimum:
+    for size in sizes:
+        if size == scale_for_size_100:
+            continue
         reduce_size(
-            scale=scale,
-            minimum_scale=minimum_scale,
+            scale=size,
+            minimum_scale=scale_for_size_100,
             output_dir=mydir,
         )
 
@@ -221,7 +205,7 @@ or set number of pieces greater than 0.
     table_width = int(width * 2.5)
     table_height = int(height * 2.5)
 
-    with open(os.path.join(mydir, "scale-100", "pieces.json"), "r") as pieces_json:
+    with open(os.path.join(mydir, f"size-{scale_for_size_100}", "pieces.json"), "r") as pieces_json:
         piece_bboxes = json.load(pieces_json)
     piece_properties = []
     # TODO: Distribute pieces starting at the top and working down. Skip
@@ -252,8 +236,8 @@ or set number of pieces greater than 0.
         "version": __version__,
         "generator": "piecemaker",
         "piece_cut_variant": options.variant,
-        "scaled": successful_scaled_sizes,
-        "reduced": scaled_sizes_less_than_minimum,
+        "full_size": scale_for_size_100,
+        "sizes": sizes,
         "sides": [0],
         "piece_count": piece_count,
         "image_author": "",
@@ -272,9 +256,8 @@ or set number of pieces greater than 0.
     json.dump(data, f, indent=2)
     f.close()
 
-    if options.adjacent:
-        scaled_dir = os.path.join(mydir, "scale-100")
-        adjacent = Adjacent(scaled_dir)
-        f = open(os.path.join(mydir, "adjacent.json"), "w")
-        json.dump(adjacent.adjacent_pieces, f)
-        f.close()
+    scaled_dir = os.path.join(mydir, "size-100")
+    adjacent = Adjacent(scaled_dir)
+    f = open(os.path.join(mydir, "adjacent.json"), "w")
+    json.dump(adjacent.adjacent_pieces, f)
+    f.close()

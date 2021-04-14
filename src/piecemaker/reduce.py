@@ -18,18 +18,10 @@ from piecemaker.sprite_vector_proof import generate_sprite_vector_proof_html
 
 def reduce_size(scale, minimum_scale, output_dir):
     factor = scale / minimum_scale
-    minimum_scaled_dir = os.path.join(output_dir, f"scale-{minimum_scale}")
-    scaled_dir = os.path.join(output_dir, f"scale-{scale}")
+    minimum_scaled_dir = os.path.join(output_dir, f"size-{minimum_scale}")
+    scaled_dir = os.path.join(output_dir, f"size-{scale}")
 
     shutil.copytree(minimum_scaled_dir, scaled_dir)
-    os.rename(
-        os.path.join(scaled_dir, f"lines-{minimum_scale}.png"),
-        os.path.join(scaled_dir, f"lines-{scale}.png"),
-    )
-    os.rename(
-        os.path.join(scaled_dir, f"original-{minimum_scale}.jpg"),
-        os.path.join(scaled_dir, f"original-{scale}.jpg"),
-    )
 
     for filename in [
         "masks.json",
@@ -86,7 +78,7 @@ def reduce_size(scale, minimum_scale, output_dir):
     generate_sprite_svg(
         sprite_layout=sprite_with_padding_layout,
         jpg_sprite_file_name=jpg_sprite_file_name,
-        scaled_image=os.path.join(scaled_dir, f"original-{scale}.jpg"),
+        scaled_image=os.path.join(scaled_dir, "original-resized.jpg"),
         output_dir=scaled_dir,
         scale=scale,
         pieces_json_file=os.path.join(scaled_dir, "pieces.json"),

@@ -53,7 +53,7 @@ class Pieces(object):
         original_im.close()
         # work on a copy of the image that has been scaled
         (image_root, _) = os.path.splitext(image)
-        self._scaled_image = os.path.join(self.mydir, f"original-{self.scale}.jpg")
+        self._scaled_image = os.path.join(self.mydir, "original-resized.jpg")
         im.save(self._scaled_image)
 
         if self.scale != 100:
@@ -74,7 +74,7 @@ class Pieces(object):
         # scaled_svg is saved at the top level and not inside the scaled
         # directories
         scaled_svg = os.path.join(
-            os.path.dirname(svgfile), f"{linessvg_name}-{self.scale}.svg"
+            os.path.dirname(svgfile), f"{linessvg_name}-resized.svg"
         )
         scaled_svg_file = open(scaled_svg, "w")
         # Bit of a hack to work around the lxml parser not handling the default
