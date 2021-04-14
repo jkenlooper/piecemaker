@@ -1,6 +1,8 @@
 import os.path
 import json
 
+from piecemaker.tools import toggle_adjacent_script as script
+
 BLEED = 2
 HALF_BLEED = BLEED * 0.5
 
@@ -27,9 +29,10 @@ Piece count: {piece_count}
 {pieces}
 </div>
 
-
+{script}
 </body>
 </html>"""
+
 
 style = (
     """
@@ -44,6 +47,7 @@ position: relative;
 position: absolute;
 transition: opacity linear 0.5s;
 }
+.p.is-highlight,
 .p:hover,
 .p:active {
 opacity: 0;
@@ -103,6 +107,7 @@ def generate_sprite_vector_proof_html(
             "piece_count": len(piece_bboxes.items()),
             "style": style,
             "sprite_svg": sprite_svg,
+            "script": script,
         }
     )
 

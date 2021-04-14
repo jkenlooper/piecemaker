@@ -4,6 +4,8 @@ import time
 
 from PIL import Image
 
+from piecemaker.tools import toggle_adjacent_script as script
+
 template = """
 <!doctype html>
 <html>
@@ -23,6 +25,7 @@ Piece count: {piece_count}
 <div class="container">
 {pieces}
 </div>
+{script}
 </body>
 </html>"""
 
@@ -38,6 +41,7 @@ position: relative;
 position: absolute;
 transition: opacity linear 0.5s;
 }
+.p.is-highlight,
 .p:hover,
 .p:active {
 opacity: 0;
@@ -98,6 +102,7 @@ def generate_sprite_raster_proof_html(pieces_json_file, output_dir, sprite_layou
             "pieces": pieces,
             "piece_count": len(piece_bboxes.items()),
             "style": style,
+            "script": script,
         }
     )
 

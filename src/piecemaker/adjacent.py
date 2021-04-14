@@ -1,41 +1,16 @@
-from builtins import object
 import os
 import json
 
+from PIL import Image
+from rtree import index
 
-class Adjacent(object):
+
+class Adjacent():
     """
     Narrow down potential adjacent pieces by their bounding boxes.
     """
 
-    def num_points(self, x):
-        if x < 0:  # none
-            return -1
-        if x > 0:  # segment
-            return 1
-        return 0  # point
-
-    def are_adjacent(self, bbox1, bbox2):
-        # expand bbox2 size slightly by one
-        expanded_bbox2 = (
-            max(0, bbox2[0] - 1),
-            max(0, bbox2[1] - 1),
-            bbox2[2] + 1,
-            bbox2[3] + 1,
-        )
-        nx = self.num_points(
-            min(bbox1[2], expanded_bbox2[2]) - max(bbox1[0], expanded_bbox2[0])
-        )
-        ny = self.num_points(
-            min(bbox1[3], expanded_bbox2[3]) - max(bbox1[1], expanded_bbox2[1])
-        )
-        if nx == -1 or ny == -1:
-            return False
-        if nx == 0 or ny == 0:
-            return False
-        return True
-
-    def __init__(self, directory, clips=None, by_overlap=False, ignore_corners=True):
+    def __init__(self, directory, clips=None, by_overlap=True, overlap_threshold=20):
         # for each piece; list the adjacent pieces
         self.adjacent_pieces = {}
 
@@ -48,10 +23,6 @@ class Adjacent(object):
         else:
             with open(os.path.join(directory, "pieces.json"), "r") as f:
                 self.pieces_info = json.load(f)
-
-        # create the rtree index
-        #
-        from rtree import index
 
         rtree_idx = index.Index(interleaved=True)
 
@@ -72,44 +43,64 @@ class Adjacent(object):
                 adjacent.remove(piece_id)
             self.adjacent_pieces[piece_id] = adjacent
 
-        if ignore_corners:
-            filtered_adjacent_pieces = {}
-            for target_id, target_adjacent_list in self.adjacent_pieces.items():
-                filtered_adjacent_pieces[target_id] = self.filter_out_corner_adjacent(target_id, target_adjacent_list)
-            self.adjacent_pieces = filtered_adjacent_pieces
+        if not by_overlap:
+            return
 
-        # TODO: WIP
-        if by_overlap:
-            pass
-            # TODO: further filter out the adjacent pieces by doing the
-            # overlapping  mask test.
+        with open(
+            os.path.join(directory, "piece_id_to_mask.json"), "r"
+        ) as piece_id_to_mask_json:
+            piece_id_to_mask = json.load(piece_id_to_mask_json)
 
-    def filter_out_corner_adjacent(self, target_id, target_adjacent_list):
-        target_bbox = self.pieces_info[target_id]  # [0, 0, 499, 500]
-        target_center_x = target_bbox[0] + int(
-            round((target_bbox[2] - target_bbox[0]) * 0.5)
-        )
-        target_center_y = target_bbox[1] + int(
-            round((target_bbox[3] - target_bbox[1]) * 0.5)
-        )
-        filtered_adjacent_list = []
-        for adjacent_id in target_adjacent_list:
-            adjacent_bbox = self.pieces_info[adjacent_id]  # [0, 347, 645, 996]
-            left = adjacent_bbox[2] < target_center_x #target_bbox[0]
-            top = adjacent_bbox[3] < target_center_y #target_bbox[1]
-            right = adjacent_bbox[0] > target_center_x #target_bbox[2]
-            bottom = adjacent_bbox[1] > target_center_y #target_bbox[3]
-            is_top_left = top and left
-            is_top_right = top and right
-            is_bottom_left = bottom and left
-            is_bottom_right = bottom and right
-            if not is_top_left and not is_top_right and not is_bottom_left and not is_bottom_right:
-                filtered_adjacent_list.append(adjacent_id)
+        for (piece_id, adjacent_pieces) in self.adjacent_pieces.items():
+            if len(adjacent_pieces) < 2:
+                # pass any that may have been added by the nearest only
+                continue
+            mask_id = piece_id_to_mask[piece_id]
+            target_piece_mask_im = Image.open(os.path.join(directory, "mask", f"{mask_id}.bmp"))
+            target_piece_bbox = self.pieces_info[piece_id]
+            no_overlap = []
+            for adjacent_piece_id in adjacent_pieces:
+                adjacent_piece_bbox = self.pieces_info[adjacent_piece_id]
+                adjacent_mask_id = piece_id_to_mask[adjacent_piece_id]
+                adjacent_piece_mask_im = Image.open(os.path.join(directory, "mask", f"{adjacent_mask_id}-padding.bmp"))
+                width = max(target_piece_bbox[2], adjacent_piece_bbox[2]) - min(target_piece_bbox[0], adjacent_piece_bbox[0])
+                height = max(target_piece_bbox[3], adjacent_piece_bbox[3]) - min(target_piece_bbox[1], adjacent_piece_bbox[1])
+                target_piece_bbox_in_canvas = (
+                    max(0, target_piece_bbox[0] - adjacent_piece_bbox[0]),
+                    max(0, target_piece_bbox[1] - adjacent_piece_bbox[1]),
+                    max(0, target_piece_bbox[0] - adjacent_piece_bbox[0]) + (target_piece_bbox[2] - target_piece_bbox[0]),
+                    max(0, target_piece_bbox[1] - adjacent_piece_bbox[1]) + (target_piece_bbox[3] - target_piece_bbox[1]),
+                )
+                adjacent_piece_bbox_in_canvas = (
+                    max(0, adjacent_piece_bbox[0] - target_piece_bbox[0]),
+                    max(0, adjacent_piece_bbox[1] - target_piece_bbox[1]),
+                    max(0, adjacent_piece_bbox[0] - target_piece_bbox[0]) + (adjacent_piece_bbox[2] - adjacent_piece_bbox[0]),
+                    max(0, adjacent_piece_bbox[1] - target_piece_bbox[1]) + (adjacent_piece_bbox[3] - adjacent_piece_bbox[1]),
+                )
+                canvas = Image.new("1", (width, height), color=0)
+                adjacent_mask_for_canvas = canvas.copy()
+                adjacent_mask_for_canvas.paste(adjacent_piece_mask_im, box=(adjacent_piece_bbox_in_canvas[0] - 1, adjacent_piece_bbox_in_canvas[1] - 1))
+                adjacent_piece_mask_im.close()
+                target_mask_for_canvas = canvas.copy()
+                canvas.close()
+                target_mask_for_canvas.paste(target_piece_mask_im, box=(target_piece_bbox_in_canvas[0], target_piece_bbox_in_canvas[1]))
 
-        # TODO: Some corner adjacent pieces are not being filtered out.
-        if len(filtered_adjacent_list) > 4:
-            print(f"missed corners: {filtered_adjacent_list}")
-        if len(filtered_adjacent_list) < 2:
-            print(f"suspect: {filtered_adjacent_list}")
+                # Get the count of overlapping pixels (last value in the
+                # histogram) with the target piece and adjacent piece.
+                overlap = target_mask_for_canvas.histogram(mask=adjacent_mask_for_canvas)[-1]
+                adjacent_mask_for_canvas.close()
+                target_mask_for_canvas.close()
+                if overlap <= overlap_threshold:
+                    no_overlap.append(adjacent_piece_id)
 
-        return filtered_adjacent_list
+            target_piece_mask_im.close()
+
+            for n in no_overlap:
+                adjacent_pieces.remove(n)
+
+            # Make sure that there is still at least one adjacent piece in case
+            # all the adjacent pieces had too small of overlapping pieces.
+            if len(adjacent_pieces) == 0:
+                adjacent = list(map(str, rtree_idx.nearest(target_piece_bbox, num_results=2)))
+                adjacent.remove(piece_id)
+                adjacent_pieces.extend(adjacent)

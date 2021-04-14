@@ -7,6 +7,29 @@ import math
 from PIL import Image
 
 
+toggle_adjacent_script = """
+<script>
+/* Toggle the adjacent pieces next to the one that is clicked. */
+fetch("/adjacent.json")
+.then(response => response.json())
+.then(adjacent => {
+    document.addEventListener('click', (event) => {
+        for (let target = event.target; target && target != this; target = target.parentNode) {
+            if (target.matches('.p')) {
+                const $piece = target;
+                const piece_id = $piece.getAttribute("id").replace("p-", "");
+                const adjacent_piece_ids = adjacent[piece_id];
+                adjacent_piece_ids
+                    .map(pc => {return document.getElementById("p-"+pc)})
+                    .map(el => el.classList.toggle('is-highlight'))
+                break;
+            }
+        }
+    }, false);
+});
+</script>
+"""
+
 def rasterize_svgfile(svgfile):
     """
     Converts a svg file to png file with same basename.
