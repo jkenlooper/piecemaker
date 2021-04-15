@@ -14,10 +14,14 @@ template = """
 </head>
 <body>
 <p>
-Piece count: {piece_count}
+Piece count: {piece_count}<br>
+<button>
+<label for="assembled">Toggle Assembled State</label>
+</button>
 </p>
 
 <!-- All the piece div elements -->
+<input type="checkbox" checked id="assembled" name="assembled">
 <div class="container">
 {pieces}
 </div>
@@ -32,10 +36,14 @@ color: white;
 }
 .container {
 position: relative;
+display: flex;
+flex-wrap: wrap;
 }
 .p {
-position: absolute;
 transition: opacity linear 0.5s;
+}
+input[name=assembled]:checked + .container .p {
+position: absolute;
 }
 .p.is-highlight,
 .p:hover,

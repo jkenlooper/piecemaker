@@ -23,14 +23,15 @@ class StochasticCurvePoints:
         "left_hook",
         "right_hook",
         "standard",
-        "standard",
-        "classic",
-        "classic",
+        "bignub",
+        "pointnub",
+        "thornnub",
     ]
 
     @staticmethod
     def get_curve_points(width, height):
         variant = choice(StochasticCurvePoints.variants)
+        #variant = StochasticCurvePoints.variants[-1]
         _get_curve_points = getattr(StochasticCurvePoints, variant)
         return _get_curve_points(width, height)
 
@@ -255,6 +256,167 @@ class StochasticCurvePoints:
             _control_right_b,
             _relative_stop,
         )
+
+    @staticmethod
+    def bignub(width, height):
+        _anchor_left = (
+            width * uniform(0.30, 0.45),
+            height * uniform(-0.15, 0.0),
+        )
+        _anchor_center = (
+            (width * uniform(0.45, 0.55)) - _anchor_left[0],
+            (height * uniform(0.20, 0.30)) - _anchor_left[1],
+        )
+        _anchor_right = (
+            (width * uniform(0.55, 0.70)) - (_anchor_left[0] + _anchor_center[0]),
+            (height * uniform(-0.15, 0.0)) - (_anchor_left[1] + _anchor_center[1]),
+        )
+        _relative_stop = (
+            width - (_anchor_left[0] + _anchor_center[0] + _anchor_right[0]),
+            (height * 0.0) - (_anchor_left[1] + _anchor_center[1] + _anchor_right[1]),
+        )
+        _control_start_a = (width * 0.25, height * uniform(-0.05, 0.0))
+        _control_start_b = (width * 0.25, height * uniform(-0.05, 0.0))
+        _control_left_a = (
+            (width * uniform(0.20, 0.40)) - (_anchor_left[0]),
+            (height * 0.0) - (_anchor_left[1]),
+        )
+        _control_left_b = (
+            (width * uniform(0.10, 0.45)) - (_anchor_left[0]),
+            (height * uniform(0.05, 0.20)) - (_anchor_left[1]),
+        )
+        _control_center_a = (
+            (width * uniform(0.55, 0.90)) - (_anchor_left[0] + _anchor_center[0]),
+            (height * uniform(0.05, 0.20)) - (_anchor_left[1] + _anchor_center[1]),
+        )
+        _control_center_b = (
+            (width * uniform(0.6, 0.8)) - (_anchor_left[0] + _anchor_center[0]),
+            (height * 0.0) - (_anchor_left[1] + _anchor_center[1]),
+        )
+        _control_right_a = (
+            (width * 0.75)
+            - (_anchor_left[0] + _anchor_center[0] + _anchor_right[0]),
+            (height * uniform(-0.05, 0.0))
+            - (_anchor_left[1] + _anchor_center[1] + _anchor_right[1]),
+        )
+        _control_right_b = (
+            (width * 0.75)
+            - (_anchor_left[0] + _anchor_center[0] + _anchor_right[0]),
+            (height * uniform(-0.05, 0.0))
+            - (_anchor_left[1] + _anchor_center[1] + _anchor_right[1]),
+        )
+
+        return (
+            _control_start_a,
+            _control_start_b,
+            _anchor_left,
+            _control_left_a,
+            _control_left_b,
+            _anchor_center,
+            _control_center_a,
+            _control_center_b,
+            _anchor_right,
+            _control_right_a,
+            _control_right_b,
+            _relative_stop,
+        )
+
+    @staticmethod
+    def pointnub(width, height):
+        _anchor_left = (
+            width * uniform(0.20, 0.23),
+            height * 0.0,
+        )
+        _anchor_center = (
+            (width * uniform(0.30, 0.70)) - _anchor_left[0],
+            (height * uniform(-0.15, 0.15)) - _anchor_left[1],
+        )
+        _anchor_right = (
+            (width * uniform(0.80, 0.83)) - (_anchor_left[0] + _anchor_center[0]),
+            (height * 0.0) - (_anchor_left[1] + _anchor_center[1]),
+        )
+        _relative_stop = (
+            width - (_anchor_left[0] + _anchor_center[0] + _anchor_right[0]),
+            (height * 0.0) - (_anchor_left[1] + _anchor_center[1] + _anchor_right[1]),
+        )
+        _control_start_a = (0, 0)
+        _control_start_b = (0, 0)
+        _control_left_a = (0, 0)
+        _control_left_b = (
+            width * -0.05,
+            height * -0.25
+        )
+        _control_center_a = (
+            width * 0.05,
+            height * 0.25
+        )
+        _control_center_b = (0, 0)
+        _control_right_a = (0, 0)
+        _control_right_b = (0, 0)
+
+        return (
+            _control_start_a,
+            _control_start_b,
+            _anchor_left,
+            _control_left_a,
+            _control_left_b,
+            _anchor_center,
+            _control_center_a,
+            _control_center_b,
+            _anchor_right,
+            _control_right_a,
+            _control_right_b,
+            _relative_stop,
+        )
+
+    @staticmethod
+    def thornnub(width, height):
+        _anchor_left = (
+            width * uniform(0.20, 0.23),
+            height * 0.0,
+        )
+        _anchor_center = (
+            (width * uniform(0.30, 0.70)) - _anchor_left[0],
+            (height * uniform(-0.15, 0.15)) - _anchor_left[1],
+        )
+        _anchor_right = (
+            (width * uniform(0.80, 0.83)) - (_anchor_left[0] + _anchor_center[0]),
+            (height * 0.0) - (_anchor_left[1] + _anchor_center[1]),
+        )
+        _relative_stop = (
+            width - (_anchor_left[0] + _anchor_center[0] + _anchor_right[0]),
+            (height * 0.0) - (_anchor_left[1] + _anchor_center[1] + _anchor_right[1]),
+        )
+        _control_start_a = (0, 0)
+        _control_start_b = (0, 0)
+        _control_left_a = (0, 0)
+        _control_left_b = (
+            width * 0.20,
+            height * 0.30
+        )
+        _control_center_a = (
+            width * -0.20,
+            height * -0.30
+        )
+        _control_center_b = (0, 0)
+        _control_right_a = (0, 0)
+        _control_right_b = (0, 0)
+
+        return (
+            _control_start_a,
+            _control_start_b,
+            _anchor_left,
+            _control_left_a,
+            _control_left_b,
+            _anchor_center,
+            _control_center_a,
+            _control_center_b,
+            _anchor_right,
+            _control_right_a,
+            _control_right_b,
+            _relative_stop,
+        )
+
 
     @staticmethod
     def standard(width, height):
