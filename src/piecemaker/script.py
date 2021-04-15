@@ -120,6 +120,7 @@ Example: 33,68,100,150 for 4 scaled puzzles with the last one being at 150%.""",
         )
 
     minimum_scale = min(scaled_sizes)
+    overlap_threshold = int(minimum_piece_size)
     if not options.svg:
         # create a grid of puzzle pieces in svg
         if minimum_piece_size < 0:
@@ -165,6 +166,7 @@ or set number of pieces greater than 0.
             minimum_scale = min(
                 100, ceil((new_minimum_piece_size / max_piece_side) * 100.0)
             )
+        overlap_threshold = int(max_piece_side)
     else:
         svgfile = options.svg
 
@@ -258,7 +260,7 @@ or set number of pieces greater than 0.
     f.close()
 
     scaled_dir = os.path.join(mydir, "size-100")
-    adjacent = Adjacent(scaled_dir)
+    adjacent = Adjacent(scaled_dir, overlap_threshold=overlap_threshold)
     f = open(os.path.join(mydir, "adjacent.json"), "w")
     json.dump(adjacent.adjacent_pieces, f)
     f.close()
