@@ -103,11 +103,9 @@ Example: 33,68,100,150 for 4 scaled puzzles with the last one being at 150%.""",
     if len(args) > 1:
         parser.error("Multiple pictures are not supported, yet.")
 
-    scaled_sizes = [int(x) for x in options.scaled_sizes.split(",")]
+    scaled_sizes = set([int(x) for x in options.scaled_sizes.split(",")])
     if 100 not in scaled_sizes:
         parser.error("Must have at least a '100' in scaled sizes.")
-    scaled_sizes.remove(100)
-    scaled_sizes.insert(0, 100)
 
     if args:
         imagefile = args[0]
@@ -155,6 +153,8 @@ or set number of pieces greater than 0.
             variant=options.variant,
         )
         svgfile = os.path.join(mydir, "lines.svg")
+        width = jpc.width
+        height = jpc.height
 
         max_piece_side = max(jpc._piece_width, jpc._piece_height)
         minimum_pixels = jpc.pieces * (minimum_piece_size * minimum_piece_size)
@@ -168,7 +168,8 @@ or set number of pieces greater than 0.
     else:
         svgfile = options.svg
 
-    sizes = [minimum_scale] + scaled_sizes
+    scaled_sizes.add(minimum_scale)
+    sizes = list(scaled_sizes)
     sizes.sort()
 
     scale_for_size_100 = 100 if options.use_max_size else minimum_scale
