@@ -14,6 +14,7 @@ template = """
 <style>
 {style}
 </style>
+<link rel="stylesheet" media="all" href="sprite_p.css">
 <link rel="stylesheet" media="all" href="sprite_vector.css">
 </head>
 <body>
@@ -103,6 +104,13 @@ def generate_sprite_vector_proof_html(
             + "{"
             + f"clip-path:url(#piece-mask-{scale}-{i});"
             + "}"
+        )
+
+    with open(os.path.join(output_dir, "sprite_p.css"), "a") as css:
+        css.write(
+            ".p-f {"
+            + f"margin-left:-{HALF_BLEED}px;margin-top:-{HALF_BLEED}px;"
+            + "display: block;}"
         )
 
     with open(os.path.join(output_dir, "sprite_vector.css"), "w") as css:

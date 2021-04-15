@@ -1,5 +1,6 @@
 import os.path
 import json
+import time
 
 from piecemaker.tools import toggle_adjacent_script as script
 
@@ -8,6 +9,7 @@ template = """
 <html>
 <head>
 <title>Cut Proof - {scale}</title>
+<link rel="stylesheet" media="all" href="sprite_p.css">
 <style>
 {style}
 </style>
@@ -41,6 +43,7 @@ flex-wrap: wrap;
 }
 .p {
 transition: opacity linear 0.5s;
+background-image: none;
 }
 input[name=assembled]:checked + .container .p {
 position: absolute;
@@ -51,9 +54,6 @@ position: absolute;
 opacity: 0;
 }
 
-.p-img {
-display: block;
-}
 """
 
 
@@ -64,6 +64,7 @@ def generate_cut_proof_html(pieces_json_file, output_dir, scale):
     with open(pieces_json_file, "r") as pieces_json:
         piece_bboxes = json.load(pieces_json)
 
+    cachebust = str(int(time.time()))
     pieces_html = []
     for (i, v) in piece_bboxes.items():
         i = int(i)
@@ -73,10 +74,13 @@ def generate_cut_proof_html(pieces_json_file, output_dir, scale):
         height = v[3] - v[1]
         el = "".join([
             f"<div id='p-{i}' class='p pc-{i}' style='left:{x}px;top:{y}px;'>",
-            f"<img class='p-img' src='raster/{i}.png' width='{width}' height='{height}'>",
+            f"<img class='p-img' src='raster/{i}.png?{cachebust}' width='{width}' height='{height}'>",
             "</div>"
         ])
         pieces_html.append(el)
+
+    with open(os.path.join(output_dir, "sprite_p.css"), "a") as css:
+        css.write(".p-img{display:block;}")
 
     pieces = "".join(pieces_html)
     html = template.format(

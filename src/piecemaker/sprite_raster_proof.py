@@ -11,6 +11,7 @@ template = """
 <html>
 <head>
 <title>Sprite Raster Proof - {scale}</title>
+<link rel="stylesheet" media="all" href="sprite_p.css">
 <link rel="stylesheet" media="all" href="sprite_raster.css">
 <style>
 {style}
@@ -68,13 +69,7 @@ def generate_sprite_raster_proof_html(pieces_json_file, output_dir, sprite_layou
     (bg_image_width, bg_image_height) = im.size
     im.close()
 
-    cachebust = str(int(time.time()))
-    pieces_style = [
-        ".p{"
-        + f"background-image:url('sprite_without_padding.png?{cachebust}');"
-        + f"background-size:{bg_image_width}px {bg_image_height}px;"
-        + "}"
-    ]
+    pieces_style = []
 
     for (i, v) in sprite_layout.items():
         x = v[0]
@@ -86,6 +81,15 @@ def generate_sprite_raster_proof_html(pieces_json_file, output_dir, sprite_layou
             + "{"
             + f"background-position:{x * -1}px {y * -1}px;"
             + f"width:{width}px;height:{height}px;"
+            + "}"
+        )
+
+    cachebust = str(int(time.time()))
+    with open(os.path.join(output_dir, "sprite_p.css"), "a") as css:
+        css.write(
+            ".p{"
+            + f"background-image:url('sprite_without_padding.png?{cachebust}');"
+            + f"background-size:{bg_image_width}px {bg_image_height}px;"
             + "}"
         )
 
