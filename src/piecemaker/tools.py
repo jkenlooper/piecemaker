@@ -40,9 +40,9 @@ def rasterize_svgfile(svgfile):
     (root, ext) = os.path.splitext(name)
     pngfile = os.path.join(output_dir, f"{root}.png")
     # Use svgo to optimize the svg and move vector-effect to an attribute.
-    subprocess.call(["svgo", "-i", svgfile, "-o", svgfile], shell=False)
+    subprocess.run(["svgo", "-i", svgfile, "-o", svgfile, "--quiet"], check=True)
     pngfile = os.path.join(output_dir, f"{root}.png")
-    subprocess.call(["svpng", svgfile, pngfile], shell=False)
+    subprocess.run(["svpng", svgfile, pngfile], check=True)
 
     return pngfile
 
@@ -71,7 +71,7 @@ def potrace(trimmedbmp, output_dir):
         "--output",
         masksvg,
     ]
-    subprocess.call(potrace, shell=False)
+    subprocess.run(potrace, check=True)
 
 
 def scale_down_imgfile(imgfile, factor):

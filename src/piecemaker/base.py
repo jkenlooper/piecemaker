@@ -6,6 +6,7 @@ from builtins import object
 import os
 from glob import iglob
 import json
+import subprocess
 
 import svgwrite
 from PIL import Image
@@ -106,9 +107,17 @@ class Pieces(object):
 
     def cut(self):
         self._pixsaw_handler.process(self._scaled_image)
+        for piece in iglob(os.path.join(self._raster_dir, "*.png")):
+            subprocess.run([
+                "optipng",
+                "-clobber",
+                "-quiet",
+                piece
+            ], check=True)
 
         for piece in iglob(os.path.join(self._mask_dir, "*.bmp")):
             potrace(piece, self._vector_dir)
+        subprocess.run(["svgo", "-f", self._vector_dir, "--recursive", "--quiet"], check=True)
 
         with open(os.path.join(self.mydir, "pieces.json"), "r") as pieces_json:
             self.pieces = json.load(pieces_json)
@@ -167,12 +176,13 @@ class JigsawPieceClipsSVG(object):
     title = "Jigsaw puzzle piece clips"
 
     def __init__(
-        self, width, height, pieces=0, minimum_piece_size=42, variant="interlockingnubs"
+        self, width, height, pieces=0, minimum_piece_size=42, maximum_piece_size=85, variant="interlockingnubs"
     ):
 
         self.width = width
         self.height = height
         self.minimum_piece_size = minimum_piece_size
+        self.maximum_piece_size = maximum_piece_size
         if variant not in variants:
             raise Exception("invalid variant")
         self.HorizontalPath = globals().get(variant).HorizontalPath

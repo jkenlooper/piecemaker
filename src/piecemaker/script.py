@@ -158,6 +158,7 @@ or set number of pieces greater than 0.
         height = jpc.height
 
         max_piece_side = max(jpc._piece_width, jpc._piece_height)
+        min_piece_side = min(jpc._piece_width, jpc._piece_height)
         minimum_pixels = jpc.pieces * (minimum_piece_size * minimum_piece_size)
         minimum_side = sqrt(minimum_pixels)
         side_count = sqrt(jpc.pieces)
@@ -166,7 +167,7 @@ or set number of pieces greater than 0.
             minimum_scale = min(
                 100, ceil((new_minimum_piece_size / max_piece_side) * 100.0)
             )
-        overlap_threshold = int(max_piece_side)
+        overlap_threshold = int((min_piece_side * 0.5) - (min_piece_side * 0.10))
     else:
         svgfile = options.svg
 

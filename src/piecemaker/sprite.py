@@ -155,25 +155,16 @@ def generate_sprite_svg(
 
     for (i, piece_bbox) in piece_bboxes.items():
         mask_id = piece_id_to_mask[i]
-        piece_svg = os.path.join(vector_dir, f"{mask_id}.svg")
         preview_offset = sprite_layout[int(i)]
-
-        piece_soup = BeautifulSoup(open(piece_svg), "xml")
-        svg = piece_soup.svg
-        first_g = svg.g
 
         clip_path = dwg.defs.add(dwg.clipPath())
         clip_path["id"] = f"piece-mask-{scale}-{i}"
-        clip_path["transform"] = first_g.get("transform")
         clip_path["shape-rendering"] = "crispEdges"
-        # Later the clip_path gets filled in with the contents
+        # Later the clip_path gets filled in with the contents of each mask svg.
 
         piece_fragment = dwg.defs.add(dwg.svg())
         piece_fragment["id"] = f"piece-fragment-{scale}-{i}"
 
-        vb = svg.get("viewBox")
-        # TODO could also be separated by ','?
-        (minx, miny, vbwidth, vbheight) = map(float, vb.split(" "))
         piece_fragment.viewbox(
             minx=preview_offset[0],
             miny=preview_offset[1],
@@ -192,13 +183,9 @@ def generate_sprite_svg(
         piece_svg = os.path.join(vector_dir, f"{mask_id}.svg")
         piece_soup = BeautifulSoup(open(piece_svg), "xml")
         svg = piece_soup.svg
-        first_g = svg.find("g")
         piece_mask_tag = sprite_svg.defs.find("clipPath", id=f"piece-mask-{scale}-{i}")
         if piece_mask_tag:
-            new_g = first_g.wrap(sprite_svg.new_tag("g"))
-            first_g.unwrap()  # don't need this g with it's attributes
-            piece_mask_tag.append(new_g)
-            piece_mask_tag.g.unwrap()  # strip out the g leaving contents
+            piece_mask_tag.extend(svg.contents)
 
     with open(os.path.join(output_dir, "sprite.svg"), "w") as out:
         out.write(sprite_svg.decode(formatter=None))
