@@ -21,9 +21,11 @@ from piecemaker.tools import (
     gridify,
 )
 from piecemaker.sprite import (
+    generate_data_uris,
     generate_sprite_without_padding_layout,
     generate_sprite_with_padding_layout,
-    generate_sprite_svg,
+    generate_sprite_svg_clip_paths,
+    generate_sprite_svg_fragments,
 )
 from piecemaker.cut_proof import generate_cut_proof_html
 from piecemaker.sprite_raster_proof import generate_sprite_raster_proof_html
@@ -124,6 +126,10 @@ class Pieces(object):
 
     def generate_resources(self):
         " Create the extra resources to display the pieces. "
+        generate_data_uris(
+            raster_dir=os.path.join(self.mydir, "raster"),
+            output_dir=self.mydir,
+        )
 
         sprite_without_padding_layout = generate_sprite_without_padding_layout(
             raster_dir=os.path.join(self.mydir, "raster"),
@@ -135,14 +141,18 @@ class Pieces(object):
         )
         jpg_sprite_file_name = os.path.join(self.mydir, "sprite_with_padding.jpg")
 
-        generate_sprite_svg(
+        generate_sprite_svg_clip_paths(
+            output_dir=self.mydir,
+            scale=self.scale,
+            pieces_json_file=os.path.join(self.mydir, "pieces.json"),
+            vector_dir=self._vector_dir,
+        )
+        generate_sprite_svg_fragments(
             sprite_layout=sprite_with_padding_layout,
             jpg_sprite_file_name=jpg_sprite_file_name,
             scaled_image=self._scaled_image,
             output_dir=self.mydir,
             scale=self.scale,
-            pieces_json_file=os.path.join(self.mydir, "pieces.json"),
-            vector_dir=self._vector_dir,
         )
 
         generate_sprite_raster_proof_html(
@@ -152,8 +162,7 @@ class Pieces(object):
             scale=self.scale,
         )
         generate_sprite_vector_proof_html(
-            pieces_json_file=os.path.join(self.mydir, "pieces.json"),
-            sprite_svg_file=os.path.join(self.mydir, "sprite.svg"),
+            mydir=self.mydir,
             output_dir=self.mydir,
             sprite_layout=sprite_with_padding_layout,
             scale=self.scale,
@@ -163,9 +172,6 @@ class Pieces(object):
             output_dir=self.mydir,
             scale=self.scale,
         )
-
-
-# see adjacent.py
 
 
 class JigsawPieceClipsSVG(object):

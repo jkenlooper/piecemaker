@@ -9,7 +9,8 @@ from piecemaker.tools import scale_down_imgfile, potrace
 from piecemaker.sprite import (
     generate_sprite_without_padding_layout,
     generate_sprite_with_padding_layout,
-    generate_sprite_svg,
+    generate_sprite_svg_clip_paths,
+    generate_sprite_svg_fragments,
 )
 from piecemaker.cut_proof import generate_cut_proof_html
 from piecemaker.sprite_raster_proof import generate_sprite_raster_proof_html
@@ -75,14 +76,18 @@ def reduce_size(scale, minimum_scale, output_dir):
     )
     jpg_sprite_file_name = os.path.join(scaled_dir, "sprite_with_padding.jpg")
 
-    generate_sprite_svg(
+    generate_sprite_svg_clip_paths(
+        output_dir=scaled_dir,
+        scale=scale,
+        pieces_json_file=os.path.join(scaled_dir, "pieces.json"),
+        vector_dir=os.path.join(scaled_dir, "vector"),
+    )
+    generate_sprite_svg_fragments(
         sprite_layout=sprite_with_padding_layout,
         jpg_sprite_file_name=jpg_sprite_file_name,
         scaled_image=os.path.join(scaled_dir, "original-resized.jpg"),
         output_dir=scaled_dir,
         scale=scale,
-        pieces_json_file=os.path.join(scaled_dir, "pieces.json"),
-        vector_dir=os.path.join(scaled_dir, "vector"),
     )
 
     generate_sprite_raster_proof_html(

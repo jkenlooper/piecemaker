@@ -1,10 +1,21 @@
 import os
 import json
+import base64
+from glob import iglob
 
 import svgwrite
 from bs4 import BeautifulSoup
 from PIL import Image
 from glue.managers.simple import SimpleManager
+
+
+def generate_data_uris(raster_dir, output_dir):
+    data_uri_dir = os.path.join(output_dir, "data_uri")
+    os.mkdir(data_uri_dir)
+    for piece in iglob(os.path.join(raster_dir, "*.png")):
+        with open(piece, "rb") as img:
+            with open(os.path.join(data_uri_dir, os.path.basename(piece) + ".b64"), "wb") as b64:
+                b64.write(base64.standard_b64encode(img.read()))
 
 
 def generate_sprite_without_padding_layout(raster_dir, output_dir):
@@ -120,10 +131,7 @@ def generate_sprite_with_padding_layout(raster_dir, output_dir):
     return sprite_layout
 
 
-def generate_sprite_svg(
-    sprite_layout,
-    jpg_sprite_file_name,
-    scaled_image,
+def generate_sprite_svg_clip_paths(
     output_dir,
     scale,
     pieces_json_file,
@@ -142,7 +150,37 @@ def generate_sprite_svg(
     dwg = svgwrite.Drawing(
         size=(0, 0),
     )
-    dwg.set_desc(title="svg preview", desc="")
+
+    for (i, piece_bbox) in piece_bboxes.items():
+        clip_path = dwg.defs.add(dwg.clipPath())
+        clip_path["id"] = f"piece-mask-{scale}-{i}"
+        clip_path["shape-rendering"] = "crispEdges"
+    sprite_svg_clip_paths = BeautifulSoup(dwg.tostring(), "xml")
+
+    for (i, piece_bbox) in piece_bboxes.items():
+        mask_id = piece_id_to_mask[i]
+        piece_svg = os.path.join(vector_dir, f"{mask_id}.svg")
+        piece_soup = BeautifulSoup(open(piece_svg), "xml")
+        svg = piece_soup.svg
+        piece_mask_tag = sprite_svg_clip_paths.defs.find("clipPath", id=f"piece-mask-{scale}-{i}")
+        if piece_mask_tag:
+            piece_mask_tag.extend(svg.contents)
+
+    with open(os.path.join(output_dir, "sprite_clip_paths.svg"), "w") as out:
+        out.write(sprite_svg_clip_paths.decode(formatter=None))
+
+def generate_sprite_svg_fragments(
+    sprite_layout,
+    jpg_sprite_file_name,
+    scaled_image,
+    output_dir,
+    scale,
+):
+    " parse the individual piece svg's and create the svg fragments. "
+
+    dwg = svgwrite.Drawing(
+        size=(0, 0),
+    )
 
     common_path = os.path.commonprefix([scaled_image, output_dir])
     relative_scaled_image = jpg_sprite_file_name[len(common_path) + 1 :]
@@ -153,15 +191,7 @@ def generate_sprite_svg(
         )
     )
 
-    for (i, piece_bbox) in piece_bboxes.items():
-        mask_id = piece_id_to_mask[i]
-        preview_offset = sprite_layout[int(i)]
-
-        clip_path = dwg.defs.add(dwg.clipPath())
-        clip_path["id"] = f"piece-mask-{scale}-{i}"
-        clip_path["shape-rendering"] = "crispEdges"
-        # Later the clip_path gets filled in with the contents of each mask svg.
-
+    for (i, preview_offset) in sprite_layout.items():
         piece_fragment = dwg.defs.add(dwg.svg())
         piece_fragment["id"] = f"piece-fragment-{scale}-{i}"
 
@@ -176,16 +206,7 @@ def generate_sprite_svg(
 
         piece_fragment.add(dwg.use(source_image))
 
-    sprite_svg = BeautifulSoup(dwg.tostring(), "xml")
+    sprite_svg_fragments = BeautifulSoup(dwg.tostring(), "xml")
 
-    for (i, piece_bbox) in piece_bboxes.items():
-        mask_id = piece_id_to_mask[i]
-        piece_svg = os.path.join(vector_dir, f"{mask_id}.svg")
-        piece_soup = BeautifulSoup(open(piece_svg), "xml")
-        svg = piece_soup.svg
-        piece_mask_tag = sprite_svg.defs.find("clipPath", id=f"piece-mask-{scale}-{i}")
-        if piece_mask_tag:
-            piece_mask_tag.extend(svg.contents)
-
-    with open(os.path.join(output_dir, "sprite.svg"), "w") as out:
-        out.write(sprite_svg.decode(formatter=None))
+    with open(os.path.join(output_dir, "sprite_fragments.svg"), "w") as out:
+        out.write(sprite_svg_fragments.decode(formatter=None))

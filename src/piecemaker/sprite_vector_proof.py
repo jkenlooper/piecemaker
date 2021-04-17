@@ -25,8 +25,11 @@ Piece count: {piece_count}<br>
 </button>
 </p>
 
-<!-- Contents of sprite.svg file inlined -->
-{sprite_svg}
+<!-- Contents of sprite_fragments.svg file inlined -->
+{sprite_fragments_svg}
+
+<!-- Contents of sprite_clip_paths.svg file inlined -->
+{sprite_clip_paths_svg}
 
 <!-- All the piece div elements -->
 <input type="checkbox" checked id="assembled" name="assembled">
@@ -70,16 +73,21 @@ opacity: 0;
 
 
 def generate_sprite_vector_proof_html(
-    pieces_json_file, sprite_svg_file, output_dir, sprite_layout, scale
+    mydir, output_dir, sprite_layout, scale
 ):
     """Create a sprite vector proof showing how the image was cut. Should look like
     original."""
+    pieces_json_file = os.path.join(mydir, "pieces.json")
+    sprite_fragments_svg_file = os.path.join(mydir, "sprite_fragments.svg")
+    sprite_clip_paths_svg_file = os.path.join(mydir, "sprite_clip_paths.svg")
 
     with open(pieces_json_file, "r") as pieces_json:
         piece_bboxes = json.load(pieces_json)
 
-    with open(sprite_svg_file, "r") as f:
-        sprite_svg = f.read().replace("""<?xml version="1.0" encoding="utf-8"?>""", "")
+    with open(sprite_fragments_svg_file, "r") as f:
+        sprite_fragments_svg = f.read().replace("""<?xml version="1.0" encoding="utf-8"?>""", "")
+    with open(sprite_clip_paths_svg_file, "r") as f:
+        sprite_clip_paths_svg = f.read().replace("""<?xml version="1.0" encoding="utf-8"?>""", "")
 
     pieces_html = []
     pieces_style = []
@@ -123,7 +131,8 @@ def generate_sprite_vector_proof_html(
             "pieces": pieces,
             "piece_count": len(piece_bboxes.items()),
             "style": style,
-            "sprite_svg": sprite_svg,
+            "sprite_clip_paths_svg": sprite_clip_paths_svg,
+            "sprite_fragments_svg": sprite_fragments_svg,
             "script": script,
         }
     )
