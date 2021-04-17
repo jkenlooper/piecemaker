@@ -10,6 +10,7 @@ from piecemaker.base import Pieces, variants
 from piecemaker.adjacent import Adjacent
 from piecemaker.lines_svg import create_lines_svg
 from piecemaker.reduce import reduce_size
+from piecemaker.table_proof import generate_table_proof_html
 from piecemaker._version import __version__
 
 
@@ -265,3 +266,5 @@ or set number of pieces greater than 0.
     f = open(os.path.join(mydir, "adjacent.json"), "w")
     json.dump(adjacent.adjacent_pieces, f)
     f.close()
+
+    generate_table_proof_html(mydir=mydir)
