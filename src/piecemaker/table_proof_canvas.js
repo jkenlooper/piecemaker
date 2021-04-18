@@ -9,17 +9,21 @@
  */
 
 class TableProofCanvas {
-  constructor(piecemakerIndex, $container, $canvas) {
+  constructor(piecemakerIndex, spriteLayout, $container, $canvas, $sprite) {
     this.piecemakerIndex = piecemakerIndex;
+    this.spriteLayout = spriteLayout;
     this.$container = $container;
     this.$canvas = $canvas;
+    this.$sprite = $sprite;
     this.factor;
     this.setCanvasDimensions();
     this.ctx = this.$canvas.getContext('2d', {"alpha": false});
     this.raf;
 
     this.pieces = this.piecemakerIndex.piece_properties.map((pieceProperty) => {
-        const pc = new Piece(this.ctx, this.factor, {
+        const pc = new Piece(this.ctx, this.factor, this.$sprite,
+          this.spriteLayout[String(pieceProperty.id)],
+          {
           id: pieceProperty.id,
           x: pieceProperty.x,
           y: pieceProperty.y,
@@ -88,31 +92,32 @@ class TableProofCanvas {
 }
 
 class Piece {
-  constructor(ctx, factor, props) {
+  constructor(ctx, factor, $sprite, bbox, props) {
     this.ctx = ctx;
     this.factor = factor;
+    this.$sprite = $sprite;
     this.id = props.id;
+    this.bbox = bbox;
     this.x = props.x;
     this.y = props.y;
     this.width = props.width;
     this.height = props.height;
 
-    // TODO: Instead of having all the images inlined; pull them from the
-    // size-100/sprite_with_padding.jpg and cut them out based on the inlined
+    // TODO: Use size-100/sprite_with_padding.jpg and cut them out based on the inlined
     // svg clip paths.
-    this.img = document.getElementById(`p-img-${this.id}`);
+    //this.clipPath = document.getElementById(`p-clip_path-${this.id}`);
   }
 
   render() {
-    if (!this.img) {
-      throw "image for piece not found";
-    }
+    //if (!this.clipPath) {
+    //  throw "clipPath for piece not found";
+    //}
     this.ctx.drawImage(
-      this.img,
-      // sx
-      // sy
-      // sw
-      // sh
+      this.$sprite,
+      this.bbox[0],
+      this.bbox[1],
+      this.bbox[2],
+      this.bbox[3],
       this.x * this.factor,
       this.y * this.factor,
       this.width * this.factor,
@@ -124,16 +129,25 @@ class Piece {
 window.addEventListener('load', (event) => {
   const $canvas = document.getElementById('piecemaker-table');
   const $container = $canvas.parentElement;
+  const $sprite = document.getElementById("piecemaker-sprite_without_padding");
+  if (!$canvas || !$container || !$sprite) {
+    throw "Couldn't load elements"
+  }
+  const scale = $canvas.dataset.size;
   const ctx = $canvas.getContext('2d', {"alpha": false});
   let tableProofCanvas;
 
-  fetch("index.json")
-    .then(response => response.json())
-    .then(piecemaker_index => {
-      tableProofCanvas = new TableProofCanvas(piecemaker_index, $container, $canvas);
+  const piecemaker_index_req = fetch("index.json").then(response => response.json());
+  const sprite_layout_req = fetch(`size-${scale}/sprite_without_padding_layout.json`).then(response => response.json());
+  Promise.all([
+    piecemaker_index_req,
+    sprite_layout_req
+  ]).then((values) => {
+    const [piecemaker_index, sprite_layout] = values;
+    tableProofCanvas = new TableProofCanvas(piecemaker_index, sprite_layout, $container, $canvas, $sprite);
+    tableProofCanvas.render();
+    window.addEventListener('resize', () => {
       tableProofCanvas.render();
-      window.addEventListener('resize', () => {
-        tableProofCanvas.render();
-      });
     });
+  });
 });

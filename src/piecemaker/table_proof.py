@@ -24,12 +24,13 @@ Piece count: {piece_count}
 </p>
 
 <div class="container">
-    <canvas id="piecemaker-table">
+    <canvas id="piecemaker-table" data-size="{scale}">
+        <img id="piecemaker-sprite_without_padding" width="{sprite_without_padding_width}" height="{sprite_without_padding_height}" src="size-{scale}/sprite_without_padding.png">
+
+        <!-- TODO: Option to switch to clip paths
         <img id="piecemaker-sprite_with_padding" width="{sprite_with_padding_width}" height="{sprite_with_padding_height}" src="size-{scale}/sprite_with_padding.jpg">
-
         {sprite_clip_paths_svg}
-
-        {pieces}
+        -->
     </canvas>
 </div>
 
@@ -76,43 +77,28 @@ def generate_table_proof_html(mydir):
     with open(pieces_json_file, "r") as pieces_json:
         piece_bboxes = json.load(pieces_json)
 
-    sprite_clip_paths_svg = "<!-- TODO: Use sprite_with_padding.jpg and clip paths instead of the above inlined images. -->"
+    sprite_clip_paths_svg = ""
     #sprite_clip_paths_svg_file = os.path.join(full_size_dir, "sprite_clip_paths.svg")
     #with open(sprite_clip_paths_svg_file, "r") as f:
     #    sprite_clip_paths_svg = f.read().replace("""<?xml version="1.0" encoding="utf-8"?>""", "")
 
-    with open(
-        os.path.join(full_size_dir, "sprite_with_padding_layout.json"), "r"
-    ) as sprite_layout_json:
-        sprite_layout = json.load(sprite_layout_json)
-
-    pieces_html = []
-    for (i, piece_bbox) in piece_bboxes.items():
-        #x = piece_bbox[0]
-        #y = piece_bbox[1]
-        width = piece_bbox[2] - piece_bbox[0]
-        height = piece_bbox[3] - piece_bbox[1]
-        with open(os.path.join(full_size_dir, "data_uri", f"{i}.png.b64"), "r") as f:
-            b64 = f.read()
-
-        el = f"""
-<img id="p-img-{i}" width="{width}" height="{height}" src="data:image/png;base64,{b64}">"""
-        pieces_html.append(el)
-
     im = Image.open(os.path.join(full_size_dir, "sprite_with_padding.jpg"))
     (sprite_with_padding_width, sprite_with_padding_height) = im.size
     im.close()
+    im = Image.open(os.path.join(full_size_dir, "sprite_without_padding.png"))
+    (sprite_without_padding_width, sprite_without_padding_height) = im.size
+    im.close()
 
-    pieces = "".join(pieces_html)
     html = template.format(
         **{
             "scale": scale,
-            "pieces": pieces,
             "piece_count": len(piece_bboxes.items()),
             "style": style,
             "sprite_clip_paths_svg": sprite_clip_paths_svg,
             "sprite_with_padding_width": sprite_with_padding_width,
             "sprite_with_padding_height": sprite_with_padding_height,
+            "sprite_without_padding_width": sprite_without_padding_width,
+            "sprite_without_padding_height": sprite_without_padding_height,
             "table_width": piecemaker_index["table_width"],
             "table_height": piecemaker_index["table_height"],
         }
