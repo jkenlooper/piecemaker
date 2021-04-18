@@ -24,7 +24,7 @@ Piece count: {piece_count}
 </p>
 
 <div class="container">
-    <canvas id="piecemaker-table" width="{table_width}" height="{table_height}">
+    <canvas id="piecemaker-table">
         <img id="piecemaker-sprite_with_padding" width="{sprite_with_padding_width}" height="{sprite_with_padding_height}" src="size-{scale}/sprite_with_padding.jpg">
 
         {sprite_clip_paths_svg}
@@ -52,11 +52,9 @@ z-index: 10;
 background-color: rgba(0,0,0,0.9);
 }
 .container {
-/* fails on larger puzzles
 width: 100vw;
 height: 100vh;
 overflow: hidden;
-*/
 }
 """
 )
