@@ -24,6 +24,10 @@ Piece count: {piece_count}
 </p>
 
 <div class="container">
+<div class="controls">
+<button id="zoom-in">+</button>
+<button id="zoom-out">-</button>
+</div>
     <canvas id="piecemaker-table" data-size="{scale}">
         <img id="piecemaker-sprite_without_padding" width="{sprite_without_padding_width}" height="{sprite_without_padding_height}" src="size-{scale}/sprite_without_padding.png">
 
@@ -56,6 +60,12 @@ background-color: rgba(0,0,0,0.9);
 width: 100vw;
 height: 100vh;
 overflow: hidden;
+}
+.controls {
+position: absolute;
+z-index: 20;
+right: 0;
+top: 0;
 }
 """
 )

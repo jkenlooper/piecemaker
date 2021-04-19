@@ -16,22 +16,22 @@ class TableProofCanvas {
     this.$canvas = $canvas;
     this.$sprite = $sprite;
     this.factor;
+    this._zoom = 1.0;
+    this._offset = [0, 0];
     this.setCanvasDimensions();
     this.ctx = this.$canvas.getContext('2d', {"alpha": false});
-    this.raf;
-
     this.pieces = this.piecemakerIndex.piece_properties.map((pieceProperty) => {
-        const pc = new Piece(this.ctx, this.factor, this.$sprite,
-          this.spriteLayout[String(pieceProperty.id)],
-          {
+      const pc = new Piece(this.ctx, this.factor, this._zoom, this._offset, this.$sprite,
+        this.spriteLayout[String(pieceProperty.id)],
+        {
           id: pieceProperty.id,
           x: pieceProperty.x,
           y: pieceProperty.y,
           width: pieceProperty.w,
           height: pieceProperty.h,
-        })
-        return pc;
-      });
+        });
+      return pc;
+    });
   }
 
   get imageWidth() {
@@ -45,6 +45,28 @@ class TableProofCanvas {
   }
   get tableHeight() {
     return this.piecemakerIndex.table_height;
+  }
+
+  get zoom() {
+    return this._zoom;
+  }
+  set zoom(zoomLevel) {
+    // TODO: improve zooming by maintaining the center.
+    this._offset[0] = this._offset[0] - ((this.tableWidth * (zoomLevel - this._zoom) * this.factor * 0.5));
+    this._offset[1] = this._offset[1] - ((this.tableHeight * (zoomLevel - this._zoom) * this.factor * 0.5));
+    this._zoom = zoomLevel;
+    this.render();
+  }
+  get offset() {
+    return [
+      this._offset[0],
+      this._offset[1],
+    ];
+  }
+  set offset(value) {
+    this._offset[0] = value[0];
+    this._offset[1] = value[1];
+    this.render();
   }
 
   setCanvasDimensions() {
@@ -62,14 +84,16 @@ class TableProofCanvas {
     this.setCanvasDimensions();
     const lineWidth = 2;
     this.drawPuzzleOutline(lineWidth, [
-      this.factor * Math.floor((this.tableWidth - this.imageWidth) * 0.5),
-      this.factor * Math.floor((this.tableHeight - this.imageHeight) * 0.5),
-      this.factor * (Math.floor((this.tableWidth - this.imageWidth) * 0.5) + this.imageWidth),
-      this.factor * (Math.floor((this.tableHeight - this.imageHeight) * 0.5) + this.imageHeight)
+      this._offset[0] + (this._zoom * (this.factor * Math.floor((this.tableWidth - this.imageWidth) * 0.5))),
+      this._offset[1] + (this._zoom * (this.factor * Math.floor((this.tableHeight - this.imageHeight) * 0.5))),
+      this._offset[0] + (this._zoom * (this.factor * (Math.floor((this.tableWidth - this.imageWidth) * 0.5) + this.imageWidth))),
+      this._offset[1] + (this._zoom * (this.factor * (Math.floor((this.tableHeight - this.imageHeight) * 0.5) + this.imageHeight)))
     ])
     this.ctx.save();
     this.pieces.forEach((pc) => {
       pc.factor = this.factor;
+      pc.zoom = this.zoom;
+      pc.offset = this._offset;
       pc.render();
     });
   }
@@ -92,9 +116,11 @@ class TableProofCanvas {
 }
 
 class Piece {
-  constructor(ctx, factor, $sprite, bbox, props) {
+  constructor(ctx, factor, zoom, offset, $sprite, bbox, props) {
     this.ctx = ctx;
     this.factor = factor;
+    this.zoom = zoom;
+    this.offset = offset;
     this.$sprite = $sprite;
     this.id = props.id;
     this.bbox = bbox;
@@ -118,10 +144,10 @@ class Piece {
       this.bbox[1],
       this.bbox[2],
       this.bbox[3],
-      this.x * this.factor,
-      this.y * this.factor,
-      this.width * this.factor,
-      this.height * this.factor
+      this.offset[0] + (this.x * this.factor * this.zoom),
+      this.offset[1] + (this.y * this.factor * this.zoom),
+      this.width * this.factor * this.zoom,
+      this.height * this.factor * this.zoom
     );
   }
 }
@@ -130,6 +156,9 @@ window.addEventListener('load', (event) => {
   const $canvas = document.getElementById('piecemaker-table');
   const $container = $canvas.parentElement;
   const $sprite = document.getElementById("piecemaker-sprite_without_padding");
+  const $zoomInButton = document.getElementById("zoom-in");
+  const $zoomOutButton = document.getElementById("zoom-out");
+
   if (!$canvas || !$container || !$sprite) {
     throw "Couldn't load elements"
   }
@@ -149,5 +178,61 @@ window.addEventListener('load', (event) => {
     window.addEventListener('resize', () => {
       tableProofCanvas.render();
     });
+    let zooming = false;
+    let panning = false;
+    const zoomAmount = 0.05;
+    $canvas.addEventListener('wheel', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      if (event.ctrlKey) {
+        if (!zooming) {
+          window.requestAnimationFrame(() => {
+            tableProofCanvas.zoom = tableProofCanvas.zoom + (event.deltaY * zoomAmount);
+            zooming = false;
+          });
+          zooming = true;
+        }
+      } else {
+        if (!panning) {
+          window.requestAnimationFrame(() => {
+            const offset = tableProofCanvas.offset;
+            offset[0] = offset[0] + event.deltaX * 5;
+            offset[1] = offset[1] + event.deltaY * 5;
+            tableProofCanvas.offset = offset;
+            panning = false;
+          });
+          panning = true;
+        }
+      }
+    });
+    $zoomInButton.addEventListener('click', (event) => {
+      tableProofCanvas.zoom = tableProofCanvas.zoom + 0.25;
+    });
+    $zoomOutButton.addEventListener('click', (event) => {
+      tableProofCanvas.zoom = tableProofCanvas.zoom - 0.25;
+    });
+    $canvas.addEventListener('mousedown', (event) => {
+      const originOffset = tableProofCanvas.offset;
+      const mouseOriginX = event.clientX - originOffset[0];
+      const mouseOriginY = event.clientY - originOffset[1];
+      function mousemoveHandler(event) {
+        if (!panning) {
+          const mouseDragX = event.clientX - mouseOriginX;
+          const mouseDragY = event.clientY - mouseOriginY;
+          window.requestAnimationFrame(() => {
+            tableProofCanvas.offset = [mouseDragX, mouseDragY];
+            panning = false;
+          });
+          panning = true;
+        }
+      }
+      function mouseupHandler(event) {
+        $canvas.removeEventListener('mousemove', mousemoveHandler);
+        $canvas.removeEventListener('mouseup', mouseupHandler);
+      }
+      $canvas.addEventListener('mousemove', mousemoveHandler);
+      $canvas.addEventListener('mouseup', mouseupHandler);
+    });
+
   });
 });
