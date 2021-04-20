@@ -8,6 +8,7 @@ from PIL import Image
 
 from piecemaker.base import Pieces, variants
 from piecemaker.adjacent import Adjacent
+from piecemaker.distribution import grid, random_outside
 from piecemaker.lines_svg import create_lines_svg
 from piecemaker.reduce import reduce_size
 from piecemaker.table_proof import generate_table_proof_html
@@ -217,6 +218,11 @@ or set number of pieces greater than 0.
     piece_properties = []
     # TODO: Distribute pieces starting at the top and working down. Skip
     # placing pieces in the center box.
+    pieces_distribution = random_outside(
+        table_bbox=[0, 0, table_width, table_height],
+        outline_bbox=[outline_offset_x, outline_offset_y, outline_offset_x + width, outline_offset_y + height],
+        piece_bboxes=piece_bboxes
+    )
     for (i, bbox) in piece_bboxes.items():
         # TODO: set rotation of pieces
         # TODO: implement multiple sided pieces
@@ -228,8 +234,8 @@ or set number of pieces greater than 0.
         piece_properties.append(
             {
                 "id": i,
-                "x": randint(0, table_width - (bbox[2] - bbox[0])),
-                "y": randint(0, table_height - (bbox[3] - bbox[1])),
+                "x": pieces_distribution[i][0],
+                "y": pieces_distribution[i][1],
                 "ox": outline_offset_x + bbox[0],
                 "oy": outline_offset_y + bbox[1],
                 "r": 0,  # random rotation of piece
