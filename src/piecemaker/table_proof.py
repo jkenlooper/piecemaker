@@ -20,14 +20,18 @@ template = """
 </head>
 <body>
 <p class="piece-count">
-Piece count: {piece_count}
+Piece count: {piece_count}<br>
 </p>
-
-<div class="container">
 <div class="controls">
+<button>
+<label for="assembled">Toggle Assembled State</label>
+</button>
+<input type="checkbox" id="assembled" name="assembled">
 <button id="zoom-in">+</button>
 <button id="zoom-out">-</button>
 </div>
+
+<div class="container">
     <canvas id="piecemaker-table" data-size="{scale}">
         <img id="piecemaker-sprite_without_padding" width="{sprite_without_padding_width}" height="{sprite_without_padding_height}" src="size-{scale}/sprite_without_padding.png">
 
@@ -52,9 +56,6 @@ margin: 0;
 padding: 0;
 }
 .piece-count {
-position: absolute;
-z-index: 10;
-background-color: rgba(0,0,0,0.9);
 }
 .container {
 width: 100vw;
@@ -62,10 +63,7 @@ height: 100vh;
 overflow: hidden;
 }
 .controls {
-position: absolute;
-z-index: 20;
-right: 0;
-top: 0;
+display: flex;
 }
 """
 )

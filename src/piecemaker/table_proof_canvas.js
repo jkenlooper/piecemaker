@@ -15,6 +15,7 @@ class TableProofCanvas {
     this.$container = $container;
     this.$canvas = $canvas;
     this.$sprite = $sprite;
+    this._assembled = false;
     this.factor;
     this._zoom = 1.0;
     this._offset = [0, 0];
@@ -27,6 +28,8 @@ class TableProofCanvas {
           id: pieceProperty.id,
           x: pieceProperty.x,
           y: pieceProperty.y,
+          ox: pieceProperty.ox,
+          oy: pieceProperty.oy,
           width: pieceProperty.w,
           height: pieceProperty.h,
         });
@@ -68,6 +71,13 @@ class TableProofCanvas {
     this._offset[1] = value[1];
     this.render();
   }
+  get assembled() {
+    return this._assembled;
+  }
+  set assembled(value) {
+    return this._assembled = value;
+    this.render();
+  }
 
   setCanvasDimensions() {
     const rect = this.$container.getBoundingClientRect();
@@ -94,7 +104,7 @@ class TableProofCanvas {
       pc.factor = this.factor;
       pc.zoom = this.zoom;
       pc.offset = this._offset;
-      pc.render();
+      pc.render(this._assembled);
     });
   }
 
@@ -126,6 +136,8 @@ class Piece {
     this.bbox = bbox;
     this.x = props.x;
     this.y = props.y;
+    this.ox = props.ox;
+    this.oy = props.oy;
     this.width = props.width;
     this.height = props.height;
 
@@ -134,18 +146,20 @@ class Piece {
     //this.clipPath = document.getElementById(`p-clip_path-${this.id}`);
   }
 
-  render() {
+  render(assembled) {
     //if (!this.clipPath) {
     //  throw "clipPath for piece not found";
     //}
+    const x = assembled ? this.ox : this.x;
+    const y = assembled ? this.oy : this.y;
     this.ctx.drawImage(
       this.$sprite,
       this.bbox[0],
       this.bbox[1],
       this.bbox[2],
       this.bbox[3],
-      this.offset[0] + (this.x * this.factor * this.zoom),
-      this.offset[1] + (this.y * this.factor * this.zoom),
+      this.offset[0] + (x * this.factor * this.zoom),
+      this.offset[1] + (y * this.factor * this.zoom),
       this.width * this.factor * this.zoom,
       this.height * this.factor * this.zoom
     );
@@ -158,6 +172,7 @@ window.addEventListener('load', (event) => {
   const $sprite = document.getElementById("piecemaker-sprite_without_padding");
   const $zoomInButton = document.getElementById("zoom-in");
   const $zoomOutButton = document.getElementById("zoom-out");
+  const $toggleAssemble = document.getElementById("assembled");
 
   if (!$canvas || !$container || !$sprite) {
     throw "Couldn't load elements"
@@ -174,6 +189,11 @@ window.addEventListener('load', (event) => {
   ]).then((values) => {
     const [piecemaker_index, sprite_layout] = values;
     tableProofCanvas = new TableProofCanvas(piecemaker_index, sprite_layout, $container, $canvas, $sprite);
+    tableProofCanvas.assembled = $toggleAssemble.checked;
+    $toggleAssemble.addEventListener('change', (event) => {
+      tableProofCanvas.assembled = $toggleAssemble.checked;
+      tableProofCanvas.render();
+    });
     tableProofCanvas.render();
     window.addEventListener('resize', () => {
       tableProofCanvas.render();

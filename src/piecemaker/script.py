@@ -209,6 +209,8 @@ or set number of pieces greater than 0.
     im.close()
     table_width = int(width * 2.5)
     table_height = int(height * 2.5)
+    outline_offset_x = int((table_width - width) * 0.5)
+    outline_offset_y = int((table_height - height) * 0.5)
 
     with open(os.path.join(mydir, f"size-{scale_for_size_100}", "pieces.json"), "r") as pieces_json:
         piece_bboxes = json.load(pieces_json)
@@ -228,6 +230,8 @@ or set number of pieces greater than 0.
                 "id": i,
                 "x": randint(0, table_width - (bbox[2] - bbox[0])),
                 "y": randint(0, table_height - (bbox[3] - bbox[1])),
+                "ox": outline_offset_x + bbox[0],
+                "oy": outline_offset_y + bbox[1],
                 "r": 0,  # random rotation of piece
                 "s": 0,  # random piece side
                 "w": bbox[2] - bbox[0],
