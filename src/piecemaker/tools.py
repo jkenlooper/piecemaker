@@ -15,7 +15,7 @@ fetch("/adjacent.json")
 .then(adjacent => {
     document.addEventListener('click', (event) => {
         for (let target = event.target; target && target != this; target = target.parentNode) {
-            if (target.matches('.p')) {
+            if (target.classList && target.classList.contains('p')) {
                 const $piece = target;
                 const piece_id = $piece.getAttribute("id").replace("p-", "");
                 const adjacent_piece_ids = adjacent[piece_id];
@@ -29,6 +29,7 @@ fetch("/adjacent.json")
 });
 </script>
 """
+
 
 def rasterize_svgfile(svgfile):
     """

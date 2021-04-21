@@ -189,6 +189,7 @@ or set number of pieces greater than 0.
         scale=scale_for_size_100,
         max_pixels=(width * height),
     )
+    imagefile = pieces._scaled_image
 
     pieces.cut()
 
@@ -216,12 +217,11 @@ or set number of pieces greater than 0.
     with open(os.path.join(mydir, f"size-{scale_for_size_100}", "pieces.json"), "r") as pieces_json:
         piece_bboxes = json.load(pieces_json)
     piece_properties = []
-    # TODO: Distribute pieces starting at the top and working down. Skip
-    # placing pieces in the center box.
     pieces_distribution = random_outside(
         table_bbox=[0, 0, table_width, table_height],
         outline_bbox=[outline_offset_x, outline_offset_y, outline_offset_x + width, outline_offset_y + height],
-        piece_bboxes=piece_bboxes
+        piece_bboxes=piece_bboxes,
+        regions=("left_side", "top_middle", "bottom_middle")
     )
     for (i, bbox) in piece_bboxes.items():
         # TODO: set rotation of pieces
@@ -261,6 +261,7 @@ or set number of pieces greater than 0.
         "image_description": "",
         "image_width": width,
         "image_height": height,
+        "outline_bbox": [outline_offset_x, outline_offset_y, outline_offset_x + width, outline_offset_y + height],
         "puzzle_author": "",
         "puzzle_link": "",
         "table_width": table_width,
@@ -271,7 +272,7 @@ or set number of pieces greater than 0.
     json.dump(data, f, indent=2)
     f.close()
 
-    scaled_dir = os.path.join(mydir, "size-100")
+    scaled_dir = os.path.join(mydir, f"size-{scale_for_size_100}")
     adjacent = Adjacent(scaled_dir, overlap_threshold=overlap_threshold)
     f = open(os.path.join(mydir, "adjacent.json"), "w")
     json.dump(adjacent.adjacent_pieces, f)

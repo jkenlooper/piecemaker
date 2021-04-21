@@ -27,7 +27,8 @@ def reduce_size(scale, minimum_scale, output_dir):
     for filename in [
         "masks.json",
         "cut_proof.html",
-        "sprite.svg",
+        "sprite_clip_paths.svg",
+        "sprite_fragments.svg",
         "sprite_raster.css",
         "sprite_vector.css",
         "sprite_raster_proof.html",
@@ -97,8 +98,7 @@ def reduce_size(scale, minimum_scale, output_dir):
         scale=scale,
     )
     generate_sprite_vector_proof_html(
-        pieces_json_file=os.path.join(scaled_dir, "pieces.json"),
-        sprite_svg_file=os.path.join(scaled_dir, "sprite.svg"),
+        mydir=scaled_dir,
         output_dir=scaled_dir,
         sprite_layout=sprite_with_padding_layout,
         scale=scale,
