@@ -32,11 +32,11 @@ Piece count: {piece_count}<br>
 </div>
 
 <div class="container">
-    <canvas id="piecemaker-table" data-size="{scale}">
-        <img id="piecemaker-sprite_without_padding" width="{sprite_without_padding_width}" height="{sprite_without_padding_height}" src="size-{scale}/sprite_without_padding.png">
+    <canvas class="piecemaker-table" id="piecemaker-table" data-size="{scale}">
+        <img id="piecemaker-sprite_without_padding" style="image-rendering:crisp-edges;" width="{sprite_without_padding_width}" height="{sprite_without_padding_height}" src="size-{scale}/sprite_without_padding.png">
 
         <!-- TODO: Option to switch to clip paths
-        <img id="piecemaker-sprite_with_padding" width="{sprite_with_padding_width}" height="{sprite_with_padding_height}" src="size-{scale}/sprite_with_padding.jpg">
+        <img id="piecemaker-sprite_with_padding" style="image-rendering:crisp-edges;" width="{sprite_with_padding_width}" height="{sprite_with_padding_height}" src="size-{scale}/sprite_with_padding.jpg">
         {sprite_clip_paths_svg}
         -->
     </canvas>
@@ -64,6 +64,12 @@ overflow: hidden;
 }
 .controls {
 display: flex;
+}
+.piecemaker-table {
+image-rendering: -moz-crisp-edges;
+image-rendering: -webkit-crisp-edges;
+image-rendering: pixelated;
+image-rendering: crisp-edges;
 }
 """
 )

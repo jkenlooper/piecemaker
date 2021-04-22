@@ -16,13 +16,14 @@ class TableProofCanvas {
     this.$canvas = $canvas;
     this.$sprite = $sprite;
     this._assembled = false;
-    this.factor;
-    this._zoom = 1.0;
+    this._factor = 1.0;
+    this._zoom = 0;
     this._offset = [0, 0];
     this.setCanvasDimensions();
     this.ctx = this.$canvas.getContext('2d', {"alpha": false});
+    this.ctx.imageSmoothingEnabled = false;
     this.pieces = this.piecemakerIndex.piece_properties.map((pieceProperty) => {
-      const pc = new Piece(this.ctx, this.factor, this._zoom, this._offset, this.$sprite,
+      const pc = new Piece(this.ctx, this._factor, this._offset, this.$sprite,
         this.spriteLayout[String(pieceProperty.id)],
         {
           id: pieceProperty.id,
@@ -35,6 +36,8 @@ class TableProofCanvas {
         });
       return pc;
     });
+    this._setScale(this._zoom);
+    this.render();
   }
 
   get imageWidth() {
@@ -55,10 +58,17 @@ class TableProofCanvas {
   }
   set zoom(zoomLevel) {
     // TODO: improve zooming by maintaining the center.
-    this._offset[0] = this._offset[0] - ((this.tableWidth * (zoomLevel - this._zoom) * this.factor * 0.5));
-    this._offset[1] = this._offset[1] - ((this.tableHeight * (zoomLevel - this._zoom) * this.factor * 0.5));
-    this._zoom = zoomLevel;
+    this._setScale(zoomLevel);
     this.render();
+  }
+  _setScale(zoomLevel) {
+    this._zoom = Math.max(0, Math.min(zoomLevel, this._zoomRanges.length - 1));
+    this._factor = Math.min(1.0, this._zoomRanges[this._zoom]);
+    const scale = Math.max(1.0, this._zoomRanges[this._zoom]);
+    this.$canvas.style.transform = `scale(${scale})`;
+  }
+  get factor() {
+    return this._factor;
   }
   get offset() {
     return [
@@ -84,25 +94,32 @@ class TableProofCanvas {
     const scaleX = rect.width / this.tableWidth;
     const scaleY = rect.height / this.tableHeight;
     const scaleToFit = Math.min(scaleX, scaleY);
-    this.factor = scaleToFit;
-    this.$canvas.width = Math.ceil(this.factor * this.tableWidth);
-    this.$canvas.height = Math.ceil(this.factor * this.tableHeight);
+    const minimumScale = scaleToFit;
+    const zoomLevelCount = Math.ceil(2.0 / scaleToFit)
+    const zoomLinearIncrementAmount = (2.0 - Math.min(scaleToFit, 2.0)) / zoomLevelCount
+    this._zoomRanges = [...Array(zoomLevelCount).keys()].reduce((acc, count) => {
+      const z = acc[acc.length - 1] + zoomLinearIncrementAmount;
+      if (z < 1.0) {
+        acc.push(z);
+      }
+      return acc;
+    }, [minimumScale]).concat([1.0, 2.0]);
+    this.$canvas.width = Math.min(rect.width, this.tableWidth);
+    this.$canvas.height = Math.min(rect.height, this.tableHeight);
   }
 
   render() {
     this.clear();
-    this.setCanvasDimensions();
     const lineWidth = 2;
     this.drawPuzzleOutline(lineWidth, [
-      this._offset[0] + (this._zoom * (this.factor * Math.floor((this.tableWidth - this.imageWidth) * 0.5))),
-      this._offset[1] + (this._zoom * (this.factor * Math.floor((this.tableHeight - this.imageHeight) * 0.5))),
-      this._offset[0] + (this._zoom * (this.factor * (Math.floor((this.tableWidth - this.imageWidth) * 0.5) + this.imageWidth))),
-      this._offset[1] + (this._zoom * (this.factor * (Math.floor((this.tableHeight - this.imageHeight) * 0.5) + this.imageHeight)))
+      this._offset[0] + (1.0 * (this.factor * Math.floor((this.tableWidth - this.imageWidth) * 0.5))),
+      this._offset[1] + (1.0 * (this.factor * Math.floor((this.tableHeight - this.imageHeight) * 0.5))),
+      this._offset[0] + (1.0 * (this.factor * (Math.floor((this.tableWidth - this.imageWidth) * 0.5) + this.imageWidth))),
+      this._offset[1] + (1.0 * (this.factor * (Math.floor((this.tableHeight - this.imageHeight) * 0.5) + this.imageHeight)))
     ])
     this.ctx.save();
     this.pieces.forEach((pc) => {
       pc.factor = this.factor;
-      pc.zoom = this.zoom;
       pc.offset = this._offset;
       pc.render(this._assembled);
     });
@@ -126,10 +143,9 @@ class TableProofCanvas {
 }
 
 class Piece {
-  constructor(ctx, factor, zoom, offset, $sprite, bbox, props) {
+  constructor(ctx, factor, offset, $sprite, bbox, props) {
     this.ctx = ctx;
     this.factor = factor;
-    this.zoom = zoom;
     this.offset = offset;
     this.$sprite = $sprite;
     this.id = props.id;
@@ -158,10 +174,10 @@ class Piece {
       this.bbox[1],
       this.bbox[2],
       this.bbox[3],
-      this.offset[0] + (x * this.factor * this.zoom),
-      this.offset[1] + (y * this.factor * this.zoom),
-      this.width * this.factor * this.zoom,
-      this.height * this.factor * this.zoom
+      this.offset[0] + (x * this.factor),
+      this.offset[1] + (y * this.factor),
+      this.width * this.factor,
+      this.height * this.factor
     );
   }
 }
@@ -178,7 +194,6 @@ window.addEventListener('load', (event) => {
     throw "Couldn't load elements"
   }
   const scale = $canvas.dataset.size;
-  const ctx = $canvas.getContext('2d', {"alpha": false});
   let tableProofCanvas;
 
   const piecemaker_index_req = fetch("index.json").then(response => response.json());
@@ -194,9 +209,9 @@ window.addEventListener('load', (event) => {
       tableProofCanvas.assembled = $toggleAssemble.checked;
       tableProofCanvas.render();
     });
-    tableProofCanvas.render();
     window.addEventListener('resize', () => {
-      tableProofCanvas.render();
+      tableProofCanvas.setCanvasDimensions();
+      tableProofCanvas.zoom = tableProofCanvas.zoom;
     });
     let zooming = false;
     let panning = false;
@@ -207,7 +222,8 @@ window.addEventListener('load', (event) => {
       if (event.ctrlKey) {
         if (!zooming) {
           window.requestAnimationFrame(() => {
-            tableProofCanvas.zoom = tableProofCanvas.zoom + (event.deltaY * zoomAmount);
+            //tableProofCanvas.zoom = tableProofCanvas.zoom + (event.deltaY * zoomAmount);
+            tableProofCanvas.zoom = tableProofCanvas.zoom + Math.max(-1, Math.max(1, event.deltaY));
             zooming = false;
           });
           zooming = true;
@@ -226,10 +242,10 @@ window.addEventListener('load', (event) => {
       }
     });
     $zoomInButton.addEventListener('click', (event) => {
-      tableProofCanvas.zoom = tableProofCanvas.zoom + 0.25;
+      tableProofCanvas.zoom = tableProofCanvas.zoom + 1;
     });
     $zoomOutButton.addEventListener('click', (event) => {
-      tableProofCanvas.zoom = tableProofCanvas.zoom - 0.25;
+      tableProofCanvas.zoom = tableProofCanvas.zoom - 1;
     });
     $canvas.addEventListener('mousedown', (event) => {
       const originOffset = tableProofCanvas.offset;

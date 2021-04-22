@@ -1,14 +1,13 @@
 import os
 import json
 from optparse import OptionParser
-from random import randint
 from math import ceil, sqrt
 
 from PIL import Image
 
 from piecemaker.base import Pieces, variants
 from piecemaker.adjacent import Adjacent
-from piecemaker.distribution import grid, random_outside
+from piecemaker.distribution import random_outside
 from piecemaker.lines_svg import create_lines_svg
 from piecemaker.reduce import reduce_size
 from piecemaker.table_proof import generate_table_proof_html
