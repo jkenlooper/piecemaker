@@ -18,6 +18,7 @@ class TableProofCanvas {
     this._assembled = false;
     this._factor = 1.0;
     this._zoom = 0;
+    this._scale = 1.0;
     this._offset = [0, 0];
     this.setCanvasDimensions();
     this.ctx = this.$canvas.getContext('2d', {"alpha": false});
@@ -57,15 +58,17 @@ class TableProofCanvas {
     return this._zoom;
   }
   set zoom(zoomLevel) {
-    // TODO: improve zooming by maintaining the center.
     this._setScale(zoomLevel);
+    // TODO: improve zooming by maintaining the center.
+    this.offset = this.offset;
     this.render();
   }
   _setScale(zoomLevel) {
     this._zoom = Math.max(0, Math.min(zoomLevel, this._zoomRanges.length - 1));
     this._factor = Math.min(1.0, this._zoomRanges[this._zoom]);
-    const scale = Math.max(1.0, this._zoomRanges[this._zoom]);
-    this.$canvas.style.transform = `scale(${scale})`;
+    this._scale = Math.max(1.0, this._zoomRanges[this._zoom]);
+    this.$canvas.style.transformOrigin = "left top";
+    this.$canvas.style.transform = `scale(${this._scale})`;
   }
   get factor() {
     return this._factor;
@@ -77,15 +80,19 @@ class TableProofCanvas {
     ];
   }
   set offset(value) {
-    this._offset[0] = value[0];
-    this._offset[1] = value[1];
+    const minX = Math.round(((this._factor * Math.min(1.0, this._scale)) - this.minimumScale) * (Math.max(this.tableWidth, this.$canvas.width) * -1));
+    const maxX = 0;
+    const minY = Math.round(((this._factor * Math.min(1.0, this._scale)) - this.minimumScale) * (Math.max(this.tableHeight, this.$canvas.height) * -1));
+    const maxY = 0;
+    this._offset[0] = Math.max(minX, Math.min(maxX, value[0]));
+    this._offset[1] = Math.max(minY, Math.min(maxY, value[1]));
     this.render();
   }
   get assembled() {
     return this._assembled;
   }
   set assembled(value) {
-    return this._assembled = value;
+    this._assembled = value;
     this.render();
   }
 
@@ -94,16 +101,17 @@ class TableProofCanvas {
     const scaleX = rect.width / this.tableWidth;
     const scaleY = rect.height / this.tableHeight;
     const scaleToFit = Math.min(scaleX, scaleY);
-    const minimumScale = scaleToFit;
-    const zoomLevelCount = Math.ceil(2.0 / scaleToFit)
-    const zoomLinearIncrementAmount = (2.0 - Math.min(scaleToFit, 2.0)) / zoomLevelCount
+    this.minimumScale = Math.min(1.0, scaleToFit);
+    const zoomLevelCount = Math.ceil(1.0 / scaleToFit)
+    const zoomLinearIncrementAmount = (1.0 - Math.min(scaleToFit, 1.0)) / zoomLevelCount
     this._zoomRanges = [...Array(zoomLevelCount).keys()].reduce((acc, count) => {
       const z = acc[acc.length - 1] + zoomLinearIncrementAmount;
       if (z < 1.0) {
         acc.push(z);
       }
       return acc;
-    }, [minimumScale]).concat([1.0, 2.0]);
+    }, [scaleToFit]).concat([1.0]);
+    this._zoomRanges.sort();
     this.$canvas.width = Math.min(rect.width, this.tableWidth);
     this.$canvas.height = Math.min(rect.height, this.tableHeight);
   }
@@ -117,6 +125,12 @@ class TableProofCanvas {
       this._offset[0] + (1.0 * (this.factor * (Math.floor((this.tableWidth - this.imageWidth) * 0.5) + this.imageWidth))),
       this._offset[1] + (1.0 * (this.factor * (Math.floor((this.tableHeight - this.imageHeight) * 0.5) + this.imageHeight)))
     ])
+    this.drawTableBoundary(lineWidth, [
+      this._offset[0] + (1.0 * this.factor),
+      this._offset[1] + (1.0 * this.factor),
+      this._offset[0] + (1.0 * (this.factor * this.tableWidth)),
+      this._offset[1] + (1.0 * (this.factor * this.tableHeight))
+    ])
     this.ctx.save();
     this.pieces.forEach((pc) => {
       pc.factor = this.factor;
@@ -128,6 +142,17 @@ class TableProofCanvas {
   drawPuzzleOutline(lineWidth, bbox) {
     this.ctx.save();
     this.ctx.fillStyle = 'rgba(255,255,255,0.2)';
+    this.ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+    this.ctx.lineWidth = lineWidth;
+    this.ctx.beginPath();
+    this.ctx.moveTo(bbox[0], bbox[1])
+    this.ctx.fillRect(bbox[0], bbox[1], bbox[2] - bbox[0], bbox[3] - bbox[1])
+    this.ctx.strokeRect(bbox[0], bbox[1], bbox[2] - bbox[0], bbox[3] - bbox[1]);
+    this.ctx.restore();
+  }
+  drawTableBoundary(lineWidth, bbox) {
+    this.ctx.save();
+    this.ctx.fillStyle = 'transparent';
     this.ctx.strokeStyle = 'rgba(255,255,255,0.4)';
     this.ctx.lineWidth = lineWidth;
     this.ctx.beginPath();
@@ -263,11 +288,11 @@ window.addEventListener('load', (event) => {
         }
       }
       function mouseupHandler(event) {
-        $canvas.removeEventListener('mousemove', mousemoveHandler);
-        $canvas.removeEventListener('mouseup', mouseupHandler);
+        document.removeEventListener('mousemove', mousemoveHandler);
+        document.removeEventListener('mouseup', mouseupHandler);
       }
-      $canvas.addEventListener('mousemove', mousemoveHandler);
-      $canvas.addEventListener('mouseup', mouseupHandler);
+      document.addEventListener('mousemove', mousemoveHandler);
+      document.addEventListener('mouseup', mouseupHandler);
     });
 
   });
