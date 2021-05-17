@@ -57,7 +57,8 @@ Usage
 
 See the script.py for more.  Not everything has been implemented. Use this
 example command to create 100 randomly generated jigsaw puzzle pieces from
-test.jpg image. This assumes that the 'test' directory (`mkdir test`) and
-test.jpg exist::
+test.jpg image. This assumes that the 'test' directory is empty since that is
+where it will be placing all the generated files.  The test.jpg is the source
+image that will be used when creating the pieces.  It is not modified.::
 
     piecemaker --dir test  --number-of-pieces 100 test.jpg
