@@ -86,7 +86,7 @@ class Pieces(object):
         scaled_svg_file.close()
 
         # rasterize the svgfile
-        scaled_png = rasterize_svgfile(scaled_svg)
+        scaled_png = rasterize_svgfile(scaled_svg, width, height)
 
         self._mask_dir = os.path.join(self.mydir, "mask")
         os.mkdir(self._mask_dir)

@@ -41,7 +41,11 @@ If on ubuntu or other debian based distro::
     $ sudo apt-get install -y nodejs
     $ sudo apt-get --yes install python3-pil
     $ sudo apt-get --yes install potrace libffi-dev libxml2-dev python3-lxml python3-xcffib
-    $ sudo npm install -g svgo svpng
+    $ sudo npm install -g svgo
+    # Support for svpng which uses puppeteer
+    $ sudo apt-get --yes install ca-certificates fonts-liberation libappindicator3-1 libasound2 libatk-bridge2.0-0 libatk1.0-0 libc6 libcairo2 libcups2 libdbus-1-3 libexpat1 libfontconfig1 libgbm1 libgcc1 libglib2.0-0 libgtk-3-0 libnspr4 libnss3 libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1 libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 lsb-release wget xdg-utils
+    # Install a fork of svpng that uses node 14
+    $ npm install jkenlooper/svpng#28554fa32d57df13ec330e3a4df152172b6080bb
 
 
 Install with pip in editable mode for developing and use virtualenv to isolate

@@ -31,7 +31,7 @@ fetch("/adjacent.json")
 """
 
 
-def rasterize_svgfile(svgfile):
+def rasterize_svgfile(svgfile, width, height):
     """
     Converts a svg file to png file with same basename.
     """
@@ -43,7 +43,7 @@ def rasterize_svgfile(svgfile):
     # Use svgo to optimize the svg and move vector-effect to an attribute.
     subprocess.run(["svgo", "-i", svgfile, "-o", svgfile, "--quiet"], check=True)
     pngfile = os.path.join(output_dir, f"{root}.png")
-    subprocess.run(["svpng", svgfile, pngfile], check=True)
+    subprocess.run(["svpng", f"--width={width}", f"--height={height}", "--backgroundColor", "white", svgfile, pngfile], check=True)
 
     return pngfile
 
