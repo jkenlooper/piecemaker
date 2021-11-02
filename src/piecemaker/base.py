@@ -198,9 +198,9 @@ class JigsawPieceClipsSVG(object):
         if minimum_piece_size > 0:
             # Get the maximum number of pieces that can fit within the
             # dimensions depending on the minimum piece size.
-            max_pieces_that_will_fit = int(
+            max_pieces_that_will_fit = max(2, int(
                 (width / minimum_piece_size) * (height / minimum_piece_size)
-            )
+            ))
             print(f"max pieces that will fit {max_pieces_that_will_fit}")
             print(f"pieces requested {self.pieces}")
 
