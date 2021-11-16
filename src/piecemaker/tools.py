@@ -43,6 +43,10 @@ def rasterize_svgfile(svgfile, width, height):
     # Use svgo to optimize the svg and move vector-effect to an attribute.
     subprocess.run(["svgo", "-i", svgfile, "-o", svgfile, "--quiet"], check=True)
     pngfile = os.path.join(output_dir, f"{root}.png")
+
+    # apt-get install librsvg2-bin
+    # rsvg-convert
+
     subprocess.run(["svpng", f"--width={width}", f"--height={height}", "--backgroundColor", "white", svgfile, pngfile], check=True)
 
     return pngfile
