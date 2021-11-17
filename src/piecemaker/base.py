@@ -119,7 +119,7 @@ class Pieces(object):
 
         for piece in iglob(os.path.join(self._mask_dir, "*.bmp")):
             potrace(piece, self._vector_dir)
-        subprocess.run(["svgo", "-f", self._vector_dir, "--recursive", "--quiet"], check=True)
+        #subprocess.run(["svgo", "-f", self._vector_dir, "--recursive", "--quiet"], check=True)
 
         with open(os.path.join(self.mydir, "pieces.json"), "r") as pieces_json:
             self.pieces = json.load(pieces_json)
