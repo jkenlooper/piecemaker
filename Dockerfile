@@ -21,17 +21,24 @@ RUN adduser --disabled-login --disabled-password --gecos "" piecemaker
 
 WORKDIR /build
 
+VOLUME /build/src/piecemaker
+VOLUME /out
+
 COPY MANIFEST.in ./
 COPY README.rst ./
 COPY setup.py ./
-VOLUME /build/src/piecemaker
-COPY src/ ./src/
+COPY requirements.txt ./
 
 RUN chown -R piecemaker:piecemaker /build
+RUN chown -R piecemaker:piecemaker /out
 
 USER piecemaker
 
-RUN pip3 install -e .
+RUN pip3 install --user -r requirements.txt
+
+COPY src/ ./src/
+
+RUN pip3 install --user -e .
 
 ENV PATH=$PATH:/home/piecemaker/.local/bin
 
