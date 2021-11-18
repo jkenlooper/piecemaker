@@ -4,7 +4,7 @@ future==0.18.2
 glue==0.13
 html5lib==1.0.1
 Jinja2==2.9.6
-lxml==4.5.0
+lxml==4.6.3
 MarkupSafe==2.0.1
 olefile==0.46
 Pillow==8.4.0
