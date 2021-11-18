@@ -93,6 +93,13 @@ Example: 33,68,100,150 for 4 scaled puzzles with the last one being at 150%.""",
         help=f"""Piece cut variant to use. Defaults to 'interlockingnubs'.  Other choices are: {list(variants)}""",
     )
 
+    parser.add_option(
+        "--gap",
+        default=True,
+        action="store_false",
+        help="Leave gap between pieces.",
+    )
+
     (options, args) = parser.parse_args()
 
     if not options.dir:
@@ -187,6 +194,7 @@ or set number of pieces greater than 0.
         full_size_dir,
         scale=scale_for_size_100,
         max_pixels=(width * height),
+        include_border_pixels=options.gap,
     )
     imagefile = pieces._scaled_image
 

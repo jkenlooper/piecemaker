@@ -47,7 +47,7 @@ class Pieces(object):
     Creates the piece pngs and pieces info.
     """
 
-    def __init__(self, svgfile, image, mydir, scale=100, max_pixels=0):
+    def __init__(self, svgfile, image, mydir, scale=100, max_pixels=0, include_border_pixels=True):
         " Resize the image if needed. "
         self.mydir = mydir
         self.scale = int(scale)
@@ -102,6 +102,7 @@ class Pieces(object):
             mask_dir="mask",
             raster_dir="raster",
             jpg_dir="raster_with_padding",
+            include_border_pixels=include_border_pixels,
         )
 
         self.width = width
