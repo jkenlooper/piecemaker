@@ -119,7 +119,6 @@ class Pieces(object):
 
         for piece in iglob(os.path.join(self._mask_dir, "*.bmp")):
             potrace(piece, self._vector_dir)
-        #subprocess.run(["svgo", "-f", self._vector_dir, "--recursive", "--quiet"], check=True)
 
         with open(os.path.join(self.mydir, "pieces.json"), "r") as pieces_json:
             self.pieces = json.load(pieces_json)
@@ -281,8 +280,6 @@ class JigsawPieceClipsSVG(object):
             path["stroke"] = "black"
             path["stroke-width"] = "1"
             path["style"] = "vector-effect:non-scaling-stroke;"
-            # svgo will optimize by moving the style for vector-effect to be an
-            # attribute.  path["vector-effect"] = "non-scaling-stroke"
             path["fill"] = "none"
 
     def _horizontal_lines(self):
@@ -306,6 +303,4 @@ class JigsawPieceClipsSVG(object):
             path["stroke"] = "black"
             path["stroke-width"] = "1"
             path["style"] = "vector-effect:non-scaling-stroke;"
-            # svgo will optimize by moving the style for vector-effect to be an
-            # attribute.  path["vector-effect"] = "non-scaling-stroke"
             path["fill"] = "none"

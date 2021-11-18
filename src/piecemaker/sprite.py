@@ -155,8 +155,6 @@ def generate_sprite_svg_clip_paths(
         clip_path = dwg.defs.add(dwg.clipPath())
         clip_path["id"] = f"piece-mask-{scale}-{i}"
         clip_path["shape-rendering"] = "crispEdges"
-        # clip path doesn't work with use elements?
-        #clip_path.add(dwg.use(href=f"#piece-clip-{scale}-{i}"))
     sprite_svg_clip_paths = BeautifulSoup(dwg.tostring(), "xml")
 
     for (i, piece_bbox) in piece_bboxes.items():
@@ -164,15 +162,24 @@ def generate_sprite_svg_clip_paths(
         piece_svg = os.path.join(vector_dir, f"{mask_id}.svg")
         piece_soup = BeautifulSoup(open(piece_svg), "xml")
         svg = piece_soup.svg
-        first_g_or_path = svg.select(':root > g, :root > path', limit=1)[0]
-        #first_g_or_path["id"] = f"piece-clip-{scale}-{i}"
-        # TODO: need to convert it to a simple path element if it is a g element
-        # that has a transform.
-        sprite_svg_clip_paths.svg.append(first_g_or_path)
+        path = None
+        select_first_g = svg.select(':root > g', limit=1)
+        if len(select_first_g):
+            transform = select_first_g[0].get("transform", None)
+            select_path = select_first_g[0].select(':root > g > path', limit=1)
+            if len(select_path):
+                path = select_path[0]
+                if transform:
+                    path["transform"] = transform
+        else:
+            # TODO: This branch hasn't been tested.
+            select_path = svg.select(':root > *', limit=1)
+            if len(select_path):
+                path = select_path[0]
+
         piece_mask_tag = sprite_svg_clip_paths.defs.find("clipPath", id=f"piece-mask-{scale}-{i}")
         if piece_mask_tag:
-            #first_g_or_path = svg.select(':root > g, :root > path', limit=1)
-            piece_mask_tag.append(first_g_or_path)
+            piece_mask_tag.append(path)
 
     with open(os.path.join(output_dir, "sprite_clip_paths.svg"), "w") as out:
         out.write(sprite_svg_clip_paths.decode(formatter=None))

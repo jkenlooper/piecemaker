@@ -40,12 +40,6 @@ def rasterize_svgfile(svgfile, width, height):
     name = os.path.basename(svgfile)
     (root, ext) = os.path.splitext(name)
     pngfile = os.path.join(output_dir, f"{root}.png")
-    # Use svgo to optimize the svg and move vector-effect to an attribute.
-    #subprocess.run(["svgo", "-i", svgfile, "-o", svgfile, "--quiet"], check=True)
-    pngfile = os.path.join(output_dir, f"{root}.png")
-
-    # apt-get install librsvg2-bin
-    # rsvg-convert
 
     subprocess.run(["rsvg-convert", f"--width={width}", f"--height={height}", "--output", pngfile, "--background-color=white", svgfile])
 
@@ -60,7 +54,6 @@ def potrace(trimmedbmp, output_dir):
     (mask_name, ext) = os.path.splitext(mask_bmp)
 
     masksvg = os.path.join(output_dir, f"{mask_name}.svg")
-    # TODO: add --flat to set the whole image as single path
     # TODO: suppress speckle size with --turdsize 10
     potrace = [
         "potrace",
@@ -72,6 +65,7 @@ def potrace(trimmedbmp, output_dir):
         "--alphamax",
         "0",
         "--invert",
+        "--flat",
         "--svg",
         "--output",
         masksvg,
