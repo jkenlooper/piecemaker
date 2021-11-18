@@ -193,6 +193,7 @@ class JigsawPieceClipsSVG(object):
         self.HorizontalPath = globals().get(variant).HorizontalPath
         self.VerticalPath = globals().get(variant).VerticalPath
         self.pieces = pieces
+        self.stroke_width = 0.1
 
         if minimum_piece_size > 0:
             # Get the maximum number of pieces that can fit within the
@@ -278,7 +279,7 @@ class JigsawPieceClipsSVG(object):
             curveline = " ".join(curvelines)
             path = g.add(self._dwg.path(curveline))
             path["stroke"] = "black"
-            path["stroke-width"] = "1"
+            path["stroke-width"] = str(self.stroke_width)
             path["style"] = "vector-effect:non-scaling-stroke;"
             path["fill"] = "none"
 
@@ -301,6 +302,6 @@ class JigsawPieceClipsSVG(object):
             curveline = " ".join(curvelines)
             path = g.add(self._dwg.path(curveline))
             path["stroke"] = "black"
-            path["stroke-width"] = "1"
+            path["stroke-width"] = str(self.stroke_width)
             path["style"] = "vector-effect:non-scaling-stroke;"
             path["fill"] = "none"
