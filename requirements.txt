@@ -5,13 +5,13 @@ glue==0.13
 html5lib==1.0.1
 Jinja2==2.9.6
 lxml==4.5.0
-MarkupSafe==2.0.1
+MarkupSafe==2.1.1
 olefile==0.46
 Pillow==9.0.1
-pixsaw==0.3.2
+pixsaw==0.3.3
 Rtree==0.9.7
 six==1.14.0
 soupsieve==1.9.5
-svgwrite==1.4.1
+svgwrite==1.4.2
 webencodings==0.5.1
 xcffib==0.8.1

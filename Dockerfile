@@ -29,17 +29,18 @@ COPY README.rst ./
 COPY setup.py ./
 COPY requirements.txt ./
 
-RUN chown -R piecemaker:piecemaker /build
-RUN chown -R piecemaker:piecemaker /out
-
-USER piecemaker
+RUN mkdir -p /out && chown -R piecemaker:piecemaker /out
 
 RUN pip3 install --user -r requirements.txt
 
 COPY src/ ./src/
+RUN chown -R piecemaker:piecemaker /build
 
 RUN pip3 install --user -e .
+RUN chown -R piecemaker:piecemaker /build
 
 ENV PATH=$PATH:/home/piecemaker/.local/bin
+
+USER piecemaker
 
 CMD ["piecemaker"]
