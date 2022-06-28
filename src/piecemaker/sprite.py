@@ -6,7 +6,8 @@ from glob import iglob
 import svgwrite
 from bs4 import BeautifulSoup
 from PIL import Image
-from glue.managers.simple import SimpleManager
+
+from piecemaker.glue.managers.simple import SimpleManager
 
 
 def generate_data_uris(raster_dir, output_dir):

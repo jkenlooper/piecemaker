@@ -44,7 +44,7 @@ setup(
         "lxml",  # wanted by beautifulsoup4
         "svgwrite >= 1.4.1",
         # glue 0.13 -> Jinja2>=2.7,<2.10
-        "glue >= 0.13, <1.0",
+        # "glue >= 0.13, <1.0",
         "Rtree"
     ],
     entry_points="""
