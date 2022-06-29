@@ -72,11 +72,13 @@ def generate_cut_proof_html(pieces_json_file, output_dir, scale):
         y = v[1]
         width = v[2] - v[0]
         height = v[3] - v[1]
-        el = "".join([
-            f"<div id='p-{i}' class='p pc-{i}' style='left:{x}px;top:{y}px;'>",
-            f"<img class='p-img' src='raster/{i}.png?{cachebust}' width='{width}' height='{height}'>",
-            "</div>"
-        ])
+        el = "".join(
+            [
+                f"<div id='p-{i}' class='p pc-{i}' style='left:{x}px;top:{y}px;'>",
+                f"<img class='p-img' src='raster/{i}.png?{cachebust}' width='{width}' height='{height}'>",
+                "</div>",
+            ]
+        )
         pieces_html.append(el)
 
     with open(os.path.join(output_dir, "sprite_p.css"), "a") as css:

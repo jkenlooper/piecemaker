@@ -4,12 +4,12 @@ COIN = (True, False)
 
 
 def Property(func):
-    """ http://adam.gomaa.us/blog/the-python-property-builtin/ """
+    """http://adam.gomaa.us/blog/the-python-property-builtin/"""
     return property(**func())
 
 
 def retuple(p):
-    """ convert point str back to tuple if necessary """
+    """convert point str back to tuple if necessary"""
     if isinstance(p, tuple):
         return p
     elif isinstance(p, str):
@@ -276,7 +276,7 @@ class Path(object):
         return locals()
 
     def render(self):
-        " Create all the 'curveto' points "
+        "Create all the 'curveto' points"
         return f"""
 c {self.control_start_a} {self.control_start_b} {self.anchor_left}
 c {self.control_left_a} {self.control_left_b} {self.anchor_center}
@@ -286,7 +286,7 @@ c {self.control_right_a} {self.control_right_b} {self.relative_stop}
 
 
 class VerticalPath(Path):
-    " top to bottom "
+    "top to bottom"
 
     def point(self, t):
         t = (t[1], t[0])
@@ -294,7 +294,7 @@ class VerticalPath(Path):
 
 
 class HorizontalPath(Path):
-    " left to right "
+    "left to right"
 
     def point(self, t):
         t = (t[0], t[1] * -1)

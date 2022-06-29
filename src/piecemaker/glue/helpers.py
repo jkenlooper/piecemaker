@@ -1,5 +1,6 @@
 import sys
 import contextlib
+
 try:
     from StringIO import StringIO
 except ImportError:
@@ -21,18 +22,21 @@ def nearest_fration(value):
     """
     try:
         from fraction import Fraction
+
         return str(Fraction(value))
     except ImportError:
-        return '%i/100' % int(float(value) * 100)
+        return "%i/100" % int(float(value) * 100)
 
 
 class _Missing(object):
-    """ Missing object necessary for cached_property"""
+    """Missing object necessary for cached_property"""
+
     def __repr__(self):
-        return 'no value'
+        return "no value"
 
     def __reduce__(self):
-        return '_missing'
+        return "_missing"
+
 
 _missing = _Missing()
 

@@ -58,7 +58,9 @@ opacity: 0;
 """
 
 
-def generate_sprite_raster_proof_html(pieces_json_file, output_dir, sprite_layout, scale):
+def generate_sprite_raster_proof_html(
+    pieces_json_file, output_dir, sprite_layout, scale
+):
     """Create a sprite proof showing how the image was cut. Should look like
     original."""
 

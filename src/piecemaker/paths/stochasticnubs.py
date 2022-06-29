@@ -4,12 +4,12 @@ COIN = (True, False)
 
 
 def Property(func):
-    """ http://adam.gomaa.us/blog/the-python-property-builtin/ """
+    """http://adam.gomaa.us/blog/the-python-property-builtin/"""
     return property(**func())
 
 
 def retuple(p):
-    """ convert point str back to tuple if necessary """
+    """convert point str back to tuple if necessary"""
     if isinstance(p, tuple):
         return p
     elif isinstance(p, str):
@@ -31,7 +31,7 @@ class StochasticCurvePoints:
     @staticmethod
     def get_curve_points(width, height):
         variant = choice(StochasticCurvePoints.variants)
-        #variant = StochasticCurvePoints.variants[-1]
+        # variant = StochasticCurvePoints.variants[-1]
         _get_curve_points = getattr(StochasticCurvePoints, variant)
         return _get_curve_points(width, height)
 
@@ -294,14 +294,12 @@ class StochasticCurvePoints:
             (height * 0.0) - (_anchor_left[1] + _anchor_center[1]),
         )
         _control_right_a = (
-            (width * 0.75)
-            - (_anchor_left[0] + _anchor_center[0] + _anchor_right[0]),
+            (width * 0.75) - (_anchor_left[0] + _anchor_center[0] + _anchor_right[0]),
             (height * uniform(-0.05, 0.0))
             - (_anchor_left[1] + _anchor_center[1] + _anchor_right[1]),
         )
         _control_right_b = (
-            (width * 0.75)
-            - (_anchor_left[0] + _anchor_center[0] + _anchor_right[0]),
+            (width * 0.75) - (_anchor_left[0] + _anchor_center[0] + _anchor_right[0]),
             (height * uniform(-0.05, 0.0))
             - (_anchor_left[1] + _anchor_center[1] + _anchor_right[1]),
         )
@@ -342,14 +340,8 @@ class StochasticCurvePoints:
         _control_start_a = (0, 0)
         _control_start_b = (0, 0)
         _control_left_a = (0, 0)
-        _control_left_b = (
-            width * -0.05,
-            height * -0.25
-        )
-        _control_center_a = (
-            width * 0.05,
-            height * 0.25
-        )
+        _control_left_b = (width * -0.05, height * -0.25)
+        _control_center_a = (width * 0.05, height * 0.25)
         _control_center_b = (0, 0)
         _control_right_a = (0, 0)
         _control_right_b = (0, 0)
@@ -390,14 +382,8 @@ class StochasticCurvePoints:
         _control_start_a = (0, 0)
         _control_start_b = (0, 0)
         _control_left_a = (0, 0)
-        _control_left_b = (
-            width * 0.20,
-            height * 0.30
-        )
-        _control_center_a = (
-            width * -0.20,
-            height * -0.30
-        )
+        _control_left_b = (width * 0.20, height * 0.30)
+        _control_center_a = (width * -0.20, height * -0.30)
         _control_center_b = (0, 0)
         _control_right_a = (0, 0)
         _control_right_b = (0, 0)
@@ -416,7 +402,6 @@ class StochasticCurvePoints:
             _control_right_b,
             _relative_stop,
         )
-
 
     @staticmethod
     def standard(width, height):
@@ -742,7 +727,7 @@ class Path(object):
         return locals()
 
     def render(self):
-        " Create all the 'curveto' points "
+        "Create all the 'curveto' points"
         return f"""
 c {self.control_start_a} {self.control_start_b} {self.anchor_left}
 c {self.control_left_a} {self.control_left_b} {self.anchor_center}
@@ -752,7 +737,7 @@ c {self.control_right_a} {self.control_right_b} {self.relative_stop}
 
 
 class VerticalPath(Path):
-    " top to bottom "
+    "top to bottom"
 
     def point(self, t):
         t = (t[1], t[0])
@@ -760,7 +745,7 @@ class VerticalPath(Path):
 
 
 class HorizontalPath(Path):
-    " left to right "
+    "left to right"
 
     def point(self, t):
         t = (t[0], t[1] * -1)

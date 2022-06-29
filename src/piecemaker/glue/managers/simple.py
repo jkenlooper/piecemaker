@@ -9,4 +9,4 @@ class SimpleManager(BaseManager):
     """
 
     def find_sprites(self):
-        self.add_sprite(path=self.config['source'])
+        self.add_sprite(path=self.config["source"])

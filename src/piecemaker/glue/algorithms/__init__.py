@@ -1,3 +1,3 @@
 from .square import SquareAlgorithm
 
-algorithms = {'square': SquareAlgorithm}
+algorithms = {"square": SquareAlgorithm}

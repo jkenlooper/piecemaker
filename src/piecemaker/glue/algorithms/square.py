@@ -2,9 +2,7 @@ import copy
 
 
 class SquareAlgorithmNode(object):
-
-    def __init__(self, x=0, y=0, width=0, height=0, used=False,
-                 down=None, right=None):
+    def __init__(self, x=0, y=0, width=0, height=0, used=False, down=None, right=None):
         """Node constructor.
 
         :param x: X coordinate.
@@ -31,13 +29,15 @@ class SquareAlgorithmNode(object):
         :param height: Pixels to grow down (height).
         """
         if node.used:
-            return self.find(node.right, width, height) or self.find(node.down, width, height)
+            return self.find(node.right, width, height) or self.find(
+                node.down, width, height
+            )
         elif node.width >= width and node.height >= height:
             return node
         return None
 
     def grow(self, width, height):
-        """ Grow the canvas to the most appropriate direction.
+        """Grow the canvas to the most appropriate direction.
 
         :param width: Pixels to grow down (width).
         :param height: Pixels to grow down (height).
@@ -70,10 +70,9 @@ class SquareAlgorithmNode(object):
         self.x = self.y = 0
         self.width += width
         self.down = old_self
-        self.right = SquareAlgorithmNode(x=old_self.width,
-                                         y=0,
-                                         width=width,
-                                         height=self.height)
+        self.right = SquareAlgorithmNode(
+            x=old_self.width, y=0, width=width, height=self.height
+        )
 
         node = self.find(self, width, height)
         if node:
@@ -91,10 +90,9 @@ class SquareAlgorithmNode(object):
         self.x = self.y = 0
         self.height += height
         self.right = old_self
-        self.down = SquareAlgorithmNode(x=0,
-                                        y=old_self.height,
-                                        width=self.width,
-                                        height=height)
+        self.down = SquareAlgorithmNode(
+            x=0, y=old_self.height, width=self.width, height=height
+        )
 
         node = self.find(self, width, height)
         if node:
@@ -109,23 +107,22 @@ class SquareAlgorithmNode(object):
         :param height: New node height.
         """
         node.used = True
-        node.down = SquareAlgorithmNode(x=node.x,
-                                        y=node.y + height,
-                                        width=node.width,
-                                        height=node.height - height)
-        node.right = SquareAlgorithmNode(x=node.x + width,
-                                         y=node.y,
-                                         width=node.width - width,
-                                         height=height)
+        node.down = SquareAlgorithmNode(
+            x=node.x, y=node.y + height, width=node.width, height=node.height - height
+        )
+        node.right = SquareAlgorithmNode(
+            x=node.x + width, y=node.y, width=node.width - width, height=height
+        )
         return node
 
 
 class SquareAlgorithm(object):
-
     def process(self, sprite):
 
-        root = SquareAlgorithmNode(width=sprite.images[0].absolute_width,
-                                   height=sprite.images[0].absolute_height)
+        root = SquareAlgorithmNode(
+            width=sprite.images[0].absolute_width,
+            height=sprite.images[0].absolute_height,
+        )
 
         # Loot all over the images creating a binary tree
         for image in sprite.images:

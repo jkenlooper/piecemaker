@@ -221,14 +221,21 @@ or set number of pieces greater than 0.
     outline_offset_x = int((table_width - width) * 0.5)
     outline_offset_y = int((table_height - height) * 0.5)
 
-    with open(os.path.join(mydir, f"size-{scale_for_size_100}", "pieces.json"), "r") as pieces_json:
+    with open(
+        os.path.join(mydir, f"size-{scale_for_size_100}", "pieces.json"), "r"
+    ) as pieces_json:
         piece_bboxes = json.load(pieces_json)
     piece_properties = []
     pieces_distribution = random_outside(
         table_bbox=[0, 0, table_width, table_height],
-        outline_bbox=[outline_offset_x, outline_offset_y, outline_offset_x + width, outline_offset_y + height],
+        outline_bbox=[
+            outline_offset_x,
+            outline_offset_y,
+            outline_offset_x + width,
+            outline_offset_y + height,
+        ],
         piece_bboxes=piece_bboxes,
-        regions=("left_side", "top_middle", "bottom_middle")
+        regions=("left_side", "top_middle", "bottom_middle"),
     )
     for (i, bbox) in piece_bboxes.items():
         # TODO: set rotation of pieces
@@ -268,7 +275,12 @@ or set number of pieces greater than 0.
         "image_description": "",
         "image_width": width,
         "image_height": height,
-        "outline_bbox": [outline_offset_x, outline_offset_y, outline_offset_x + width, outline_offset_y + height],
+        "outline_bbox": [
+            outline_offset_x,
+            outline_offset_y,
+            outline_offset_x + width,
+            outline_offset_y + height,
+        ],
         "puzzle_author": "",
         "puzzle_link": "",
         "table_width": table_width,

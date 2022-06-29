@@ -41,9 +41,8 @@ def create_lines_svg(
         width, height, number_of_pieces, _minimum_piece_size
     )
     _imagefile = imagefile
-    if (
-        maximum_piece_size != 0
-        and maximum_piece_size + _minimum_piece_size < max(piece_width, piece_height)
+    if maximum_piece_size != 0 and maximum_piece_size + _minimum_piece_size < max(
+        piece_width, piece_height
     ):
         im = Image.open(_imagefile)
         mxpx = (maximum_piece_size * maximum_piece_size) * (rows * cols)

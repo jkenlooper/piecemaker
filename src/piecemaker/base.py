@@ -47,8 +47,10 @@ class Pieces(object):
     Creates the piece pngs and pieces info.
     """
 
-    def __init__(self, svgfile, image, mydir, scale=100, max_pixels=0, include_border_pixels=True):
-        " Resize the image if needed. "
+    def __init__(
+        self, svgfile, image, mydir, scale=100, max_pixels=0, include_border_pixels=True
+    ):
+        "Resize the image if needed."
         self.mydir = mydir
         self.scale = int(scale)
         original_im = Image.open(image)
@@ -111,12 +113,7 @@ class Pieces(object):
     def cut(self):
         self._pixsaw_handler.process(self._scaled_image)
         for piece in iglob(os.path.join(self._raster_dir, "*.png")):
-            subprocess.run([
-                "optipng",
-                "-clobber",
-                "-quiet",
-                piece
-            ], check=True)
+            subprocess.run(["optipng", "-clobber", "-quiet", piece], check=True)
 
         for piece in iglob(os.path.join(self._mask_dir, "*.bmp")):
             potrace(piece, self._vector_dir)
@@ -125,7 +122,7 @@ class Pieces(object):
             self.pieces = json.load(pieces_json)
 
     def generate_resources(self):
-        " Create the extra resources to display the pieces. "
+        "Create the extra resources to display the pieces."
         generate_data_uris(
             raster_dir=os.path.join(self.mydir, "raster"),
             output_dir=self.mydir,
@@ -182,7 +179,13 @@ class JigsawPieceClipsSVG(object):
     title = "Jigsaw puzzle piece clips"
 
     def __init__(
-        self, width, height, pieces=0, minimum_piece_size=42, maximum_piece_size=85, variant="interlockingnubs"
+        self,
+        width,
+        height,
+        pieces=0,
+        minimum_piece_size=42,
+        maximum_piece_size=85,
+        variant="interlockingnubs",
     ):
 
         self.width = width
@@ -199,9 +202,9 @@ class JigsawPieceClipsSVG(object):
         if minimum_piece_size > 0:
             # Get the maximum number of pieces that can fit within the
             # dimensions depending on the minimum piece size.
-            max_pieces_that_will_fit = max(2, int(
-                (width / minimum_piece_size) * (height / minimum_piece_size)
-            ))
+            max_pieces_that_will_fit = max(
+                2, int((width / minimum_piece_size) * (height / minimum_piece_size))
+            )
             print(f"max pieces that will fit {max_pieces_that_will_fit}")
             print(f"pieces requested {self.pieces}")
 

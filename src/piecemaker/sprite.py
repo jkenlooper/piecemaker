@@ -15,12 +15,14 @@ def generate_data_uris(raster_dir, output_dir):
     os.mkdir(data_uri_dir)
     for piece in iglob(os.path.join(raster_dir, "*.png")):
         with open(piece, "rb") as img:
-            with open(os.path.join(data_uri_dir, os.path.basename(piece) + ".b64"), "wb") as b64:
+            with open(
+                os.path.join(data_uri_dir, os.path.basename(piece) + ".b64"), "wb"
+            ) as b64:
                 b64.write(base64.standard_b64encode(img.read()))
 
 
 def generate_sprite_without_padding_layout(raster_dir, output_dir):
-    " create the sprite using glue "
+    "create the sprite using glue"
     sprite_manager = SimpleManager(
         source=raster_dir,
         css_namespace="pc",
@@ -71,7 +73,7 @@ def generate_sprite_without_padding_layout(raster_dir, output_dir):
 
 
 def generate_sprite_with_padding_layout(raster_dir, output_dir):
-    " create the sprite using glue "
+    "create the sprite using glue"
     sprite_manager = SimpleManager(
         source=raster_dir,
         css_namespace="pc",
@@ -138,7 +140,7 @@ def generate_sprite_svg_clip_paths(
     pieces_json_file,
     vector_dir,
 ):
-    " parse the individual piece svg's and create the svg. "
+    "parse the individual piece svg's and create the svg."
 
     with open(
         os.path.join(output_dir, "piece_id_to_mask.json"), "r"
@@ -164,26 +166,29 @@ def generate_sprite_svg_clip_paths(
         piece_soup = BeautifulSoup(open(piece_svg), "xml")
         svg = piece_soup.svg
         path = None
-        select_first_g = svg.select(':root > g', limit=1)
+        select_first_g = svg.select(":root > g", limit=1)
         if len(select_first_g):
             transform = select_first_g[0].get("transform", None)
-            select_path = select_first_g[0].select(':root > g > path', limit=1)
+            select_path = select_first_g[0].select(":root > g > path", limit=1)
             if len(select_path):
                 path = select_path[0]
                 if transform:
                     path["transform"] = transform
         else:
             # TODO: This branch hasn't been tested.
-            select_path = svg.select(':root > *', limit=1)
+            select_path = svg.select(":root > *", limit=1)
             if len(select_path):
                 path = select_path[0]
 
-        piece_mask_tag = sprite_svg_clip_paths.defs.find("clipPath", id=f"piece-mask-{scale}-{i}")
+        piece_mask_tag = sprite_svg_clip_paths.defs.find(
+            "clipPath", id=f"piece-mask-{scale}-{i}"
+        )
         if piece_mask_tag:
             piece_mask_tag.append(path)
 
     with open(os.path.join(output_dir, "sprite_clip_paths.svg"), "w") as out:
         out.write(sprite_svg_clip_paths.decode(formatter=None))
+
 
 def generate_sprite_svg_fragments(
     sprite_layout,
@@ -192,7 +197,7 @@ def generate_sprite_svg_fragments(
     output_dir,
     scale,
 ):
-    " parse the individual piece svg's and create the svg fragments. "
+    "parse the individual piece svg's and create the svg fragments."
 
     dwg = svgwrite.Drawing(
         size=(0, 0),

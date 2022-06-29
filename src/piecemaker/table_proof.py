@@ -4,7 +4,7 @@ import shutil
 
 from PIL import Image
 
-#from piecemaker.tools import toggle_adjacent_script as script
+# from piecemaker.tools import toggle_adjacent_script as script
 
 BLEED = 2
 HALF_BLEED = BLEED * 0.5
@@ -47,8 +47,7 @@ Piece count: {piece_count}<br>
 </html>"""
 
 
-style = (
-    """
+style = """
 body {
 background: rgb(20,20,20);
 color: white;
@@ -72,19 +71,21 @@ image-rendering: pixelated;
 image-rendering: crisp-edges;
 }
 """
-)
 
 
 def generate_table_proof_html(mydir):
     """Table proof"""
     index_json_file = os.path.join(mydir, "index.json")
 
-    shutil.copy(os.path.join(os.path.dirname(__file__), "table_proof_canvas.js"), os.path.join(mydir, "table_proof_canvas.js"))
+    shutil.copy(
+        os.path.join(os.path.dirname(__file__), "table_proof_canvas.js"),
+        os.path.join(mydir, "table_proof_canvas.js"),
+    )
 
     with open(index_json_file, "r") as index_json:
         piecemaker_index = json.load(index_json)
 
-    scale = piecemaker_index['full_size']
+    scale = piecemaker_index["full_size"]
     full_size_dir = os.path.join(mydir, f"size-{scale}")
 
     pieces_json_file = os.path.join(full_size_dir, "pieces.json")
@@ -92,8 +93,8 @@ def generate_table_proof_html(mydir):
         piece_bboxes = json.load(pieces_json)
 
     sprite_clip_paths_svg = ""
-    #sprite_clip_paths_svg_file = os.path.join(full_size_dir, "sprite_clip_paths.svg")
-    #with open(sprite_clip_paths_svg_file, "r") as f:
+    # sprite_clip_paths_svg_file = os.path.join(full_size_dir, "sprite_clip_paths.svg")
+    # with open(sprite_clip_paths_svg_file, "r") as f:
     #    sprite_clip_paths_svg = f.read().replace("""<?xml version="1.0" encoding="utf-8"?>""", "")
 
     im = Image.open(os.path.join(full_size_dir, "sprite_with_padding.jpg"))

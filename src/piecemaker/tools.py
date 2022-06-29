@@ -41,7 +41,17 @@ def rasterize_svgfile(svgfile, width, height):
     (root, ext) = os.path.splitext(name)
     pngfile = os.path.join(output_dir, f"{root}.png")
 
-    subprocess.run(["rsvg-convert", f"--width={width}", f"--height={height}", "--output", pngfile, "--background-color=white", svgfile])
+    subprocess.run(
+        [
+            "rsvg-convert",
+            f"--width={width}",
+            f"--height={height}",
+            "--output",
+            pngfile,
+            "--background-color=white",
+            svgfile,
+        ]
+    )
 
     return pngfile
 
@@ -86,7 +96,7 @@ def scale_down_imgfile(imgfile, factor):
 def cap_dimensions(width, height, max_pixels):
     "https://stackoverflow.com/questions/10106792/resize-image-by-pixel-amount"
     pixels = width * height
-    if (pixels <= max_pixels):
+    if pixels <= max_pixels:
         return (width, height)
 
     ratio = float(width) / height
