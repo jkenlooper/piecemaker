@@ -25,7 +25,8 @@ Python Packages:
 * `beautifulsoup4 <http://www.crummy.com/software/BeautifulSoup/bs4/>`_
 * `svgwrite <https://pypi.python.org/pypi/svgwrite>`_
 * lxml
-* `glue <https://github.com/jorgebastida/glue>`_
+* `glue <https://github.com/jorgebastida/glue>`_ (Only partially included in
+  piecemaker source)
 
 Other Software needed:
 
@@ -46,7 +47,7 @@ python dependencies::
 
     python3 -m venv .
     source ./bin/activate
-    pip install -e .
+    pip install --upgrade --upgrade-strategy eager -e .
 
 
 Usage

@@ -36,15 +36,12 @@ setup(
     include_package_data=True,
     zip_safe=False,
     install_requires=[
-        # glue 0.13 -> Pillow>=2.2.2
-        "Pillow >= 8.4.0, < 10",
+        "Pillow >= 8.4.0, <= 9.0.1",
         "pixsaw >= 0.3.3, <0.4",
         "beautifulsoup4",
         "future",
         "lxml",  # wanted by beautifulsoup4
         "svgwrite >= 1.4.1",
-        # glue 0.13 -> Jinja2>=2.7,<2.10
-        # "glue >= 0.13, <1.0",
         "Rtree"
     ],
     entry_points="""
