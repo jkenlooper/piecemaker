@@ -9,6 +9,7 @@ import os
 
 # from piecemaker.glue.helpers import round_up, nearest_fration
 # from piecemaker.glue import __version__
+from piecemaker.glue.compat import iteritems
 
 
 class BaseFormat(object):
@@ -54,7 +55,7 @@ class BaseFormat(object):
     @property
     def format_label(self):
         from piecemaker.glue.formats import formats
-        return dict((v,k) for k, v in formats.items())[self.__class__]
+        return dict((v, k) for k, v in iteritems(formats))[self.__class__]
 
     @classmethod
     def populate_argument_parser(cls, parser):

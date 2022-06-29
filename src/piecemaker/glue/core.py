@@ -3,12 +3,20 @@ import os
 import sys
 import copy
 import hashlib
-import io
-import configparser
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import BytesIO as StringIO
+
+try:
+    from ConfigParser import RawConfigParser, NoSectionError
+except ImportError:
+    from configparser import RawConfigParser, NoSectionError
 
 from PIL import Image as PILImage
 
 from piecemaker.glue.algorithms import algorithms
+from piecemaker.glue.compat import iteritems
 from piecemaker.glue.helpers import cached_property, round_up
 from piecemaker.glue.formats import ImageFormat
 from piecemaker.glue.exceptions import SourceImagesNotFoundError, PILUnavailableError
@@ -23,11 +31,11 @@ class ConfigurableFromFile(object):
         def clean(value):
             return {'true': True, 'false': False}.get(value.lower(), value)
 
-        config = configparser.RawConfigParser()
+        config = RawConfigParser()
         config.read(os.path.join(self.config_path, filename))
         try:
             keys = config.options(section)
-        except configparser.NoSectionError:
+        except NoSectionError:
             return {}
         return dict([[k, clean(config.get(section, k))] for k in keys])
 
@@ -48,16 +56,11 @@ class Image(ConfigurableFromFile):
         with open(self.path, "rb") as img:
             self._image_data = img.read()
 
-        print("\t{0} added to sprite".format(self.filename))
-
     @cached_property
     def image(self):
         """Return a Pil representation of this image """
 
-        if sys.version < '3':
-            imageio = io.StringIO(self._image_data)
-        else:
-            imageio = io.BytesIO(self._image_data)
+        imageio = StringIO(self._image_data)
 
         try:
             source_image = PILImage.open(imageio)
@@ -105,7 +108,6 @@ class Image(ConfigurableFromFile):
         return self._generate_spacing_info(self.config['margin'])
 
     def _generate_spacing_info(self, data):
-
         data = data.split(',' if ',' in data else ' ')
 
         if len(data) == 4:
@@ -220,7 +222,7 @@ class Sprite(ConfigurableFromFile):
             hash_list.append(os.path.relpath(image.path))
             hash_list.append(image._image_data)
 
-        for key, value in self.config.items():
+        for key, value in iteritems(self.config):
             hash_list.append(key)
             hash_list.append(value)
 
