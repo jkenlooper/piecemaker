@@ -259,7 +259,7 @@ class Sprite(ConfigurableFromFile):
         algorithm. The default is 'maxside'.
         """
         extensions = '|'.join(self.valid_extensions)
-        extension_re = re.compile('.+\.(%s)$' % extensions, re.IGNORECASE)
+        extension_re = re.compile(r'.+\.(%s)$' % extensions, re.IGNORECASE)
         files = sorted(os.listdir(self.path))
 
         images = []
