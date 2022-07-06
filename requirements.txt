@@ -4,7 +4,7 @@ Pillow==9.0.1
 Rtree==1.0.0
 beautifulsoup4==4.11.1
 future==0.18.2
-lxml==4.9.0
+lxml==4.9.1
 pixsaw==0.3.3
 soupsieve==2.3.2.post1
 svgwrite==1.4.2
