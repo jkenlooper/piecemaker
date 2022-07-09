@@ -2,7 +2,7 @@
 from setuptools import setup, find_packages
 import os
 
-__version__ = "0.4.4"  # Also set in src/piecemaker/_version.py
+__version__ = "0.4.5"  # Also set in src/piecemaker/_version.py
 
 name = "piecemaker"
 
