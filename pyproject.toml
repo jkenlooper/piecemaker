@@ -1,0 +1,55 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "piecemaker"
+version = "0.4.6-alpha.1"
+description = "Create jigsaw puzzle pieces from an image"
+readme = "README.md"
+license.text = "LGPLv3+"
+requires-python = ">=3.8, <4"
+authors = [
+    { name = "Jake Hickenlooper", email = "jake@weboftomorrow.com" },
+]
+dependencies = [
+
+  # TODO fix compatibility with Pillow 9.1.1
+  "Pillow >= 8.4.0, <= 9.0.1",
+
+  "pixsaw >= 0.3.3, <0.4",
+  "beautifulsoup4",
+  "future",
+  "lxml",  # wanted by beautifulsoup4
+  "svgwrite >= 1.4.1",
+  "Rtree"
+
+]
+
+# TODO verify latest dependencies
+# Rtree==1.0.0
+# beautifulsoup4==4.11.1
+# future==0.18.2
+# lxml==4.9.0
+# pixsaw==0.3.3
+# soupsieve==2.3.2.post1
+# svgwrite==1.4.2
+
+[project.urls]
+Homepage = "https://github.com/jkenlooper/piecemaker"
+
+[project.optional-dependencies]
+test = [
+    "coverage",
+    "pytest",
+]
+dev = [
+]
+
+[project.scripts]
+piecemaker = "piecemaker.script:piecemaker"
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/src",
+]
