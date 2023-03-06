@@ -11,6 +11,14 @@ takes a while to run if doing a lot of pieces.  Extra JSON files are created
 with details on size of pieces and adjacent pieces information which is commonly
 used when verifying that two pieces can join together.
 
+Try out by running the `piecemaker.sh` script that will prompt for necessary options
+and run piecemaker inside a docker container. It will use the files in the examples
+directory by default.
+
+```bash
+# Build and run using docker
+./piecemaker.sh
+```
 
 ## Installing
 

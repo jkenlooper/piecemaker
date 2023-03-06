@@ -45,23 +45,19 @@ DOCKER_BUILDKIT=1 docker build \
     -t "$image_name" \
     "$project_dir" > /dev/null
 
-echo "TODO setup prompts."
-exit
-
 # Use prompts instead of passing options since this is only for demonstration purposes.
 echo "
 ---
 "
 
-default_lines_file="examples/small-puzzle-lines.png"
-echo "Enter the relative file path for the lines image.
-Default: $default_lines_file"
-read -r lines_file
-lines_file="${lines_file:-$default_lines_file}"
-lines_file="$project_dir/$lines_file"
-test -e "$lines_file" || (echo "ERROR: File doesn't exist: $lines_file" 1>&2 && exit 1)
+default_number_of_pieces="100"
+echo "Target count of pieces. Will be adjusted depending on other criteria.
+Default: $default_number_of_pieces"
+read -r number_of_pieces
+number_of_pieces="${number_of_pieces:-$default_number_of_pieces}"
 
-default_image_file="examples/320px-White_Spoon_Osteospermum.jpg"
+# https://commons.wikimedia.org/wiki/File:Jardin_botanique_Roger-Van_den_Hende_01.jpg
+default_image_file="examples/Jardin_botanique_Roger-Van_den_Hende_01.jpg"
 echo "Enter the relative file path for the image to cut into pieces.
 Default: $default_image_file"
 read -r image_file
@@ -74,7 +70,9 @@ echo "Enter the relative directory path to output the files to.
 Default: $default_output_dir"
 read -r output_dir
 output_dir="${output_dir:-$default_output_dir}"
-output_dir="$project_dir/$output_dir"
+ts="$(date +%F-%H_%M_%S)";
+bn_image_name="$(basename "$image_file" ".jpg")"
+output_dir="$project_dir/$output_dir/piecemaker-$number_of_pieces-$bn_image_name/$ts"
 mkdir -p "$output_dir" || printf ""
 test -d "$output_dir" || (echo "ERROR: Directory doesn't exist: $output_dir" 1>&2 && exit 1)
 
@@ -83,13 +81,11 @@ echo "
 "
 
 echo "INFO $script_name: Creating files in $output_dir directory."
-bn_lines_file="$(basename "$lines_file")"
 bn_image_file="$(basename "$image_file")"
 docker run -i --tty \
     --name "$container_name" \
-    --mount "type=bind,src=$lines_file,dst=/data/$bn_lines_file,readonly=true" \
     --mount "type=bind,src=$image_file,dst=/data/$bn_image_file,readonly=true" \
-    "$image_name" --dir=/home/dev/app/output --lines="/data/$bn_lines_file" "/data/$bn_image_file"
+    "$image_name" --dir=/home/dev/app/output --number-of-pieces="$number_of_pieces" "/data/$bn_image_file"
 docker cp "$container_name:/home/dev/app/output/" "$output_dir"
 docker stop --time 1 "$container_name" > /dev/null 2>&1 || printf ''
 docker container rm "$container_name" > /dev/null 2>&1 || printf ''

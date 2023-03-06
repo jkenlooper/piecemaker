@@ -49,6 +49,11 @@ apk add --no-cache \
   zlib \
   zlib-dev \
   py3-yaml
+
+apk add --no-cache \
+  optipng \
+  potrace \
+  rsvg-convert
 PACKAGE_DEPENDENCIES
 
 RUN  <<PYTHON_VIRTUALENV
@@ -64,12 +69,6 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 COPY --chown=dev:dev pip-requirements.txt /home/dev/app/pip-requirements.txt
 COPY --chown=dev:dev dep /home/dev/app/dep
-
-#RUN <<PIP_INSTALL
-## Install pip and wheel
-#set -o errexit
-#su dev -c "python -m pip install -r /etc/chillbox/pip-requirements.txt"
-#PIP_INSTALL
 
 USER dev
 
