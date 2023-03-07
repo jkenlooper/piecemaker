@@ -54,8 +54,8 @@ Install with pip in editable mode for developing and use virtualenv to isolate
 python dependencies
 
 ```bash
-python3 -m venv .
-source ./bin/activate
+python3 -m venv .venv
+source .venv/bin/activate
 pip install --upgrade --upgrade-strategy eager -e .
 ```
 

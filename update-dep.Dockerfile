@@ -64,6 +64,7 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 COPY --chown=dev:dev pip-requirements.txt /home/dev/app/pip-requirements.txt
 COPY --chown=dev:dev pyproject.toml /home/dev/app/pyproject.toml
+COPY --chown=dev:dev src/piecemaker/_version.py /home/dev/app/src/piecemaker/_version.py
 COPY --chown=dev:dev dep /home/dev/app/dep
 COPY --chown=dev:dev README.md /home/dev/app/README.md
 RUN <<PIP_DOWNLOAD

@@ -1,1 +1,1 @@
-__version__ = "0.4.5"  # Also set in ../../setup.py
+__version__ = "0.4.6-alpha.1"

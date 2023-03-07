@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "piecemaker"
-version = "0.4.6-alpha.1"
+dynamic = ['version']
 description = "Create jigsaw puzzle pieces from an image"
 readme = "README.md"
 license.text = "LGPLv3+"
@@ -14,11 +14,8 @@ authors = [
 ]
 dependencies = [
 
-  # TODO fix compatibility with Pillow 9.1.1 by using unreleased pixsaw 0.3.4
-  #"Pillow >= 8.4.0, < 10",
-  #"pixsaw >= 0.3.4, <0.4",
-  "Pillow >= 8.4.0, <= 9.0.1",
-  "pixsaw >= 0.3.3, <0.4",
+  "Pillow >= 8.4.0, < 10",
+  "pixsaw >= 0.3.4, <0.4",
 
   "beautifulsoup4",
   "future",
@@ -41,6 +38,10 @@ dev = [
 
 [project.scripts]
 piecemaker = "piecemaker.script:piecemaker"
+
+
+[tool.hatch.version]
+path = "src/piecemaker/_version.py"
 
 [tool.hatch.build.targets.sdist]
 include = [

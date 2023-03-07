@@ -86,6 +86,6 @@ docker run -i --tty \
     --name "$container_name" \
     --mount "type=bind,src=$image_file,dst=/data/$bn_image_file,readonly=true" \
     "$image_name" --dir=/home/dev/app/output --number-of-pieces="$number_of_pieces" "/data/$bn_image_file"
-docker cp "$container_name:/home/dev/app/output/" "$output_dir"
+docker cp --quiet "$container_name:/home/dev/app/output/" "$output_dir"
 docker stop --time 1 "$container_name" > /dev/null 2>&1 || printf ''
 docker container rm "$container_name" > /dev/null 2>&1 || printf ''

@@ -90,6 +90,7 @@ COPY --chown=dev:dev requirements.txt /home/dev/app/requirements.txt
 COPY --chown=dev:dev requirements-dev.txt /home/dev/app/requirements-dev.txt
 COPY --chown=dev:dev requirements-test.txt /home/dev/app/requirements-test.txt
 COPY --chown=dev:dev pyproject.toml /home/dev/app/pyproject.toml
+COPY --chown=dev:dev src/piecemaker/_version.py /home/dev/app/src/piecemaker/_version.py
 COPY --chown=dev:dev README.md /home/dev/app/README.md
 RUN <<PIP_INSTALL_APP
 # Install the local python packages.

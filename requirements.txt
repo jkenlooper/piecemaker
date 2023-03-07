@@ -11,19 +11,17 @@ beautifulsoup4==4.11.2 \
     # via piecemaker (pyproject.toml)
 future==0.18.3 \
     --hash=sha256:34a17436ed1e96697a86f9de3d15a3b0be01d8bc8de9c1dffd59fb8234ed5307
-    # via
-    #   piecemaker (pyproject.toml)
-    #   pixsaw
+    # via piecemaker (pyproject.toml)
 lxml==4.9.2 \
     --hash=sha256:b9cc34af337a97d470040f99ba4282f6e6bac88407d021688a5d585e44a23184
     # via piecemaker (pyproject.toml)
-pillow==9.0.1 \
-    --hash=sha256:6c8bc8238a7dfdaf7a75f5ec5a663f4173f8c367e5a39f87e720495e1eed75fa
+pillow==9.4.0 \
+    --hash=sha256:09b89ddc95c248ee788328528e6a2996e09eaccddeeb82a5356e92645733be35
     # via
     #   piecemaker (pyproject.toml)
     #   pixsaw
-pixsaw==0.3.3 \
-    --hash=sha256:c1946463686d9e45eec9f4f6d51c162b8b953da1ee677caa01558b8f1cf8fefc
+pixsaw==0.3.4 \
+    --hash=sha256:12f860d6783dc20dbf2ae408502a558fbc95a61ac698fbe68f70a7dbd8fb74e0
     # via piecemaker (pyproject.toml)
 rtree==1.0.1 \
     --hash=sha256:c6e29e5eb3083ad12ac5c1ce6e37465ea3428d894d3466cc9c9e2ee4bf768e53
