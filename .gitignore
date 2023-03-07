@@ -15,6 +15,7 @@ develop-eggs/
 /local/
 /share/
 /.venv/
+/dist/
 
 /dep/*
 !/dep/.gitkeep
