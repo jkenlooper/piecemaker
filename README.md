@@ -78,7 +78,8 @@ piecemaker --dir test  --number-of-pieces 100 test.jpg
 A Dockerfile also can be used to build an image and run it.::
 
 ```bash
-docker build -t piecemaker:latest .
+./update-dep.sh
+DOCKER_BUILDKIT=1 docker build -t piecemaker:latest .
 
 mkdir -p out/tmp
 cp test.jpg out/

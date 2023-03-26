@@ -47,8 +47,7 @@ apk add --no-cache \
   tk \
   tk-dev \
   zlib \
-  zlib-dev \
-  py3-yaml
+  zlib-dev
 
 apk add --no-cache \
   optipng \
