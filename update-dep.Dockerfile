@@ -2,12 +2,14 @@
 
 # Modified from the original in python-worker directory in https://github.com/jkenlooper/cookiecutters .
 
-# UPKEEP due: "2023-04-21" label: "Alpine Linux base image" interval: "+3 months"
-# docker pull alpine:3.17.1
+# UPKEEP due: "2023-09-03" label: "Alpine Linux base image" interval: "+3 months"
+# docker pull alpine:3.18.0
 # docker image ls --digests alpine
-FROM alpine:3.17.1@sha256:f271e74b17ced29b915d351685fd4644785c6d1559dd1f2d4189a5e851ef753a
+FROM alpine:3.18.0@sha256:02bb6f428431fbc2809c5d1b41eab5a68350194fb508869a33cb1af4444c9b11
 
 RUN <<DEV_USER
+# Create dev user
+set -o errexit
 addgroup -g 44444 dev
 adduser -u 44444 -G dev -s /bin/sh -D dev
 DEV_USER
@@ -56,7 +58,7 @@ RUN  <<PYTHON_VIRTUALENV
 set -o errexit
 mkdir -p /home/dev/app
 chown -R dev:dev /home/dev/app
-su dev -c '/usr/bin/python3 -m venv /home/dev/app/.venv'
+su dev -c '/usr/bin/python -m venv /home/dev/app/.venv'
 PYTHON_VIRTUALENV
 # Activate python virtual env by updating the PATH
 ENV VIRTUAL_ENV=/home/dev/app/.venv
@@ -67,13 +69,15 @@ COPY --chown=dev:dev pyproject.toml /home/dev/app/pyproject.toml
 COPY --chown=dev:dev src/piecemaker/_version.py /home/dev/app/src/piecemaker/_version.py
 COPY --chown=dev:dev dep /home/dev/app/dep
 COPY --chown=dev:dev README.md /home/dev/app/README.md
+
+USER dev
+
 RUN <<PIP_DOWNLOAD
 # Download python packages listed in pyproject.toml
 set -o errexit
 # Install these first so packages like PyYAML don't have errors with 'bdist_wheel'
-python -m pip install wheel
-python -m pip install pip
-python -m pip install hatchling
+python -m pip install --disable-pip-version-check \
+    -r /home/dev/app/pip-requirements.txt
 python -m pip download --disable-pip-version-check \
     --exists-action i \
     --no-build-isolation \
@@ -87,8 +91,6 @@ python -m pip download --disable-pip-version-check \
     --destination-directory /home/dev/app/dep \
     .[dev,test]
 PIP_DOWNLOAD
-
-USER dev
 
 RUN <<PIP_INSTALL
 # Install pip-requirements.txt
@@ -111,17 +113,6 @@ done
 HERE
 chmod +x /home/dev/sleep.sh
 SETUP
-
-COPY --chown=dev:dev README.md /home/dev/app/README.md
-
-RUN <<PIP_DOWNLOAD_APP_DEPENDENCIES
-# Download python packages described in pyproject.toml
-set -o errexit
-python -m pip download --disable-pip-version-check \
-    --exists-action i \
-    --destination-directory /home/dev/app/dep \
-    .[dev,test]
-PIP_DOWNLOAD_APP_DEPENDENCIES
 
 RUN <<UPDATE_REQUIREMENTS
 # Generate the hashed requirements*.txt files that the main container will use.
@@ -163,6 +154,7 @@ RUN <<BANDIT
 set -o errexit
 bandit \
     --recursive \
+    -c pyproject.toml \
     /home/dev/app/src/ > /home/dev/security-issues-from-bandit.txt || echo "WARNING: Issues found."
 BANDIT
 

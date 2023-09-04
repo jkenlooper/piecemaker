@@ -2,12 +2,14 @@
 
 # Modified from the original in python-worker directory in https://github.com/jkenlooper/cookiecutters .
 
-# UPKEEP due: "2023-04-21" label: "Alpine Linux base image" interval: "+3 months"
-# docker pull alpine:3.17.1
+# UPKEEP due: "2023-09-03" label: "Alpine Linux base image" interval: "+3 months"
+# docker pull alpine:3.18.0
 # docker image ls --digests alpine
-FROM alpine:3.17.1@sha256:f271e74b17ced29b915d351685fd4644785c6d1559dd1f2d4189a5e851ef753a
+FROM alpine:3.18.0@sha256:02bb6f428431fbc2809c5d1b41eab5a68350194fb508869a33cb1af4444c9b11
 
 RUN <<DEV_USER
+# Create dev user
+set -o errexit
 addgroup -g 44444 dev
 adduser -u 44444 -G dev -s /bin/sh -D dev
 DEV_USER
@@ -60,7 +62,7 @@ RUN  <<PYTHON_VIRTUALENV
 set -o errexit
 mkdir -p /home/dev/app
 chown -R dev:dev /home/dev/app
-su dev -c '/usr/bin/python3 -m venv /home/dev/app/.venv'
+su dev -c '/usr/bin/python -m venv /home/dev/app/.venv'
 PYTHON_VIRTUALENV
 # Activate python virtual env by updating the PATH
 ENV VIRTUAL_ENV=/home/dev/app/.venv
@@ -75,13 +77,7 @@ RUN <<PIP_INSTALL
 # Install pip-requirements.txt
 set -o errexit
 # Install these first so packages like PyYAML don't have errors with 'bdist_wheel'
-python -m pip install wheel
-python -m pip install pip
-python -m pip install hatchling
-python -m pip install \
-  --no-index \
-  --no-build-isolation \
-  --find-links /home/dev/app/dep/ \
+python -m pip install --disable-pip-version-check \
   -r /home/dev/app/pip-requirements.txt
 PIP_INSTALL
 
@@ -91,6 +87,8 @@ COPY --chown=dev:dev requirements-test.txt /home/dev/app/requirements-test.txt
 COPY --chown=dev:dev pyproject.toml /home/dev/app/pyproject.toml
 COPY --chown=dev:dev src/piecemaker/_version.py /home/dev/app/src/piecemaker/_version.py
 COPY --chown=dev:dev README.md /home/dev/app/README.md
+COPY --chown=dev:dev COPYING /home/dev/app/
+COPY --chown=dev:dev COPYING.LESSER /home/dev/app/
 RUN <<PIP_INSTALL_APP
 # Install the local python packages.
 set -o errexit
