@@ -6,7 +6,7 @@ from rtree import index
 def bbox_area(bbox):
     w = bbox[2] - bbox[0]
     h = bbox[3] - bbox[1]
-    return w * h
+    return max(w * h, 1)
 
 
 def random_pos_outside_of_outline(
