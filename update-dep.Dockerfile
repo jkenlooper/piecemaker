@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.6.0
 
-# Modified from the original in python-worker directory in https://github.com/jkenlooper/cookiecutters .
+# Modified from the original in python-worker directory in https://git.sr.ht/~jkenlooper/cookiecutters .
 
 # UPKEEP due: "2023-12-13" label: "Alpine Linux base image" interval: "+3 months"
 # docker pull alpine:3.18.3

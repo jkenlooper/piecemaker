@@ -15,13 +15,13 @@ future==0.18.3 \
 lxml==4.9.3 \
     --hash=sha256:9e28c51fa0ce5674be9f560c6761c1b441631901993f76700b1b30ca6c8378d6
     # via piecemaker (pyproject.toml)
-pillow==9.5.0 \
-    --hash=sha256:c1170d6b195555644f0616fd6ed929dfcf6333b8675fcca044ae5ab110ded296
+pillow==10.0.1 \
+    --hash=sha256:84efb46e8d881bb06b35d1d541aa87f574b58e87f781cbba8d200daa835b42e1
     # via
     #   piecemaker (pyproject.toml)
     #   pixsaw
-pixsaw==0.3.4 \
-    --hash=sha256:12f860d6783dc20dbf2ae408502a558fbc95a61ac698fbe68f70a7dbd8fb74e0
+pixsaw==0.3.5 \
+    --hash=sha256:5bb66b8af6998d83ba212ca59d942883eea2e792ee5afaca355c62dd2205bac2
     # via piecemaker (pyproject.toml)
 rtree==1.0.1 \
     --hash=sha256:e4335e131a58952635560a003458011d97f9ea6f3c010dc24906050b42ee2c03
