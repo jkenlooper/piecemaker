@@ -1,31 +1,32 @@
-# UPKEEP due: "2023-09-23" label: "Python pip" interval: "+3 months"
+
+# UPKEEP due: "2023-12-13" label: "Python pip" interval: "+3 months"
 # https://pypi.org/project/pip/
-pip==23.1.2
+pip==23.2.1
 
-# UPKEEP due: "2023-09-23" label: "Python wheel" interval: "+3 months"
+# UPKEEP due: "2023-12-13" label: "Python wheel" interval: "+3 months"
 # https://pypi.org/project/wheel/
-wheel==0.40.0
+wheel==0.41.2
 
-# UPKEEP due: "2023-09-23" label: "Python hatchling" interval: "+3 months"
+# UPKEEP due: "2023-12-13" label: "Python hatchling" interval: "+3 months"
 # https://pypi.org/project/hatchling/
 hatchling==1.18.0
 
-# UPKEEP due: "2023-09-23" label: "Python setuptools" interval: "+3 months"
+# UPKEEP due: "2023-12-13" label: "Python setuptools" interval: "+3 months"
 # https://pypi.org/project/setuptools/
-setuptools==68.0.0
+setuptools==68.2.2
 
-# UPKEEP due: "2023-09-23" label: "Python Cython" interval: "+3 months"
+# UPKEEP due: "2023-12-13" label: "Python Cython" interval: "+3 months"
 # https://pypi.org/project/Cython/
-Cython==0.29.35
+Cython==3.0.2
 
-# UPKEEP due: "2023-09-23" label: "pip-tools" interval: "+3 months"
+# UPKEEP due: "2023-12-13" label: "pip-tools" interval: "+3 months"
 # https://pypi.org/project/pip-tools/
-pip-tools==6.13.0
+pip-tools==7.3.0
 
-# UPKEEP due: "2023-09-23" label: "Python auditing tool pip-audit" interval: "+3 months"
+# UPKEEP due: "2023-12-13" label: "Python auditing tool pip-audit" interval: "+3 months"
 # https://pypi.org/project/pip-audit/
-pip-audit==2.6.0
+pip-audit==2.6.1
 
-# UPKEEP due: "2023-09-23" label: "Python security linter tool: bandit" interval: "+6 months"
+# UPKEEP due: "2023-12-13" label: "Python security linter tool: bandit" interval: "+6 months"
 # https://pypi.org/project/bandit/
 bandit==1.7.5

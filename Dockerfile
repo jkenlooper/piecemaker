@@ -1,11 +1,11 @@
-# syntax=docker/dockerfile:1.4.3
+# syntax=docker/dockerfile:1.6.0
 
-# Modified from the original in python-worker directory in https://github.com/jkenlooper/cookiecutters .
+# Modified from the original in python-worker directory in https://git.sr.ht/~jkenlooper/cookiecutters .
 
-# UPKEEP due: "2023-09-03" label: "Alpine Linux base image" interval: "+3 months"
-# docker pull alpine:3.18.0
+# UPKEEP due: "2023-12-13" label: "Alpine Linux base image" interval: "+3 months"
+# docker pull alpine:3.18.3
 # docker image ls --digests alpine
-FROM alpine:3.18.0@sha256:02bb6f428431fbc2809c5d1b41eab5a68350194fb508869a33cb1af4444c9b11
+FROM alpine:3.18.3@sha256:7144f7bab3d4c2648d7e59409f15ec52a18006a128c733fcff20d3a4a54ba44a
 
 RUN <<DEV_USER
 # Create dev user
@@ -76,19 +76,30 @@ USER dev
 RUN <<PIP_INSTALL
 # Install pip-requirements.txt
 set -o errexit
-# Install these first so packages like PyYAML don't have errors with 'bdist_wheel'
 python -m pip install --disable-pip-version-check \
   -r /home/dev/app/pip-requirements.txt
 PIP_INSTALL
 
-COPY --chown=dev:dev requirements.txt /home/dev/app/requirements.txt
-COPY --chown=dev:dev requirements-dev.txt /home/dev/app/requirements-dev.txt
-COPY --chown=dev:dev requirements-test.txt /home/dev/app/requirements-test.txt
 COPY --chown=dev:dev pyproject.toml /home/dev/app/pyproject.toml
 COPY --chown=dev:dev src/piecemaker/_version.py /home/dev/app/src/piecemaker/_version.py
 COPY --chown=dev:dev README.md /home/dev/app/README.md
 COPY --chown=dev:dev COPYING /home/dev/app/
 COPY --chown=dev:dev COPYING.LESSER /home/dev/app/
+
+RUN <<PIP_DOWNLOAD
+# Download python packages listed in pyproject.toml
+set -o errexit
+python -m pip download --disable-pip-version-check \
+    --exists-action i \
+    --no-build-isolation \
+    --find-links /home/dev/app/dep/ \
+    --destination-directory /home/dev/app/dep \
+    .[dev,test]
+PIP_DOWNLOAD
+
+COPY --chown=dev:dev requirements.txt /home/dev/app/requirements.txt
+COPY --chown=dev:dev requirements-dev.txt /home/dev/app/requirements-dev.txt
+COPY --chown=dev:dev requirements-test.txt /home/dev/app/requirements-test.txt
 RUN <<PIP_INSTALL_APP
 # Install the local python packages.
 set -o errexit

@@ -41,7 +41,6 @@ docker image rm "$image_name" > /dev/null 2>&1 || printf ""
 
 echo "INFO $script_name: Building docker image: $image_name"
 DOCKER_BUILDKIT=1 docker build \
-    --quiet \
     -t "$image_name" \
     "$project_dir" > /dev/null
 

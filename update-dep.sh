@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 
-# Modified from the original in python-worker directory in https://github.com/jkenlooper/cookiecutters .
+# Modified from the original in python-worker directory in https://git.sr.ht/~jkenlooper/cookiecutters .
 
 set -o errexit
 
@@ -48,7 +48,6 @@ mkdir -p "$project_dir/dep"
 image_name="$project_name"
 docker image rm "$image_name" > /dev/null 2>&1 || printf ""
 DOCKER_BUILDKIT=1 docker build \
-  --quiet \
   -t "$image_name" \
   -f "$project_dir/update-dep.Dockerfile" \
   "$project_dir" > /dev/null
