@@ -7,6 +7,11 @@ SHELL := sh
 mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
 project_dir := $(dir $(mkfile_path))
 
+# Generate a hash string based on the content of files related to the dependencies.
+DEP_HASH := $(shell find . -type f \( -path './update-dep.Dockerfile' -o -path './pip-requirements.txt' -o -path './pyproject.toml' -o -path './src/piecemaker/*' -o -path './update-dep-run-audit.sh' -o -path './update-dep.sh' \) -exec md5sum '{}' \; | sort | md5sum - | cut -d' ' -f1)
+
+objects := .dep-$(DEP_HASH)
+
 # For debugging what is set in variables.
 inspect.%:
 	@printf "%s" '$($*)'
@@ -16,7 +21,14 @@ inspect.%:
 FORCE:
 
 .PHONY: all
-all: dist ## Default is to make all dist files
+all: $(objects) ## Default is to create the dep/* files
+
+.dep-$(DEP_HASH): update-dep.sh
+	rm -f .dep-*
+	rm -f dep/*.whl
+	rm -f dep/*.tar.gz
+	./$<
+	@touch $@
 
 .PHONY: help
 help: ## Show this help
@@ -30,6 +42,9 @@ dist: ## Create files for distribution
 clean: ## Remove files that were created
 	printf '%s\0' dist/*.tar.gz | xargs -0 rm -f
 	printf '%s\0' dist/*.whl | xargs -0 rm -f
+	printf '%s\0' dep/*.tar.gz | xargs -0 rm -f
+	printf '%s\0' dep/*.whl | xargs -0 rm -f
+	printf '%s\0' $(objects) | xargs -0 rm -f
 
 .PHONY: upkeep
 upkeep: ## Send to stderr any upkeep comments that have a past due date

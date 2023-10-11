@@ -18,5 +18,6 @@ develop-eggs/
 /dist/
 
 /dep/*
+/.dep-*
 !/dep/.gitkeep
 /output/
