@@ -15,6 +15,7 @@ test -e "$project_dir/$script_name" || (echo "ERROR: Should run $script_name fro
 # Exit early if required commands are not available.
 for cmd in \
   "docker" \
+  "make" \
   ; do
   has_cmd="$(command -v "$cmd" || echo "no")"
   if [ "$has_cmd" = "no" ]; then
@@ -30,19 +31,8 @@ if [ "$is_docker_up" = "no" ]; then
   exit 1
 fi
 
-echo "INFO $script_name: Running update-dep.sh script to update dependencies..."
-"$project_dir/update-dep.sh"
-
-image_name="$project_name"
-container_name="$project_name"
-docker stop --time 1 "$container_name" > /dev/null 2>&1 || printf ''
-docker container rm "$container_name" > /dev/null 2>&1 || printf ''
-docker image rm "$image_name" > /dev/null 2>&1 || printf ""
-
-echo "INFO $script_name: Building docker image: $image_name"
-DOCKER_BUILDKIT=1 docker build \
-    -t "$image_name" \
-    "$project_dir" > /dev/null
+echo "INFO $script_name: Running make command to build container image"
+make
 
 # Use prompts instead of passing options since this is only for demonstration purposes.
 echo "
@@ -81,10 +71,15 @@ echo "
 
 echo "INFO $script_name: Creating files in $output_dir directory."
 bn_image_file="$(basename "$image_file")"
-docker run -i --tty \
-    --name "$container_name" \
-    --mount "type=bind,src=$image_file,dst=/data/$bn_image_file,readonly=true" \
-    "$image_name" --dir=/home/dev/app/output --number-of-pieces="$number_of_pieces" "/data/$bn_image_file"
+
+container_name="piecemaker"
+image_name="$(cat ".iidfile")"
+docker run \
+  -it \
+  --name "$container_name" \
+  --mount "type=bind,src=${project_dir}/src,dst=/home/dev/app/src,readonly" \
+  --mount "type=bind,src=$image_file,dst=/data/$bn_image_file,readonly=true" \
+  "$image_name" --dir=/home/dev/app/output --number-of-pieces="$number_of_pieces" "/data/$bn_image_file"
 docker cp --quiet "$container_name:/home/dev/app/output/" "$output_dir"
 docker stop --time 1 "$container_name" > /dev/null 2>&1 || printf ''
 docker container rm "$container_name" > /dev/null 2>&1 || printf ''

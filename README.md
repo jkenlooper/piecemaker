@@ -2,9 +2,6 @@
 
 A jigsaw puzzle pieces generator that levels the playing field.
 
-Currently in use by [Puzzle Massive](http://puzzle.massive.xyz) to create
-puzzles with 5000+ pieces.
-
 It creates jigsaw puzzle pieces in multiple formats: svg, jpg, and png.  The
 number and size of pieces are set by passing the script different options.  It
 takes a while to run if doing a lot of pieces.  Extra JSON files are created
@@ -72,29 +69,9 @@ image that will be used when creating the pieces.  It is not modified.
 piecemaker --dir test  --number-of-pieces 100 test.jpg
 ```
 
-
-## Docker Usage
-
-A Dockerfile also can be used to build an image and run it.
-
-```bash
-./update-dep.sh
-DOCKER_BUILDKIT=1 docker build -t piecemaker:latest .
-
-mkdir -p out/tmp
-cp test.jpg out/
-rm -rf out/tmp/*
-
-docker run -it --rm \
-    --mount type=bind,src=$(pwd)/out,dst=/out \
-    piecemaker:latest \
-    piecemaker --dir /out/tmp --number-of-pieces 100 /out/test.jpg
-
-```
-
 ## Contributing
 
-Please contact me or create an issue.
+Please contact [Jake Hickenlooper](mailto:jake@massive.xyz) or create an issue.
 
 Any submitted changes to this project require the commits to be signed off with
 the [git command option
@@ -119,3 +96,8 @@ surrounded by double quotes (").
 ````
 Example-> # UPKEEP due: "2022-12-14" label: "an example upkeep label" interval: "+4 months"
 ````
+
+Show only past due UPKEEP comments.
+```bash
+make upkeep
+```

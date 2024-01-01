@@ -1,2 +1,2 @@
 include src/piecemaker/table_proof_canvas.js
-include README.rst
+include README.md

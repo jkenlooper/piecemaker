@@ -3,14 +3,18 @@ SHELL := sh
 .DEFAULT_GOAL := all
 .DELETE_ON_ERROR:
 .SUFFIXES:
+.ONESHELL:
 
 mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
 project_dir := $(dir $(mkfile_path))
 
-# Generate a hash string based on the content of files related to the dependencies.
-DEP_HASH := $(shell find . -type f \( -path './update-dep.Dockerfile' -o -path './pip-requirements.txt' -o -path './pyproject.toml' -o -path './src/piecemaker/*' -o -path './update-dep-run-audit.sh' -o -path './update-dep.sh' \) -exec md5sum '{}' \; | sort | md5sum - | cut -d' ' -f1)
+DOCKER := docker
 
-objects := .dep-$(DEP_HASH)
+src_files := Dockerfile pip-requirements.txt pip-audit.sh pyproject.toml $(shell find src/piecemaker -type f)
+
+HASH := $(shell echo "$(src_files)" | xargs -n1 md5sum | sort | md5sum - | cut -d' ' -f1)
+
+objects := .dep-$(HASH) security-issues-from-bandit.txt .iidfile
 
 # For debugging what is set in variables.
 inspect.%:
@@ -21,14 +25,60 @@ inspect.%:
 FORCE:
 
 .PHONY: all
-all: $(objects) ## Default is to create the dep/* files
+all: $(objects) ## Default is to create the dep/* and requirements.txt files
 
-.dep-$(DEP_HASH): update-dep.sh
+.dep-$(HASH) requirements.txt vulnerabilities-pip-audit.txt &: $(src_files)
 	rm -f .dep-*
-	rm -f dep/*.whl
-	rm -f dep/*.tar.gz
-	./$<
-	@touch $@
+	tmp_iidfile="$$(mktemp)"
+	$(DOCKER) build \
+		--target build \
+		--iidfile "$$tmp_iidfile" \
+		-f "$(project_dir)Dockerfile" \
+		"$(project_dir)"
+	image_name="$$(cat "$$tmp_iidfile")"
+	rm -f "$$tmp_iidfile"
+	container_name="$$(
+		$(DOCKER) run -d \
+			"$$image_name"
+	)"
+	$(DOCKER) cp --quiet "$$container_name:/home/dev/app/requirements.txt" "$(project_dir)requirements.txt"
+	rm -f $(project_dir)dep/*.whl
+	rm -f $(project_dir)dep/*.tar.gz
+	$(DOCKER) cp --quiet "$$container_name:/home/dev/app/dep/." "$(project_dir)dep/"
+	# Only copy over the vulnerabilities report if there is one.
+	rm -f "$(project_dir)vulnerabilities-pip-audit.txt"
+	$(DOCKER) cp --quiet "$$container_name:/home/dev/app/vulnerabilities-pip-audit.txt" "$(project_dir)vulnerabilities-pip-audit.txt"
+	$(DOCKER) stop --time 0 "$$container_name"
+	$(DOCKER) rm "$$container_name"
+	$(DOCKER) image rm "$$image_name"
+	touch .dep-$(HASH) requirements.txt vulnerabilities-pip-audit.txt
+
+security-issues-from-bandit.txt: $(src_files)
+	tmp_iidfile="$$(mktemp)"
+	$(DOCKER) build \
+		--target app \
+		--iidfile "$$tmp_iidfile" \
+		-f "$(project_dir)Dockerfile" \
+		"$(project_dir)"
+	image_name="$$(cat "$$tmp_iidfile")"
+	rm -f "$$tmp_iidfile"
+	container_name="$$(
+		$(DOCKER) run -d \
+			"$$image_name"
+	)"
+	# Only copy over the security issues if there is one.
+	rm -f "$(project_dir)security-issues-from-bandit.txt"
+	$(DOCKER) cp --quiet "$$container_name:/home/dev/security-issues-from-bandit.txt" "$(project_dir)security-issues-from-bandit.txt"
+	$(DOCKER) stop --time 0 "$$container_name"
+	$(DOCKER) rm "$$container_name"
+	$(DOCKER) image rm "$$image_name"
+	touch security-issues-from-bandit.txt
+
+.iidfile: ## Build docker container image
+	$(DOCKER) build \
+		--iidfile "$@" \
+		-f "$(project_dir)Dockerfile" \
+		"$(project_dir)"
 
 .PHONY: help
 help: ## Show this help

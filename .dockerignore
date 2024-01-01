@@ -1,13 +1,10 @@
 *
-!/requirements.txt
-!/requirements-dev.txt
-!/requirements-test.txt
 !/pip-requirements.txt
-!/update-dep-run-audit.sh
+!/pip-audit.sh
 !/pyproject.toml
 !/src/*
 !/README.md
 !/tests/*
-!/dep/*
 !/COPYING
 !/COPYING.LESSER
+!/install-libspatialindex.sh
