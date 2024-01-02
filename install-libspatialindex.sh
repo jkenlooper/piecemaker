@@ -10,8 +10,7 @@ spatialindex_sha512sum="519d1395de01ffc057a0da97a610c91b1ade07772f54fce521553aaf
 spatialindex_version="1.9.3"
 spatialindex_release_url="https://github.com/libspatialindex/libspatialindex/releases/download/$spatialindex_version/spatialindex-src-$spatialindex_version.tar.gz"
 spatialindex_tar="$(basename "$spatialindex_release_url")"
-spatialindex_install_dir="/usr/local/spatialindex_install"
-mkdir -p "$spatialindex_install_dir"
+spatialindex_install_dir="$(mktemp -d)"
 wget -P "$spatialindex_install_dir" -O "$spatialindex_install_dir/$spatialindex_tar" "$spatialindex_release_url"
 sha512sum "$spatialindex_install_dir/$spatialindex_tar"
 echo "$spatialindex_sha512sum  $spatialindex_install_dir/$spatialindex_tar" | sha512sum -c \
@@ -22,7 +21,11 @@ echo "$spatialindex_sha512sum  $spatialindex_install_dir/$spatialindex_tar" | sh
     )
 tar x -o -f "$spatialindex_install_dir/$spatialindex_tar" -C "$spatialindex_install_dir" --strip-components 1
 (cd "$spatialindex_install_dir"
-  cmake "$spatialindex_install_dir"
-  make -C "$spatialindex_install_dir"
-  make -C "$spatialindex_install_dir" install
+  cmake -B build \
+    -DCMAKE_BUILD_TYPE=MinSizeRel \
+    -DCMAKE_PREFIX_PATH=/usr \
+    -DCMAKE_INSTALL_PREFIX=/usr \
+    -DBUILD_TESTING=ON
+  cmake --build build
+  cmake --build build --target install
 )

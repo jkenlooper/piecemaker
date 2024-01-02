@@ -10,7 +10,7 @@ project_dir := $(dir $(mkfile_path))
 
 DOCKER := docker
 
-src_files := Dockerfile pip-requirements.txt pip-audit.sh pyproject.toml $(shell find src/piecemaker -type f)
+src_files := Dockerfile pip-requirements.txt pip-audit.sh pyproject.toml install-libspatialindex.sh $(shell find src/piecemaker -type f)
 
 HASH := $(shell echo "$(src_files)" | xargs -n1 md5sum | sort | md5sum - | cut -d' ' -f1)
 
@@ -74,7 +74,7 @@ security-issues-from-bandit.txt: $(src_files)
 	$(DOCKER) image rm "$$image_name"
 	touch security-issues-from-bandit.txt
 
-.iidfile: ## Build docker container image
+.iidfile: .dep-$(HASH) requirements.txt vulnerabilities-pip-audit.txt security-issues-from-bandit.txt ## Build docker container image
 	$(DOCKER) build \
 		--iidfile "$@" \
 		-f "$(project_dir)Dockerfile" \

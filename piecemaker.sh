@@ -74,6 +74,11 @@ bn_image_file="$(basename "$image_file")"
 
 container_name="piecemaker"
 image_name="$(cat ".iidfile")"
+cleanup() {
+  docker stop --time 1 "$container_name" > /dev/null 2>&1 || printf ''
+  docker container rm "$container_name" > /dev/null 2>&1 || printf ''
+}
+trap 'cleanup; trap - EXIT; exit' EXIT INT HUP
 docker run \
   -it \
   --name "$container_name" \
@@ -81,5 +86,3 @@ docker run \
   --mount "type=bind,src=$image_file,dst=/data/$bn_image_file,readonly=true" \
   "$image_name" --dir=/home/dev/app/output --number-of-pieces="$number_of_pieces" "/data/$bn_image_file"
 docker cp --quiet "$container_name:/home/dev/app/output/" "$output_dir"
-docker stop --time 1 "$container_name" > /dev/null 2>&1 || printf ''
-docker container rm "$container_name" > /dev/null 2>&1 || printf ''

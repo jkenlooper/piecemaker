@@ -101,6 +101,9 @@ RUN echo "apk add package dependencies"; \
     lcms2-dev \
     libffi-dev \
     libjpeg \
+    libstdc++ \
+    libstdc++-dev \
+    gcompat \
     musl-dev \
     openjpeg \
     openjpeg-dev \
@@ -124,6 +127,7 @@ RUN echo "apk add package dependencies"; \
 COPY install-libspatialindex.sh /home/dev/install-libspatialindex.sh
 RUN echo "Install libspatialindex for Python Rtree"; \
   /home/dev/install-libspatialindex.sh
+ENV SPATIALINDEX_C_LIBRARY=/usr/lib/libspatialindex
 
 # Activate python virtual env by updating the PATH
 ENV VIRTUAL_ENV=/home/dev/app/.venv
