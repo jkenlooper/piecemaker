@@ -84,5 +84,5 @@ docker run \
   --name "$container_name" \
   --mount "type=bind,src=${project_dir}/src,dst=/home/dev/app/src,readonly" \
   --mount "type=bind,src=$image_file,dst=/data/$bn_image_file,readonly=true" \
-  "$image_name" --dir=/home/dev/app/output --number-of-pieces="$number_of_pieces" "/data/$bn_image_file"
-docker cp --quiet "$container_name:/home/dev/app/output/" "$output_dir"
+  "$image_name" --dir=/home/dev/output --number-of-pieces="$number_of_pieces" "/data/$bn_image_file"
+docker cp --quiet "$container_name:/home/dev/output/" "$output_dir"

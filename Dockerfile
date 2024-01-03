@@ -1,27 +1,29 @@
 # Modified from the original in python-worker directory in https://git.sr.ht/~jkenlooper/cookiecutters .
 
-# UPKEEP due: "2024-03-14" label: "Alpine Linux base image" interval: "+3 months"
-# docker pull alpine:3.19.0
-# docker image ls --digests alpine
-FROM alpine:3.19.0@sha256:51b67269f354137895d43f3b3d810bfacd3945438e94dc5ac55fdac340352f48 as build
+# UPKEEP due: "2024-02-04" label: "Debian base image" interval: "+3 months"
+# docker pull debian:bookworm-20231218-slim
+# docker image ls --digests debian
+FROM debian:bookworm-20231218-slim@sha256:f80c45482c8d147da87613cb6878a7238b8642bcc24fc11bad78c7bec726f340 as build
+
+ARG DEBIAN_FRONTEND=noninteractive
 
 RUN echo "Create dev user"; \
-  addgroup -g 44444 dev && adduser -u 44444 -G dev -s /bin/sh -D dev
+  addgroup --gid 44444 dev && adduser --uid 44444 --gid 44444 --shell /bin/sh --disabled-login --disabled-password --gecos "" dev
 
 WORKDIR /home/dev/app
 
-RUN echo "apk add package dependencies"; \
-  apk update \
-  && apk add --no-cache \
-    -q --no-progress \
-    build-base \
+RUN echo "Install packages for Python"; \
+  apt-get --yes update \
+  && apt-get --yes install --no-install-suggests --no-install-recommends \
     gcc \
-    musl-dev \
-    py3-pip \
-    python3 \
-    python3-dev
+    libffi-dev \
+    libpython3-dev \
+    python-is-python3 \
+    python3-dev \
+    python3-venv \
+    python3-pip
 
-RUN echo "Setup for python virtual env"; \
+RUN echo "Setup for Python virtual env"; \
   mkdir -p /home/dev/app \
   && chown -R dev:dev /home/dev/app \
   && su dev -c 'python -m venv /home/dev/app/.venv'
@@ -70,64 +72,38 @@ RUN echo "Audit packages for known vulnerabilities"; \
 
 CMD ["sh", "-c", "while true; do printf 'z'; sleep 60; done"]
 
-# UPKEEP due: "2024-03-14" label: "Alpine Linux base image" interval: "+3 months"
-# docker pull alpine:3.19.0
-# docker image ls --digests alpine
-FROM alpine:3.19.0@sha256:51b67269f354137895d43f3b3d810bfacd3945438e94dc5ac55fdac340352f48 as app
+# UPKEEP due: "2024-02-04" label: "Debian base image" interval: "+3 months"
+# docker pull debian:bookworm-20231218-slim
+# docker image ls --digests debian
+FROM debian:bookworm-20231218-slim@sha256:f80c45482c8d147da87613cb6878a7238b8642bcc24fc11bad78c7bec726f340 as app
+
+ARG DEBIAN_FRONTEND=noninteractive
 
 RUN echo "Create dev user"; \
-  addgroup -g 44444 dev && adduser -u 44444 -G dev -s /bin/sh -D dev
+  addgroup --gid 44444 dev && adduser --uid 44444 --gid 44444 --shell /bin/sh --disabled-login --disabled-password --gecos "" dev
 
 WORKDIR /home/dev/app
 
 COPY --from=build /home/dev/app /home/dev/app
 
-RUN echo "apk add package dependencies"; \
-  apk update \
-  && apk add --no-cache \
-    -q --no-progress \
-    build-base \
-    cmake \
-    freetype \
-    freetype-dev \
-    fribidi \
-    fribidi-dev \
+RUN echo "Install packages for piecemaker"; \
+  apt-get --yes update \
+  && apt-get --yes install --no-install-suggests --no-install-recommends \
     gcc \
-    harfbuzz \
-    harfbuzz-dev \
-    jpeg \
-    jpeg-dev \
-    lcms2 \
-    lcms2-dev \
     libffi-dev \
-    libjpeg \
-    libstdc++ \
-    libstdc++-dev \
-    gcompat \
-    musl-dev \
-    openjpeg \
-    openjpeg-dev \
-    py3-pip \
-    python3 \
-    python3-dev \
-    tcl \
-    tcl-dev \
-    tiff \
-    tiff-dev \
-    tk \
-    tk-dev \
-    zlib \
-    zlib-dev \
-  && apk add --no-cache \
-    -q --no-progress \
+    libpython3-dev \
+    librsvg2-bin \
+    libspatialindex6 \
+    libxml2-dev \
     optipng \
     potrace \
-    rsvg-convert
-
-COPY install-libspatialindex.sh /home/dev/install-libspatialindex.sh
-RUN echo "Install libspatialindex for Python Rtree"; \
-  /home/dev/install-libspatialindex.sh
-ENV SPATIALINDEX_C_LIBRARY=/usr/lib/libspatialindex
+    python-is-python3 \
+    python3-dev \
+    python3-lxml \
+    python3-pil \
+    python3-pip \
+    python3-venv \
+    python3-xcffib
 
 # Activate python virtual env by updating the PATH
 ENV VIRTUAL_ENV=/home/dev/app/.venv
@@ -154,6 +130,9 @@ RUN echo "Install in editable mode for local development"; \
   python -m pip install --disable-pip-version-check --compile \
     --no-build-isolation \
     -e '/home/dev/app[dev,test]'
+
+RUN echo "Make output directory"; \
+  mkdir -p /home/dev/output
 
 ENTRYPOINT ["/home/dev/app/.venv/bin/piecemaker"]
 CMD ["--help"]

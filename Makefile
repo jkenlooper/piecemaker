@@ -10,7 +10,7 @@ project_dir := $(dir $(mkfile_path))
 
 DOCKER := docker
 
-src_files := Dockerfile pip-requirements.txt pip-audit.sh pyproject.toml install-libspatialindex.sh $(shell find src/piecemaker -type f)
+src_files := Dockerfile pip-requirements.txt pip-audit.sh pyproject.toml $(shell find src/piecemaker -type f)
 
 HASH := $(shell echo "$(src_files)" | xargs -n1 md5sum | sort | md5sum - | cut -d' ' -f1)
 
