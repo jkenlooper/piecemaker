@@ -129,6 +129,11 @@ Example: 33,68,100,150 for 4 scaled puzzles with the last one being at 150%.""",
 
     minimum_scale = min(scaled_sizes)
     overlap_threshold = int(minimum_piece_size)
+
+    im = Image.open(imagefile)
+    (width, height) = im.size
+    im.close()
+
     if not options.svg:
         # create a grid of puzzle pieces in svg
         if minimum_piece_size < 0:
@@ -147,9 +152,6 @@ or set number of pieces greater than 0.
                 """
             )
 
-        im = Image.open(imagefile)
-        (width, height) = im.size
-        im.close()
 
         (imagefile, jpc) = create_lines_svg(
             output_dir=mydir,

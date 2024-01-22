@@ -61,12 +61,23 @@ pip install --upgrade --upgrade-strategy eager -e .
 
 See the script.py for more.  Not everything has been implemented. Use this
 example command to create 100 randomly generated jigsaw puzzle pieces from
-test.jpg image. This assumes that the 'test' directory is empty since that is
+test.jpg image. This assumes that the 'test1' directory is empty since that is
 where it will be placing all the generated files.  The test.jpg is the source
 image that will be used when creating the pieces.  It is not modified.
 
 ```bash
-piecemaker --dir test  --number-of-pieces 100 test.jpg
+piecemaker --dir test1  --number-of-pieces 100 test.jpg
+```
+
+Example of using an already existing svg file with jigsaw puzzle cut lines. The
+'test2' directory should be empty as well. Note that the svg file
+(test2-custom-cut-lines.svg) and the image (test.jpg) both need to be the same
+width and height. Try this out by using a previously generated
+'lines-resized.svg' from a different puzzle and a different image to create
+a new puzzle with identical piece cuts.
+
+```bash
+piecemaker --dir test2 --svg test2-custom-cut-lines.svg test.jpg
 ```
 
 ## Contributing
