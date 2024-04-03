@@ -18,7 +18,7 @@ lxml==5.1.0
     # via piecemaker (pyproject.toml)
 packaging==23.2
     # via pytest
-pillow==10.2.0
+pillow==10.3.0
     # via
     #   piecemaker (pyproject.toml)
     #   pixsaw
