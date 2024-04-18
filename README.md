@@ -8,6 +8,12 @@ takes a while to run if doing a lot of pieces.  Extra JSON files are created
 with details on size of pieces and adjacent pieces information which is commonly
 used when verifying that two pieces can join together.
 
+Samples from different generated puzzles:
+
+![generated piece](docs/0.png)
+![generated piece](docs/3.png)
+![sample](docs/sample-pieces.png)
+
 Try out by running the `piecemaker.sh` script that will prompt for necessary options
 and run piecemaker inside a docker container. It will use the files in the examples
 directory by default.
