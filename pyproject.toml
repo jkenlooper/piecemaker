@@ -45,5 +45,10 @@ path = "src/piecemaker/_version.py"
 
 [tool.hatch.build.targets.sdist]
 include = [
-    "/src",
+    "src",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = [
+    "src/piecemaker",
 ]

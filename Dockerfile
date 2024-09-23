@@ -1,10 +1,9 @@
 # Modified from the original in python-worker directory in https://git.sr.ht/~jkenlooper/cookiecutters .
 
-FROM debian:bookworm-20231218-slim@sha256:f80c45482c8d147da87613cb6878a7238b8642bcc24fc11bad78c7bec726f340 as build
-# UPKEEP due: "2024-03-14" label: "Debian base image" interval: "+3 months"
-# docker pull registry.hub.docker.com/library/debian:bookworm-20240110-slim
+# UPKEEP due: "2024-12-23" label: "Debian base image" interval: "+3 months"
+# docker pull registry.hub.docker.com/library/debian:bookworm-20240904-slim
 # docker image ls --digests debian
-FROM registry.hub.docker.com/library/debian:bookworm-20240110-slim@sha256:f4a83aa865a2b4a064ff142aa91c713180df9fcb86ce676b5de2981029379c37 as build
+FROM registry.hub.docker.com/library/debian:bookworm-20240904-slim@sha256:a629e796d77a7b2ff82186ed15d01a493801c020eed5ce6adaa2704356f15a1c AS build
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -73,10 +72,11 @@ RUN echo "Audit packages for known vulnerabilities"; \
 
 CMD ["sh", "-c", "while true; do printf 'z'; sleep 60; done"]
 
-# UPKEEP due: "2024-02-04" label: "Debian base image" interval: "+3 months"
-# docker pull debian:bookworm-20231218-slim
+
+# UPKEEP due: "2024-12-23" label: "Debian base image" interval: "+3 months"
+# docker pull registry.hub.docker.com/library/debian:bookworm-20240904-slim
 # docker image ls --digests debian
-FROM debian:bookworm-20231218-slim@sha256:f80c45482c8d147da87613cb6878a7238b8642bcc24fc11bad78c7bec726f340 as app
+FROM registry.hub.docker.com/library/debian:bookworm-20240904-slim@sha256:a629e796d77a7b2ff82186ed15d01a493801c020eed5ce6adaa2704356f15a1c AS app
 
 ARG DEBIAN_FRONTEND=noninteractive
 
