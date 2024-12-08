@@ -44,8 +44,8 @@ def rasterize_svgfile(svgfile, width, height):
     subprocess.run(
         [
             "rsvg-convert",
-            f"--width={width}",
-            f"--height={height}",
+            "--width", str(width),
+            "--height", str(height),
             "--output",
             pngfile,
             "--background-color=white",
