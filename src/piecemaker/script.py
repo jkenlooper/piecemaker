@@ -209,6 +209,10 @@ or set number of pieces greater than 0.
     for size in sizes:
         if size == scale_for_size_100:
             continue
+        if not options.use_max_size and size > scale_for_size_100:
+            # Scaling up the pieces when the max piece size is set in order to
+            # fit the image dimensions is not ideal.
+            continue
         reduce_size(
             scale=size,
             minimum_scale=scale_for_size_100,
