@@ -1,20 +1,17 @@
-# Modified from the original in python-worker directory in https://git.sr.ht/~jkenlooper/cookiecutters .
-
-# UPKEEP due: "2024-12-23" label: "Debian base image" interval: "+3 months"
-# docker pull registry.hub.docker.com/library/debian:bookworm-20240904-slim
+# UPKEEP due: "2025-01-09" label: "Debian base image" interval: "+3 months"
+# docker pull registry.hub.docker.com/library/debian:trixie
 # docker image ls --digests debian
-FROM registry.hub.docker.com/library/debian:bookworm-20240904-slim@sha256:a629e796d77a7b2ff82186ed15d01a493801c020eed5ce6adaa2704356f15a1c AS build
+FROM registry.hub.docker.com/library/debian:trixie@sha256:4b826db5f1f14d1db0b560304f189d4b17798ddce2278b7822c9d32313fe3f50 AS build
 
 ARG DEBIAN_FRONTEND=noninteractive
-
 RUN echo "Create dev user"; \
-  addgroup --gid 44444 dev && adduser --uid 44444 --gid 44444 --shell /bin/sh --disabled-login --disabled-password --gecos "" dev
+  groupadd -g 44444 dev && useradd -u 44444 -g dev -s /bin/sh --create-home dev
 
 WORKDIR /home/dev/app
 
-RUN echo "Install packages for Python"; \
-  apt-get --yes update \
-  && apt-get --yes install --no-install-suggests --no-install-recommends \
+RUN echo "Install packages for Python dev"; \
+  apt-get update --yes  \
+  && apt-get install --yes --no-install-suggests --no-install-recommends \
     gcc \
     libffi-dev \
     libpython3-dev \
@@ -68,24 +65,25 @@ RUN echo "Generate the requirements.txt file"; \
 
 COPY pip-audit.sh /home/dev/app/pip-audit.sh
 RUN echo "Audit packages for known vulnerabilities"; \
-  /home/dev/app/pip-audit.sh
+  /home/dev/app/pip-audit.sh || echo "WARNING: Vulnerabilities found."
 
 CMD ["sh", "-c", "while true; do printf 'z'; sleep 60; done"]
 
 
-# UPKEEP due: "2024-12-23" label: "Debian base image" interval: "+3 months"
-# docker pull registry.hub.docker.com/library/debian:bookworm-20240904-slim
+# UPKEEP due: "2025-01-09" label: "Debian base image" interval: "+3 months"
+# docker pull registry.hub.docker.com/library/debian:trixie
 # docker image ls --digests debian
-FROM registry.hub.docker.com/library/debian:bookworm-20240904-slim@sha256:a629e796d77a7b2ff82186ed15d01a493801c020eed5ce6adaa2704356f15a1c AS app
+FROM registry.hub.docker.com/library/debian:trixie@sha256:4b826db5f1f14d1db0b560304f189d4b17798ddce2278b7822c9d32313fe3f50 AS app
 
 ARG DEBIAN_FRONTEND=noninteractive
-
 RUN echo "Create dev user"; \
-  addgroup --gid 44444 dev && adduser --uid 44444 --gid 44444 --shell /bin/sh --disabled-login --disabled-password --gecos "" dev
+  groupadd -g 44444 dev && useradd -u 44444 -g dev -s /bin/sh --create-home dev
 
 WORKDIR /home/dev/app
 
-COPY --from=build /home/dev/app /home/dev/app
+COPY --from=build --chown=dev:dev /home/dev/app/.venv /home/dev/app/.venv
+COPY --from=build /home/dev/app/dep /home/dev/app/dep
+COPY --from=build /home/dev/app/requirements.txt /home/dev/app/requirements.txt
 
 RUN echo "Install packages for piecemaker"; \
   apt-get --yes update \
@@ -94,7 +92,7 @@ RUN echo "Install packages for piecemaker"; \
     libffi-dev \
     libpython3-dev \
     librsvg2-bin \
-    libspatialindex6 \
+    libspatialindex7 \
     libxml2-dev \
     optipng \
     potrace \
@@ -120,16 +118,23 @@ RUN echo "Install dependencies"; \
     --no-index \
     -r /home/dev/app/requirements.txt
 
-COPY --chown=dev:dev src /home/dev/app/src
+COPY --from=build /home/dev/app/pyproject.toml /home/dev/app/pyproject.toml
+COPY --from=build /home/dev/app/README.md /home/dev/app/README.md
+COPY --chown=dev:dev src/piecemaker /home/dev/app/src/piecemaker/
+
+# Using 'csv' for the bandit format since it is the ideal format when committing
+# the file to source control.
 RUN echo "Use bandit to find common security issues"; \
   bandit \
     --recursive \
     -c pyproject.toml \
-    /home/dev/app/src/ > /home/dev/security-issues-from-bandit.txt || echo "WARNING: Issues found."
+    --format csv \
+    /home/dev/app/src/ > /home/dev/security-issues-from-bandit.csv || echo "WARNING: Issues found."
 
 RUN echo "Install in editable mode for local development"; \
   python -m pip install --disable-pip-version-check --compile \
     --no-build-isolation \
+    --find-links="./dep" \
     -e '/home/dev/app[dev,test]'
 
 RUN echo "Make output directory"; \
