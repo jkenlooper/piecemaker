@@ -26,6 +26,7 @@ from piecemaker.sprite import (
     generate_sprite_with_padding_layout,
     generate_sprite_svg_clip_paths,
     generate_sprite_svg_fragments,
+    generate_no_mask_sprite_without_padding,
 )
 from piecemaker.cut_proof import generate_cut_proof_html
 from piecemaker.sprite_raster_proof import generate_sprite_raster_proof_html
@@ -98,6 +99,8 @@ class Pieces(object):
         os.mkdir(self._raster_with_padding_dir)
         self._vector_dir = os.path.join(self.mydir, "vector")
         os.mkdir(self._vector_dir)
+        self._no_mask_raster_dir = os.path.join(self.mydir, "no_mask_raster")
+        os.mkdir(self._no_mask_raster_dir)
         self._pixsaw_handler = PMHandler(
             self.mydir,
             scaled_png,
@@ -105,6 +108,7 @@ class Pieces(object):
             raster_dir="raster",
             jpg_dir="raster_with_padding",
             include_border_pixels=include_border_pixels,
+            no_mask_raster_dir="no_mask_raster",
         )
 
         self.width = width
@@ -130,6 +134,10 @@ class Pieces(object):
 
         sprite_without_padding_layout = generate_sprite_without_padding_layout(
             raster_dir=os.path.join(self.mydir, "raster"),
+            output_dir=self.mydir,
+        )
+        generate_no_mask_sprite_without_padding(
+            raster_dir=os.path.join(self.mydir, "no_mask_raster"),
             output_dir=self.mydir,
         )
         sprite_with_padding_layout = generate_sprite_with_padding_layout(

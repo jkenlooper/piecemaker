@@ -72,6 +72,45 @@ def generate_sprite_without_padding_layout(raster_dir, output_dir):
     return sprite_layout
 
 
+def generate_no_mask_sprite_without_padding(raster_dir, output_dir):
+    "create the sprite using glue"
+    sprite_manager = SimpleManager(
+        source=raster_dir,
+        css_namespace="pc",
+        css_pseudo_class_separator="__",
+        css_sprite_namespace="",
+        css_url="",
+        html=False,
+        ratios="1",
+        follow_links=False,
+        quiet=True,
+        recursive=False,
+        force=True,
+        algorithm="square",
+        algorithm_ordering="maxside",
+        crop=False,
+        padding="0",
+        margin="0",
+        png8=False,
+        retina=False,
+        output=output_dir,
+        img_dir=output_dir,
+        css_dir=output_dir,
+        html_dir=output_dir,
+        css_cachebuster=True,
+        css_cachebuster_filename=False,
+        css_cachebuster_only_sprites=False,
+        css_separator="-",
+        enabled_formats=["img"],
+    )
+    sprite_manager.process()
+
+    sprite = sprite_manager.sprites[0]
+
+    raster_png = sprite.sprite_path()
+    os.rename(raster_png, os.path.join(output_dir, "no_mask_sprite_without_padding.png"))
+
+
 def generate_sprite_with_padding_layout(raster_dir, output_dir):
     "create the sprite using glue"
     sprite_manager = SimpleManager(

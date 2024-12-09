@@ -11,6 +11,7 @@ from piecemaker.sprite import (
     generate_sprite_with_padding_layout,
     generate_sprite_svg_clip_paths,
     generate_sprite_svg_fragments,
+    generate_no_mask_sprite_without_padding,
 )
 from piecemaker.cut_proof import generate_cut_proof_html
 from piecemaker.sprite_raster_proof import generate_sprite_raster_proof_html
@@ -70,7 +71,7 @@ def reduce_size(scale, minimum_scale, output_dir):
         raster_dir=os.path.join(scaled_dir, "raster"),
         output_dir=scaled_dir,
     )
-    jpg_sprite_file_name = os.path.join(scaled_dir, "sprite_with_padding.jpg")
+
     sprite_with_padding_layout = generate_sprite_with_padding_layout(
         raster_dir=os.path.join(scaled_dir, "raster_with_padding"),
         output_dir=scaled_dir,
