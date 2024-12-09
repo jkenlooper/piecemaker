@@ -22,7 +22,7 @@ pillow==10.4.0
     # via
     #   piecemaker (pyproject.toml)
     #   pixsaw
-pixsaw==0.3.5
+pixsaw==0.3.6
     # via piecemaker (pyproject.toml)
 pluggy==1.5.0
     # via pytest

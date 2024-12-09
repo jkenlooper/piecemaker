@@ -108,7 +108,18 @@ def generate_no_mask_sprite_without_padding(raster_dir, output_dir):
     sprite = sprite_manager.sprites[0]
 
     raster_png = sprite.sprite_path()
-    os.rename(raster_png, os.path.join(output_dir, "no_mask_sprite_without_padding.png"))
+
+    # No warning about possible DecompressionBombWarning since the png
+    # here has been generated on this side.
+    Image.MAX_IMAGE_PIXELS = None
+
+    png_sprite = Image.open(raster_png)
+    jpg_sprite = png_sprite.convert("RGB")
+    png_sprite.close()
+    os.unlink(raster_png)
+    jpg_sprite_file_name = os.path.join(output_dir, "no_mask_sprite_without_padding.jpg")
+    jpg_sprite.save(jpg_sprite_file_name)
+    jpg_sprite.close()
 
 
 def generate_sprite_with_padding_layout(raster_dir, output_dir):
