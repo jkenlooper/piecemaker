@@ -47,6 +47,20 @@ the minimum piece size.""",
     )
 
     parser.add_option(
+        "--exclude-outside-piece-container",
+        action="store_true",
+        default=False,
+        help="Exclude creating a piece for the outside container that matches the width and height of the image",
+    )
+    parser.add_option(
+        "--exclude-piece-size",
+        action="store",
+        type="string",
+        default="0x0",
+        help="Exclude creating any pieces that are larger in width or height. 0x0 will not exclude pieces.",
+    )
+
+    parser.add_option(
         "--minimum-piece-size",
         action="store",
         type="int",
@@ -190,6 +204,22 @@ or set number of pieces greater than 0.
     full_size_dir = os.path.join(mydir, f"size-{scale_for_size_100}")
     os.mkdir(full_size_dir)
 
+    exclude_width = None
+    exclude_height = None
+    if options.exclude_outside_piece_container:
+        exclude_width = width
+        exclude_height = height
+    if options.exclude_piece_size != "0x0":
+        exclude_piece_width, exclude_piece_height = map(int, options.exclude_piece_size.split("x")[:2])
+        if exclude_piece_width == 0:
+            exclude_width = None
+        else:
+            exclude_width = min(exclude_width or width, width, exclude_piece_width)
+        if exclude_piece_height == 0:
+            exclude_height = None
+        else:
+            exclude_height = min(exclude_height or height, height, exclude_piece_height)
+
     pieces = Pieces(
         svgfile,
         imagefile,
@@ -197,6 +227,7 @@ or set number of pieces greater than 0.
         scale=scale_for_size_100,
         max_pixels=(width * height),
         include_border_pixels=options.gap,
+        exclude_size=(exclude_width, exclude_height),
     )
     imagefile = pieces._scaled_image
 

@@ -49,7 +49,8 @@ class Pieces(object):
     """
 
     def __init__(
-        self, svgfile, image, mydir, scale=100, max_pixels=0, include_border_pixels=True
+        self, svgfile, image, mydir, scale=100, max_pixels=0, include_border_pixels=True,
+        exclude_size=(None,None)
     ):
         "Resize the image if needed."
         self.mydir = mydir
@@ -113,9 +114,15 @@ class Pieces(object):
 
         self.width = width
         self.height = height
+        self.exclude_width = None
+        self.exclude_height = None
+        if exclude_size[0]:
+            self.exclude_width = min(self.width, exclude_size[0])
+        if exclude_size[1]:
+            self.exclude_height = min(self.height, exclude_size[1])
 
     def cut(self):
-        self._pixsaw_handler.process(self._scaled_image)
+        self._pixsaw_handler.process(self._scaled_image, exclude_size=(self.exclude_width, self.exclude_height))
         for piece in iglob(os.path.join(self._raster_dir, "*.png")):
             subprocess.run(["optipng", "-clobber", "-quiet", piece], check=True)
 
