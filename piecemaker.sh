@@ -15,7 +15,6 @@ test -e "$project_dir/$script_name" || (echo "ERROR: Should run $script_name fro
 # Exit early if required commands are not available.
 for cmd in \
   "docker" \
-  "make" \
   ; do
   has_cmd="$(command -v "$cmd" || echo "no")"
   if [ "$has_cmd" = "no" ]; then
@@ -31,8 +30,13 @@ if [ "$is_docker_up" = "no" ]; then
   exit 1
 fi
 
-echo "INFO $script_name: Running make command to build container image"
-make
+tmp_iidfile="$(mktemp)"
+docker build \
+  --target app \
+  --iidfile "$tmp_iidfile" \
+  .
+image_name="$(cat "$tmp_iidfile")"
+rm -f "$tmp_iidfile"
 
 # Use prompts instead of passing options since this is only for demonstration purposes.
 echo "
@@ -73,10 +77,10 @@ echo "INFO $script_name: Creating files in $output_dir directory."
 bn_image_file="$(basename "$image_file")"
 
 container_name="piecemaker"
-image_name="$(cat ".iidfile")"
 cleanup() {
   docker stop --time 1 "$container_name" > /dev/null 2>&1 || printf ''
   docker container rm "$container_name" > /dev/null 2>&1 || printf ''
+  docker image rm "$image_name"
 }
 trap 'cleanup; trap - EXIT; exit' EXIT INT HUP
 docker run \
@@ -86,3 +90,4 @@ docker run \
   --mount "type=bind,src=$image_file,dst=/data/$bn_image_file,readonly=true" \
   "$image_name" --dir=/home/dev/output --number-of-pieces="$number_of_pieces" "/data/$bn_image_file"
 docker cp --quiet "$container_name:/home/dev/output/" "$output_dir"
+
