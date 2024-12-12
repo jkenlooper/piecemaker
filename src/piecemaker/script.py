@@ -199,7 +199,7 @@ or set number of pieces greater than 0.
     sizes = list(scaled_sizes)
     sizes.sort()
 
-    scale_for_size_100 = 100 if options.use_max_size else minimum_scale
+    scale_for_size_100 = 100 if (options.use_max_size or options.svg) else minimum_scale
 
     full_size_dir = os.path.join(mydir, f"size-{scale_for_size_100}")
     os.mkdir(full_size_dir)
