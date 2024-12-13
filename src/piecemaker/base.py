@@ -124,7 +124,9 @@ class Pieces(object):
     def cut(self):
         self._pixsaw_handler.process(self._scaled_image, exclude_size=(self.exclude_width, self.exclude_height))
         for piece in iglob(os.path.join(self._raster_dir, "*.png")):
-            subprocess.run(["optipng", "-clobber", "-quiet", piece], check=True)
+            # Skip B603; piece is set based on glob of files that were generated
+            # by this application.
+            subprocess.run(["optipng", "-clobber", "-quiet", piece], check=True)  # nosec B603
 
         for piece in iglob(os.path.join(self._mask_dir, "*.bmp")):
             potrace(piece, self._vector_dir)

@@ -52,3 +52,10 @@ include = [
 packages = [
     "src/piecemaker",
 ]
+
+
+[tool.bandit]
+# Skipping B311; project commonly uses random generators and none of
+# them are for cryptographic purposes.
+# Skipping B404, B607; this uses external commands that are in the PATH.
+skips = ["B311", "B404", "B607"]

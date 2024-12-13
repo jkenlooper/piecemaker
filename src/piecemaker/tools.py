@@ -41,6 +41,7 @@ def rasterize_svgfile(svgfile, width, height):
     (root, ext) = os.path.splitext(name)
     pngfile = os.path.join(output_dir, f"{root}.png")
 
+    # Skip B603; width, height, pngfile, and svgfile are safe inputs.
     subprocess.run(
         [
             "rsvg-convert",
@@ -51,7 +52,7 @@ def rasterize_svgfile(svgfile, width, height):
             "--background-color=white",
             svgfile,
         ]
-    )
+    )  # nosec B603
 
     return pngfile
 
@@ -65,6 +66,7 @@ def potrace(trimmedbmp, output_dir):
 
     masksvg = os.path.join(output_dir, f"{mask_name}.svg")
     # TODO: suppress speckle size with --turdsize 10
+    # Skip B603; trimmedbmp, and masksvg are safe inputs.
     potrace = [
         "potrace",
         trimmedbmp,
@@ -80,7 +82,7 @@ def potrace(trimmedbmp, output_dir):
         "--output",
         masksvg,
     ]
-    subprocess.run(potrace, check=True)
+    subprocess.run(potrace, check=True)  # nosec B603
 
 
 def scale_down_imgfile(imgfile, factor):

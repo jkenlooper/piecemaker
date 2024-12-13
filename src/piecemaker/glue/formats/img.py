@@ -100,9 +100,10 @@ class ImageFormat(BaseFormat):
             image_path = self.output_path(ratio)
             try:
                 existing = PILImage.open(image_path)
-                assert existing.info["Software"] == "glue-%s" % __version__
-                assert existing.info["Comment"] == self.sprite.hash
-                continue
+                if existing.info["Software"] == "glue-%s" % __version__ and existing.info["Comment"] == self.sprite.hash:
+                    continue
+                else:
+                    return True
             except Exception:
                 return True
         return False

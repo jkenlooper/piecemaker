@@ -40,11 +40,12 @@ class BaseManager(object):
                 format = format_cls(sprite=sprite)
                 format.validate()
                 if format.needs_rebuild() or sprite.config["force"]:
-                    print(
-                        "Format '{0}' for sprite '{1}' needs rebuild...".format(
-                            format_name, sprite.name
-                        )
-                    )
+                    # No need to log rebuild message.
+                    # print(
+                    #     "Format '{0}' for sprite '{1}' needs rebuild...".format(
+                    #         format_name, sprite.name
+                    #     )
+                    # )
                     format.build()
                 else:
                     print(
