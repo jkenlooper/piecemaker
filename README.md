@@ -87,6 +87,29 @@ a new puzzle with identical piece cuts.
 piecemaker --dir test2 --svg test2-custom-cut-lines.svg test.jpg
 ```
 
+## Other Suggested Tools
+
+Create SVG files for jigsaws with tools from [proceduraljigsaw](https://github.com/proceduraljigsaw).
+
+* [CustomShapeJigsawJs](https://proceduraljigsaw.github.io/CustomShapeJigsawJs/) A custom border jigsaw puzzle generator for laser cutting based on Voronoi tesselation 
+    * [proceduraljigsaw/CustomShapeJigsawJs](https://github.com/proceduraljigsaw/CustomShapeJigsawJs)
+* [Fractalpuzzlejs](https://proceduraljigsaw.github.io/Fractalpuzzlejs/) Javascript web based circle grid fractal jigsaw puzzle generator for lasercutting.
+    * [proceduraljigsaw/Fractalpuzzlejs](https://github.com/proceduraljigsaw/Fractalpuzzlejs)
+* [OrganicPuzzleJs](https://proceduraljigsaw.github.io/OrganicPuzzleJs/) is a (pretty broken, but mostly functional) organic-shaped jigsaw generator with custom border support.
+    * [proceduraljigsaw/OrganicPuzzleJs](https://github.com/proceduraljigsaw/OrganicPuzzleJs)
+* [Gosperpuzzlejs](https://proceduraljigsaw.github.io/Gosperpuzzlejs/) Gosper curve fractal jigsaw generator 
+    * [proceduraljigsaw/Gosperpuzzlejs](https://github.com/proceduraljigsaw/Gosperpuzzlejs)
+* [HexFractalpuzzlejs](https://proceduraljigsaw.github.io/Hexpuzzlejs/) Hexagonal grid fractal puzzle generator 
+    * [proceduraljigsaw/Hexpuzzlejs](https://github.com/proceduraljigsaw/Hexpuzzlejs)
+* [ImpactPuzzle](https://github.com/proceduraljigsaw/ImpactPuzzle) Broken glass jigsaw puzzle generator.
+* [CircleGridPuzzle](https://github.com/proceduraljigsaw/CircleGridPuzzle) Fractal jigsaw puzzle generator in Python.
+
+SVG editing tools
+
+* [SVGEdit Online Editor](https://svgedit.netlify.app/editor/index.html) is a fast, web-based, JavaScript-driven SVG drawing editor that works in any modern browser.
+    * [SVGEdit](https://svg-edit.github.io/svgedit/)
+    * [SVG-Edit/svgedit](https://github.com/SVG-Edit/svgedit)
+
 ## Contributing
 
 Please contact [Jake Hickenlooper](mailto:jake@massive.xyz) or create an issue.
