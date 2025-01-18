@@ -92,7 +92,7 @@ RUN echo "Install packages for piecemaker"; \
     libffi-dev \
     libpython3-dev \
     librsvg2-bin \
-    libspatialindex7 \
+    libspatialindex8 \
     libxml2-dev \
     optipng \
     potrace \

@@ -50,7 +50,7 @@ class Pieces(object):
 
     def __init__(
         self, svgfile, image, mydir, scale=100, max_pixels=0, include_border_pixels=True,
-        exclude_size=(None,None)
+        exclude_size=(None,None), floodfill_min=400, floodfill_max=50_000_000,
     ):
         "Resize the image if needed."
         self.mydir = mydir
@@ -110,6 +110,8 @@ class Pieces(object):
             jpg_dir="raster_with_padding",
             include_border_pixels=include_border_pixels,
             no_mask_raster_dir="no_mask_raster",
+            floodfill_min=floodfill_min,
+            floodfill_max=floodfill_max,
         )
 
         self.width = width
@@ -214,7 +216,7 @@ class JigsawPieceClipsSVG(object):
         self.HorizontalPath = globals().get(variant).HorizontalPath
         self.VerticalPath = globals().get(variant).VerticalPath
         self.pieces = pieces
-        self.stroke_width = 0.1
+        self.stroke_width = 1.0
 
         if minimum_piece_size > 0:
             # Get the maximum number of pieces that can fit within the

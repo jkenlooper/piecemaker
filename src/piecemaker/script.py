@@ -114,6 +114,28 @@ Example: 33,68,100,150 for 4 scaled puzzles with the last one being at 150%.""",
         help="Leave gap between pieces.",
     )
 
+    parser.add_option(
+        "--trust-image-file",
+        default=False,
+        action="store_true",
+        help="Trust the image file and remove max image pixels limit",
+    )
+
+    parser.add_option(
+        "--floodfill-min",
+        action="store",
+        default=400,
+        type="int",
+        help="Minimum pixels to floodfill for a piece",
+    )
+    parser.add_option(
+        "--floodfill-max",
+        action="store",
+        default=50_000_000,
+        type="int",
+        help="Max pixels to floodfill at a time",
+    )
+
     (options, args) = parser.parse_args()
 
     if not options.dir:
@@ -143,6 +165,11 @@ Example: 33,68,100,150 for 4 scaled puzzles with the last one being at 150%.""",
 
     minimum_scale = min(scaled_sizes)
     overlap_threshold = int(minimum_piece_size)
+
+    if options.trust_image_file:
+        # No warning about possible DecompressionBombWarning since the image
+        # being used is trusted.
+        Image.MAX_IMAGE_PIXELS = None
 
     im = Image.open(imagefile)
     (width, height) = im.size
@@ -228,6 +255,8 @@ or set number of pieces greater than 0.
         max_pixels=(width * height),
         include_border_pixels=options.gap,
         exclude_size=(exclude_width, exclude_height),
+        floodfill_min=options.floodfill_min,
+        floodfill_max=options.floodfill_max,
     )
     imagefile = pieces._scaled_image
 

@@ -47,6 +47,7 @@ def rasterize_svgfile(svgfile, width, height):
             "rsvg-convert",
             "--width", str(width),
             "--height", str(height),
+            "--unlimited",
             "--output",
             pngfile,
             "--background-color=white",
