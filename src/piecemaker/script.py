@@ -1,6 +1,7 @@
+import sys
 import os
 import json
-from optparse import OptionParser
+import argparse
 from math import ceil, sqrt
 
 from PIL import Image
@@ -15,64 +16,60 @@ from piecemaker._version import __version__
 
 
 def piecemaker():
-    parser = OptionParser(
-        usage="%prog [options] path/to/image",
-        version=__version__,
-        description="create jigsaw puzzle pieces",
+    parser = argparse.ArgumentParser(
+        description="Create jigsaw puzzle pieces.",
     )
+    parser.add_argument('--version', action='version', version=__version__)
 
-    parser.add_option(
+    parser.add_argument(
         "--dir",
         "-d",
         action="store",
-        type="string",
         help="set the directory to store the files in",
     )
-    parser.add_option(
+    parser.add_argument(
         "--number-of-pieces",
         "-n",
         action="store",
         default=0,
-        type="int",
+        type=int,
         help="""Target count of pieces. Will be adjusted depending on other
 criteria. If set to 0 then will fit as many pieces in depending on
 the minimum piece size.""",
     )
-    parser.add_option(
+    parser.add_argument(
         "--svg",
         "-s",
         action="store",
-        type="string",
         help="set the clips svg file instead of creating jigsaw pieces",
     )
 
-    parser.add_option(
+    parser.add_argument(
         "--exclude-outside-piece-container",
         action="store_true",
         default=False,
         help="Exclude creating a piece for the outside container that matches the width and height of the image",
     )
-    parser.add_option(
+    parser.add_argument(
         "--exclude-piece-size",
         action="store",
-        type="string",
         default="0x0",
         help="Exclude creating any pieces that are larger in width or height. 0x0 will not exclude pieces.",
     )
 
-    parser.add_option(
+    parser.add_argument(
         "--minimum-piece-size",
         action="store",
-        type="int",
+        type=int,
         default=25,
         help="""Minimum piece size.
 Will change the count of pieces to meet this if not set to 0.""",
     )
 
-    parser.add_option(
+    parser.add_argument(
         "--maximum-piece-size",
         action="store",
-        type="int",
+        type=int,
         default=0,
         help="""Maximum piece size.
 Will resize the image if not set to 0 and should be at least greater than double the
@@ -80,83 +77,79 @@ set minimum piece size.""",
     )
 
     # TODO: use percent instead of 'scale'
-    parser.add_option(
+    parser.add_argument(
         "--scaled-sizes",
         action="store",
-        type="string",
         default="100",
         help="""Comma separated list of sizes to scale for. Must include 100 at least.
 Any that are too small will not be created and a minimum scale will be
 done for the ones that were dropped.
-Example: 33,68,100,150 for 4 scaled puzzles with the last one being at 150%.""",
+Example: 33,68,100,150 for 4 scaled puzzles with the last one being at 150%%.""",
     )
 
-    parser.add_option(
+    parser.add_argument(
         "--use-max-size",
         action="store_true",
         default=False,
         help="""Use the largest size when creating the size-100 directory instead of the smallest possible.""",
     )
 
-    parser.add_option(
+    parser.add_argument(
         "--variant",
         action="store",
-        type="choice",
         default="interlockingnubs",
         choices=list(variants),
         help=f"""Piece cut variant to use. Defaults to 'interlockingnubs'.  Other choices are: {list(variants)}""",
     )
 
-    parser.add_option(
+    parser.add_argument(
         "--gap",
         default=True,
         action="store_false",
         help="Leave gap between pieces.",
     )
 
-    parser.add_option(
+    parser.add_argument(
         "--trust-image-file",
         default=False,
         action="store_true",
         help="Trust the image file and remove max image pixels limit",
     )
 
-    parser.add_option(
+    parser.add_argument(
         "--floodfill-min",
         action="store",
         default=400,
-        type="int",
+        type=int,
         help="Minimum pixels to floodfill for a piece",
     )
-    parser.add_option(
+    parser.add_argument(
         "--floodfill-max",
         action="store",
         default=50_000_000,
-        type="int",
+        type=int,
         help="Max pixels to floodfill at a time",
     )
 
-    (options, args) = parser.parse_args()
+    # TODO support multiple sided puzzles
+    parser.add_argument("image", nargs=1, help="JPG image")
 
-    if not options.dir:
+    args = parser.parse_args()
+
+    #(options, args) = parser.parse_args()
+
+    if not args.dir:
         parser.error("Must set a directory to store generated files")
 
-    if not args:
-        parser.error("Must set an image as an arg.")
-
-    if len(args) > 1:
-        parser.error("Multiple pictures are not supported, yet.")
-
-    scaled_sizes = set([int(x) for x in options.scaled_sizes.split(",")])
+    scaled_sizes = set([int(x) for x in args.scaled_sizes.split(",")])
     if 100 not in scaled_sizes:
         parser.error("Must have at least a '100' in scaled sizes.")
 
-    if args:
-        imagefile = args[0]
+    imagefile = args.image[0]
 
-    minimum_piece_size = options.minimum_piece_size
-    maximum_piece_size = options.maximum_piece_size
-    mydir = options.dir
+    minimum_piece_size = args.minimum_piece_size
+    maximum_piece_size = args.maximum_piece_size
+    mydir = args.dir
 
     if maximum_piece_size != 0 and maximum_piece_size <= minimum_piece_size * 2:
         parser.error(
@@ -166,7 +159,7 @@ Example: 33,68,100,150 for 4 scaled puzzles with the last one being at 150%.""",
     minimum_scale = min(scaled_sizes)
     overlap_threshold = int(minimum_piece_size)
 
-    if options.trust_image_file:
+    if args.trust_image_file:
         # No warning about possible DecompressionBombWarning since the image
         # being used is trusted.
         Image.MAX_IMAGE_PIXELS = None
@@ -175,17 +168,17 @@ Example: 33,68,100,150 for 4 scaled puzzles with the last one being at 150%.""",
     (width, height) = im.size
     im.close()
 
-    if not options.svg:
+    if not args.svg:
         # create a grid of puzzle pieces in svg
         if minimum_piece_size < 0:
             parser.error("Invalid minimum piece size")
         if minimum_piece_size < 25:
             print("Warning: a minimum piece size less than 25 is not recommended.")
 
-        if options.number_of_pieces < 0:
+        if args.number_of_pieces < 0:
             parser.error("Invalid number of pieces")
 
-        if minimum_piece_size < 1 and options.number_of_pieces < 1:
+        if minimum_piece_size < 1 and args.number_of_pieces < 1:
             parser.error(
                 """
 Must set minimum piece size greater than 0
@@ -200,9 +193,9 @@ or set number of pieces greater than 0.
             maximum_piece_size=maximum_piece_size,
             width=width,
             height=height,
-            number_of_pieces=options.number_of_pieces,
+            number_of_pieces=args.number_of_pieces,
             imagefile=imagefile,
-            variant=options.variant,
+            variant=args.variant,
         )
         svgfile = os.path.join(mydir, "lines.svg")
         width = jpc.width
@@ -220,24 +213,24 @@ or set number of pieces greater than 0.
             )
         overlap_threshold = int((min_piece_side * 0.5) - (min_piece_side * 0.10))
     else:
-        svgfile = options.svg
+        svgfile = args.svg
 
     scaled_sizes.add(minimum_scale)
     sizes = list(scaled_sizes)
     sizes.sort()
 
-    scale_for_size_100 = 100 if (options.use_max_size or options.svg) else minimum_scale
+    scale_for_size_100 = 100 if (args.use_max_size or args.svg) else minimum_scale
 
     full_size_dir = os.path.join(mydir, f"size-{scale_for_size_100}")
     os.mkdir(full_size_dir)
 
     exclude_width = None
     exclude_height = None
-    if options.exclude_outside_piece_container:
+    if args.exclude_outside_piece_container:
         exclude_width = width
         exclude_height = height
-    if options.exclude_piece_size != "0x0":
-        exclude_piece_width, exclude_piece_height = map(int, options.exclude_piece_size.split("x")[:2])
+    if args.exclude_piece_size != "0x0":
+        exclude_piece_width, exclude_piece_height = map(int, args.exclude_piece_size.split("x")[:2])
         if exclude_piece_width == 0:
             exclude_width = None
         else:
@@ -253,10 +246,10 @@ or set number of pieces greater than 0.
         full_size_dir,
         scale=scale_for_size_100,
         max_pixels=(width * height),
-        include_border_pixels=options.gap,
+        include_border_pixels=args.gap,
         exclude_size=(exclude_width, exclude_height),
-        floodfill_min=options.floodfill_min,
-        floodfill_max=options.floodfill_max,
+        floodfill_min=args.floodfill_min,
+        floodfill_max=args.floodfill_max,
     )
     imagefile = pieces._scaled_image
 
@@ -269,7 +262,7 @@ or set number of pieces greater than 0.
     for size in sizes:
         if size == scale_for_size_100:
             continue
-        if not options.use_max_size and size > scale_for_size_100:
+        if not args.use_max_size and size > scale_for_size_100:
             # Scaling up the pieces when the max piece size is set in order to
             # fit the image dimensions is not ideal.
             continue
@@ -330,7 +323,7 @@ or set number of pieces greater than 0.
     data = {
         "version": __version__,
         "generator": "piecemaker",
-        "piece_cut_variant": options.variant,
+        "piece_cut_variant": args.variant,
         "full_size": scale_for_size_100,
         "sizes": sizes,
         "sides": [0],
