@@ -136,8 +136,6 @@ Example: 33,68,100,150 for 4 scaled puzzles with the last one being at 150%%."""
 
     args = parser.parse_args()
 
-    #(options, args) = parser.parse_args()
-
     if not args.dir:
         parser.error("Must set a directory to store generated files")
 
@@ -323,15 +321,21 @@ or set number of pieces greater than 0.
     data = {
         "version": __version__,
         "generator": "piecemaker",
-        "piece_cut_variant": args.variant,
+        "piece_cut_variant": args.variant if not args.svg else os.path.basename(args.svg),
         "full_size": scale_for_size_100,
         "sizes": sizes,
-        "sides": [0],
+        "sides": [0],  # index from images
+        "images": [
+            dict(
+                license="",
+                title="",
+                description="",
+                author_name="",
+                author_url="",  # Author's profile page if applicable
+                origin_url="",  # image source, image link
+            ),
+        ],
         "piece_count": piece_count,
-        "image_author": "",
-        "image_link": "",
-        "image_title": "",
-        "image_description": "",
         "image_width": width,
         "image_height": height,
         "outline_bbox": [
