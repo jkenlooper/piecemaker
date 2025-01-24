@@ -126,6 +126,14 @@ Example: 33,68,100,150 for 4 scaled puzzles with the last one being at 150%%."""
     )
 
     parser.add_argument(
+        "--table-size-factor",
+        action="store",
+        type=str,
+        default="2.5x2.5",
+        help="Width and height of table based on image dimensions. Default is '2.5x2.5'."
+    )
+
+    parser.add_argument(
         "--gap",
         default=True,
         action="store_false",
@@ -158,6 +166,8 @@ Example: 33,68,100,150 for 4 scaled puzzles with the last one being at 150%%."""
     parser.add_argument("image", nargs=1, help="JPG image")
 
     args = parser.parse_args()
+
+    table_width_factor, table_height_factor = tuple(map(lambda x: max(1, float(x)), args.table_size_factor.split("x", 2)))
 
     if not args.dir:
         parser.error("Must set a directory to store generated files")
@@ -296,8 +306,8 @@ or set number of pieces greater than 0.
     im = Image.open(imagefile)
     (width, height) = im.size
     im.close()
-    table_width = int(width * 2.5)
-    table_height = int(height * 2.5)
+    table_width = int(width * table_width_factor)
+    table_height = int(height * table_height_factor)
     outline_offset_x = int((table_width - width) * 0.5)
     outline_offset_y = int((table_height - height) * 0.5)
 
