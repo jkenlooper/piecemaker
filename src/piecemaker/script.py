@@ -8,7 +8,7 @@ from PIL import Image
 
 from piecemaker.base import Pieces, variants
 from piecemaker.adjacent import Adjacent
-from piecemaker.distribution import random_outside
+from piecemaker.distribution import random_piece_distribution, regions_set, sprite_layout
 from piecemaker.lines_svg import create_lines_svg
 from piecemaker.reduce import reduce_size
 from piecemaker.table_proof import generate_table_proof_html
@@ -41,7 +41,7 @@ the minimum piece size.""",
         "--svg",
         "-s",
         action="store",
-        help="set the clips svg file instead of creating jigsaw pieces",
+        help="Set the clips svg file instead of creating jigsaw pieces.",
     )
 
     parser.add_argument(
@@ -93,13 +93,36 @@ Example: 33,68,100,150 for 4 scaled puzzles with the last one being at 150%%."""
         default=False,
         help="""Use the largest size when creating the size-100 directory instead of the smallest possible.""",
     )
-
+    variants_list = sorted(variants)
     parser.add_argument(
         "--variant",
         action="store",
-        default="interlockingnubs",
-        choices=list(variants),
-        help=f"""Piece cut variant to use. Defaults to 'interlockingnubs'.  Other choices are: {list(variants)}""",
+        default=variants_list[0],
+        choices=variants_list,
+        help=f"""Piece cut variant to use. Defaults to '{variants_list[0]}' if not using svg file.""",
+    )
+
+    distributions = (
+        "default", # random nonoverlapping left_side top_middle bottom_middle
+        "joined",  # Useful for testing a puzzle
+        "glue",  # Use the same sprite layout that glue did
+        "sprite",  # Same as glue
+        "random",
+        "nonoverlapping",
+        "overlapping",
+        "center",
+        "left_side",
+        "top_middle",
+        "bottom_middle",
+        "right_side",
+    )
+    parser.add_argument(
+        "--distribution",
+        action="store",
+        default=distributions[0],
+        nargs="*",
+        choices=distributions,
+        help=f"""Piece distribution to use. If 'default' is used it will override any other choices.""",
     )
 
     parser.add_argument(
@@ -283,17 +306,36 @@ or set number of pieces greater than 0.
     ) as pieces_json:
         piece_bboxes = json.load(pieces_json)
     piece_properties = []
-    pieces_distribution = random_outside(
-        table_bbox=[0, 0, table_width, table_height],
-        outline_bbox=[
-            outline_offset_x,
-            outline_offset_y,
-            outline_offset_x + width,
-            outline_offset_y + height,
-        ],
-        piece_bboxes=piece_bboxes,
-        regions=("left_side", "top_middle", "bottom_middle"),
-    )
+    default_region_set = ("left_side", "top_middle", "bottom_middle")
+
+    if "joined" in args.distribution:
+        pieces_distribution = sprite_layout(
+            table_bbox=(0, 0, table_width, table_height),
+            piece_bboxes=piece_bboxes,
+        )
+    elif "glue" in args.distribution or "sprite" in args.distribution:
+        with open(
+            os.path.join(mydir, f"size-{scale_for_size_100}", "sprite_without_padding_layout.json"), "r"
+        ) as f:
+            sprite_without_padding_layout = json.load(f)
+        pieces_distribution = sprite_layout(
+            table_bbox=(0, 0, table_width, table_height),
+            piece_bboxes=sprite_without_padding_layout,
+        )
+    else:  # Defaults to random
+        pieces_distribution = random_piece_distribution(
+            table_bbox=(0, 0, table_width, table_height),
+            outline_bbox=(
+                outline_offset_x,
+                outline_offset_y,
+                outline_offset_x + width,
+                outline_offset_y + height,
+            ),
+            piece_bboxes=piece_bboxes,
+            regions=default_region_set if "default" in args.distribution else set(args.distribution).intersection(regions_set) or default_region_set,
+            nonoverlapping=True if "default" in args.distribution else "nonoverlapping" in args.distribution,
+        )
+
     for (i, bbox) in piece_bboxes.items():
         # TODO: set rotation of pieces
         # TODO: implement multiple sided pieces
@@ -348,6 +390,7 @@ or set number of pieces greater than 0.
         "puzzle_link": "",
         "table_width": table_width,
         "table_height": table_height,
+        "piece_distribution": " ".join(args.distribution),
         "piece_properties": piece_properties,
     }
     f = open(os.path.join(mydir, "index.json"), "w")
