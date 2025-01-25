@@ -59,7 +59,7 @@ opacity: 0;
 
 
 def generate_sprite_raster_proof_html(
-    pieces_json_file, output_dir, sprite_layout, scale
+    pieces_json_file, output_dir, sprite_layout, scale, image_index
 ):
     """Create a sprite proof showing how the image was cut. Should look like
     original."""
@@ -67,7 +67,7 @@ def generate_sprite_raster_proof_html(
     with open(pieces_json_file, "r") as pieces_json:
         piece_bboxes = json.load(pieces_json)
 
-    im = Image.open(os.path.join(output_dir, "sprite_without_padding.png"))
+    im = Image.open(os.path.join(output_dir, f"sprite_without_padding-{image_index}.png"))
     (bg_image_width, bg_image_height) = im.size
     im.close()
 
@@ -90,7 +90,7 @@ def generate_sprite_raster_proof_html(
     with open(os.path.join(output_dir, "sprite_p.css"), "a") as css:
         css.write(
             ".p{"
-            + f"background-image:url('sprite_without_padding.png?{cachebust}');"
+            + f"background-image:url('sprite_without_padding-{image_index}.png?{cachebust}');"
             + f"background-size:{bg_image_width}px {bg_image_height}px;"
             + "}"
         )
@@ -120,6 +120,6 @@ def generate_sprite_raster_proof_html(
         }
     )
 
-    f = open(os.path.join(output_dir, "sprite_raster_proof.html"), "w")
+    f = open(os.path.join(output_dir, f"sprite_raster_proof-{image_index}.html"), "w")
     f.write(html)
     f.close()

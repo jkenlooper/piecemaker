@@ -9,13 +9,14 @@
  */
 
 class TableProofCanvas {
-  constructor(piecemakerIndex, spriteLayout, $container, $canvas, $sprite) {
+  constructor(piecemakerIndex, spriteLayout, $container, $canvas, $sprites) {
     this.piecemakerIndex = piecemakerIndex;
     this.spriteLayout = spriteLayout;
     this.$container = $container;
     this.$canvas = $canvas;
-    this.$sprite = $sprite;
+    this.$sprites = $sprites;
     this._assembled = false;
+    this._side = 0;
     this._factor = 1.0;
     this._zoom = 0;
     this._scale = 1.0;
@@ -24,7 +25,7 @@ class TableProofCanvas {
     this.ctx = this.$canvas.getContext('2d', {"alpha": false});
     this.ctx.imageSmoothingEnabled = false;
     this.pieces = this.piecemakerIndex.piece_properties.map((pieceProperty) => {
-      const pc = new Piece(this.ctx, this._factor, this._offset, this.$sprite,
+      const pc = new Piece(this.ctx, this._factor, this._offset, this.$sprites,
         this.spriteLayout[String(pieceProperty.id)],
         {
           id: pieceProperty.id,
@@ -32,6 +33,8 @@ class TableProofCanvas {
           y: pieceProperty.y,
           ox: pieceProperty.ox,
           oy: pieceProperty.oy,
+          s: pieceProperty.s,
+          sides: pieceProperty.sides,
           width: pieceProperty.w,
           height: pieceProperty.h,
         });
@@ -95,6 +98,13 @@ class TableProofCanvas {
     this._assembled = value;
     this.render();
   }
+  get side() {
+    return this._side;
+  }
+  set side(value) {
+    this._side = value;
+    this.render();
+  }
 
   setCanvasDimensions() {
     const rect = this.$container.getBoundingClientRect();
@@ -135,7 +145,7 @@ class TableProofCanvas {
     this.pieces.forEach((pc) => {
       pc.factor = this.factor;
       pc.offset = this._offset;
-      pc.render(this._assembled);
+      pc.render(this._assembled, this._side);
     });
   }
 
@@ -168,17 +178,19 @@ class TableProofCanvas {
 }
 
 class Piece {
-  constructor(ctx, factor, offset, $sprite, bbox, props) {
+  constructor(ctx, factor, offset, $sprites, bbox, props) {
     this.ctx = ctx;
     this.factor = factor;
     this.offset = offset;
-    this.$sprite = $sprite;
+    this.$sprites = $sprites;
     this.id = props.id;
     this.bbox = bbox;
     this.x = props.x;
     this.y = props.y;
     this.ox = props.ox;
     this.oy = props.oy;
+    this.s = props.s;
+    this.sides = props.sides;
     this.width = props.width;
     this.height = props.height;
 
@@ -187,14 +199,15 @@ class Piece {
     //this.clipPath = document.getElementById(`p-clip_path-${this.id}`);
   }
 
-  render(assembled) {
+  render(assembled, side_index) {
     //if (!this.clipPath) {
     //  throw "clipPath for piece not found";
     //}
     const x = assembled ? this.ox : this.x;
     const y = assembled ? this.oy : this.y;
+    const s = assembled ? this.sides[side_index] : side_index;
     this.ctx.drawImage(
-      this.$sprite,
+      this.$sprites[s],
       this.bbox[0],
       this.bbox[1],
       this.bbox[2],
@@ -210,12 +223,13 @@ class Piece {
 window.addEventListener('load', (event) => {
   const $canvas = document.getElementById('piecemaker-table');
   const $container = $canvas.parentElement;
-  const $sprite = document.getElementById("piecemaker-sprite_without_padding");
+  const $sprites = $canvas.querySelectorAll("img[data-side-index]").values().toArray();
   const $zoomInButton = document.getElementById("zoom-in");
   const $zoomOutButton = document.getElementById("zoom-out");
   const $toggleAssemble = document.getElementById("assembled");
+  const $sideInputs = document.querySelectorAll("input[name=side]");
 
-  if (!$canvas || !$container || !$sprite) {
+  if (!$canvas || !$container || !$sprites.length) {
     throw "Couldn't load elements"
   }
   const scale = $canvas.dataset.size;
@@ -228,11 +242,20 @@ window.addEventListener('load', (event) => {
     sprite_layout_req
   ]).then((values) => {
     const [piecemaker_index, sprite_layout] = values;
-    tableProofCanvas = new TableProofCanvas(piecemaker_index, sprite_layout, $container, $canvas, $sprite);
+    tableProofCanvas = new TableProofCanvas(piecemaker_index, sprite_layout, $container, $canvas, $sprites);
     tableProofCanvas.assembled = $toggleAssemble.checked;
     $toggleAssemble.addEventListener('change', (event) => {
       tableProofCanvas.assembled = $toggleAssemble.checked;
       tableProofCanvas.render();
+    });
+    tableProofCanvas.side = 0;
+    $sideInputs.forEach(($sideInput) => {
+      $sideInput.addEventListener('change', (event) => {
+        if ($sideInput.checked) {
+          tableProofCanvas.side = Number($sideInput.value);
+          tableProofCanvas.render();
+        }
+      });
     });
     window.addEventListener('resize', () => {
       tableProofCanvas.setCanvasDimensions();

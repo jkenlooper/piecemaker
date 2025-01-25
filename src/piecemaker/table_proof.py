@@ -29,22 +29,23 @@ Piece count: {piece_count}<br>
 <input type="checkbox" id="assembled" name="assembled">
 <button id="zoom-in">+</button>
 <button id="zoom-out">-</button>
+{input_radio_sides}
 </div>
 
 <div class="container">
     <canvas class="piecemaker-table" id="piecemaker-table" data-size="{scale}">
-        <img id="piecemaker-sprite_without_padding" style="image-rendering:crisp-edges;" width="{sprite_without_padding_width}" height="{sprite_without_padding_height}" src="size-{scale}/sprite_without_padding.png">
-
-        <!-- TODO: Option to switch to clip paths
-        <img id="piecemaker-sprite_with_padding" style="image-rendering:crisp-edges;" width="{sprite_with_padding_width}" height="{sprite_with_padding_height}" src="size-{scale}/sprite_with_padding.jpg">
-        {sprite_clip_paths_svg}
-        -->
+        {sprite_without_padding_images}
     </canvas>
 </div>
 
     <script src="table_proof_canvas.js"></script>
 </body>
 </html>"""
+
+#        <!-- TODO: Option to switch to clip paths
+#        <img id="piecemaker-sprite_with_padding" style="image-rendering:crisp-edges;" width="{sprite_with_padding_width}" height="{sprite_with_padding_height}" src="size-{scale}/sprite_with_padding-{image_index}.jpg">
+#        {sprite_clip_paths_svg}
+#        -->
 
 
 style = """
@@ -97,12 +98,31 @@ def generate_table_proof_html(mydir):
     # with open(sprite_clip_paths_svg_file, "r") as f:
     #    sprite_clip_paths_svg = f.read().replace("""<?xml version="1.0" encoding="utf-8"?>""", "")
 
-    im = Image.open(os.path.join(full_size_dir, "sprite_with_padding.jpg"))
+    im = Image.open(os.path.join(full_size_dir, "sprite_with_padding-0.jpg"))
     (sprite_with_padding_width, sprite_with_padding_height) = im.size
     im.close()
-    im = Image.open(os.path.join(full_size_dir, "sprite_without_padding.png"))
+    im = Image.open(os.path.join(full_size_dir, "sprite_without_padding-0.png"))
     (sprite_without_padding_width, sprite_without_padding_height) = im.size
     im.close()
+
+
+    sprite_without_padding_images = "".join(["""
+    <img data-side-index="{image_index}" style="image-rendering:crisp-edges;" width="{sprite_without_padding_width}" height="{sprite_without_padding_height}" src="size-{scale}/sprite_without_padding-{image_index}.png">
+    """.format(**{
+        "scale": scale,
+        "sprite_without_padding_width": sprite_without_padding_width,
+        "sprite_without_padding_height": sprite_without_padding_height,
+        "image_index": image_index,
+    }) for image_index in piecemaker_index["sides"]])
+
+    input_radio_sides = "".join(["""
+        <label>
+        <input type="radio" id="side-{image_index}" name="side" value="{image_index}">
+        side {image_index}
+        </label>
+    """.format(**{
+        "image_index": image_index,
+    }) for image_index in piecemaker_index["sides"]])
 
     html = template.format(
         **{
@@ -116,6 +136,8 @@ def generate_table_proof_html(mydir):
             "sprite_without_padding_height": sprite_without_padding_height,
             "table_width": piecemaker_index["table_width"],
             "table_height": piecemaker_index["table_height"],
+            "sprite_without_padding_images": sprite_without_padding_images,
+            "input_radio_sides": input_radio_sides,
         }
     )
 

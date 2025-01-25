@@ -3,6 +3,7 @@ import os
 import json
 import argparse
 from math import ceil, sqrt
+from random import randint
 
 from PIL import Image
 
@@ -162,8 +163,14 @@ Example: 33,68,100,150 for 4 scaled puzzles with the last one being at 150%%."""
         help="Max pixels to floodfill at a time",
     )
 
-    # TODO support multiple sided puzzles
-    parser.add_argument("image", nargs=1, help="JPG image")
+    parser.add_argument(
+        "--mix-sides",
+        action="store_true",
+        default=False,
+        help="""Mix which side of a piece is displayed if using multiple images.""",
+    )
+
+    parser.add_argument("image", nargs="+", help="JPG image")
 
     args = parser.parse_args()
 
@@ -176,7 +183,8 @@ Example: 33,68,100,150 for 4 scaled puzzles with the last one being at 150%%."""
     if 100 not in scaled_sizes:
         parser.error("Must have at least a '100' in scaled sizes.")
 
-    imagefile = args.image[0]
+    images = args.image
+    imagefile = images[0]
 
     minimum_piece_size = args.minimum_piece_size
     maximum_piece_size = args.maximum_piece_size
@@ -273,7 +281,7 @@ or set number of pieces greater than 0.
 
     pieces = Pieces(
         svgfile,
-        imagefile,
+        images,
         full_size_dir,
         scale=scale_for_size_100,
         max_pixels=(width * height),
@@ -281,8 +289,9 @@ or set number of pieces greater than 0.
         exclude_size=(exclude_width, exclude_height),
         floodfill_min=args.floodfill_min,
         floodfill_max=args.floodfill_max,
+        mix_sides=args.mix_sides,
     )
-    imagefile = pieces._scaled_image
+    scaled_images = pieces._scaled_images
 
     pieces.cut()
 
@@ -301,9 +310,10 @@ or set number of pieces greater than 0.
             scale=size,
             minimum_scale=scale_for_size_100,
             output_dir=mydir,
+            scaled_images=scaled_images,
         )
 
-    im = Image.open(imagefile)
+    im = Image.open(scaled_images[0])
     (width, height) = im.size
     im.close()
     table_width = int(width * table_width_factor)
@@ -315,6 +325,10 @@ or set number of pieces greater than 0.
         os.path.join(mydir, f"size-{scale_for_size_100}", "pieces.json"), "r"
     ) as pieces_json:
         piece_bboxes = json.load(pieces_json)
+    with open(
+        os.path.join(mydir, f"size-{scale_for_size_100}", "sides.json"), "r"
+    ) as f:
+        sides = json.load(f)
     piece_properties = []
     default_region_set = ("left_side", "top_middle", "bottom_middle")
 
@@ -346,9 +360,9 @@ or set number of pieces greater than 0.
             nonoverlapping=True if "default" in args.distribution else "nonoverlapping" in args.distribution,
         )
 
+    side_count = len(images)
     for (i, bbox) in piece_bboxes.items():
         # TODO: set rotation of pieces
-        # TODO: implement multiple sided pieces
         # TODO: set grouping ids to pieces.
         #   Example:
         #   red pieces = group id 1,
@@ -362,10 +376,11 @@ or set number of pieces greater than 0.
                 "ox": outline_offset_x + bbox[0],
                 "oy": outline_offset_y + bbox[1],
                 "r": 0,  # random rotation of piece
-                "s": 0,  # random piece side
+                "s": 0 if side_count == 1 else randint(0, side_count - 1),  # random piece side
                 "w": bbox[2] - bbox[0],
                 "h": bbox[3] - bbox[1],
                 "rotate": 0,  # correct rotation of piece
+                "sides": sides.get(i,(0,)),  # correct side (duplicates sides.json)
                 "g": 0,  # grouping id
             }
         )
@@ -376,16 +391,16 @@ or set number of pieces greater than 0.
         "piece_cut_variant": args.variant if not args.svg else os.path.basename(args.svg),
         "full_size": scale_for_size_100,
         "sizes": sizes,
-        "sides": [0],  # index from images
+        "sides": tuple(range(side_count)),  # index from images
         "images": [
             dict(
                 license="",
-                title="",
+                title=os.path.splitext(os.path.basename(image))[0],
                 description="",
                 author_name="",
                 author_url="",  # Author's profile page if applicable
                 origin_url="",  # image source, image link
-            ),
+            ) for image in images
         ],
         "piece_count": piece_count,
         "image_width": width,

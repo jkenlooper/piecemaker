@@ -57,7 +57,7 @@ opacity: 0;
 """
 
 
-def generate_cut_proof_html(pieces_json_file, output_dir, scale):
+def generate_cut_proof_html(pieces_json_file, output_dir, scale, image_index):
     """Create a cut proof showing how the image was cut. Should look like
     original."""
 
@@ -75,7 +75,7 @@ def generate_cut_proof_html(pieces_json_file, output_dir, scale):
         el = "".join(
             [
                 f"<div id='p-{i}' class='p pc-{i}' style='left:{x}px;top:{y}px;'>",
-                f"<img class='p-img' src='raster/{i}.png?{cachebust}' width='{width}' height='{height}'>",
+                f"<img class='p-img' src='raster/image-{image_index}/{i}.png?{cachebust}' width='{width}' height='{height}'>",
                 "</div>",
             ]
         )
@@ -95,6 +95,6 @@ def generate_cut_proof_html(pieces_json_file, output_dir, scale):
         }
     )
 
-    f = open(os.path.join(output_dir, "cut_proof.html"), "w")
+    f = open(os.path.join(output_dir, f"cut_proof-{image_index}.html"), "w")
     f.write(html)
     f.close()

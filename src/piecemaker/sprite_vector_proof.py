@@ -72,7 +72,7 @@ opacity: 0;
 )
 
 
-def generate_sprite_vector_proof_html(mydir, output_dir, sprite_layout, scale):
+def generate_sprite_vector_proof_html(mydir, output_dir, sprite_layout, scale, image_index):
     """Create a sprite vector proof showing how the image was cut. Should look like
     original."""
     pieces_json_file = os.path.join(mydir, "pieces.json")

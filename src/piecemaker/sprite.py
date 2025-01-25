@@ -2,6 +2,7 @@ import os
 import json
 import base64
 from glob import iglob
+from pathlib import Path
 
 import svgwrite
 from bs4 import BeautifulSoup
@@ -10,18 +11,18 @@ from PIL import Image
 from piecemaker.glue.managers.simple import SimpleManager
 
 
-def generate_data_uris(raster_dir, output_dir):
-    data_uri_dir = os.path.join(output_dir, "data_uri")
-    os.mkdir(data_uri_dir)
+def generate_data_uris(raster_dir, output_dir, image_index):
+    data_uri_dir = Path(output_dir).joinpath("data_uri", f"image-{image_index}")
+    data_uri_dir.mkdir(parents=True)
     for piece in iglob(os.path.join(raster_dir, "*.png")):
         with open(piece, "rb") as img:
             with open(
-                os.path.join(data_uri_dir, os.path.basename(piece) + ".b64"), "wb"
+                data_uri_dir.joinpath(os.path.basename(piece) + ".b64"), "wb"
             ) as b64:
                 b64.write(base64.standard_b64encode(img.read()))
 
 
-def generate_sprite_without_padding_layout(raster_dir, output_dir):
+def generate_sprite_without_padding_layout(raster_dir, output_dir, image_index):
     "create the sprite using glue"
     sprite_manager = SimpleManager(
         source=raster_dir,
@@ -61,18 +62,21 @@ def generate_sprite_without_padding_layout(raster_dir, output_dir):
         filename, ext = image.filename.rsplit(".", 1)
         sprite_layout[int(filename)] = (image.x, image.y, image.width, image.height)
 
-    with open(
-        os.path.join(output_dir, "sprite_without_padding_layout.json"), "w"
-    ) as sprite_layout_json:
-        json.dump(sprite_layout, sprite_layout_json)
+    sprite_without_padding_layout_json = Path(output_dir).joinpath("sprite_without_padding_layout.json")
+    if not sprite_without_padding_layout_json.is_file():
+        # All sprite layouts should be the same for each side.
+        with open(
+            sprite_without_padding_layout_json, "w"
+        ) as f:
+            json.dump(sprite_layout, f)
 
     raster_png = sprite.sprite_path()
-    os.rename(raster_png, os.path.join(output_dir, "sprite_without_padding.png"))
+    os.rename(raster_png, os.path.join(output_dir, f"sprite_without_padding-{image_index}.png"))
 
     return sprite_layout
 
 
-def generate_no_mask_sprite_without_padding(raster_dir, output_dir):
+def generate_no_mask_sprite_without_padding(raster_dir, output_dir, image_index):
     "create the sprite using glue"
     sprite_manager = SimpleManager(
         source=raster_dir,
@@ -117,12 +121,12 @@ def generate_no_mask_sprite_without_padding(raster_dir, output_dir):
     jpg_sprite = png_sprite.convert("RGB")
     png_sprite.close()
     os.unlink(raster_png)
-    jpg_sprite_file_name = os.path.join(output_dir, "no_mask_sprite_without_padding.jpg")
+    jpg_sprite_file_name = os.path.join(output_dir, f"no_mask_sprite_without_padding-{image_index}.jpg")
     jpg_sprite.save(jpg_sprite_file_name)
     jpg_sprite.close()
 
 
-def generate_sprite_with_padding_layout(raster_dir, output_dir):
+def generate_sprite_with_padding_layout(raster_dir, output_dir, image_index):
     "create the sprite using glue"
     sprite_manager = SimpleManager(
         source=raster_dir,
@@ -162,10 +166,12 @@ def generate_sprite_with_padding_layout(raster_dir, output_dir):
         filename, ext = image.filename.rsplit(".", 1)
         sprite_layout[int(filename)] = (image.x, image.y, image.width, image.height)
 
-    with open(
-        os.path.join(output_dir, "sprite_with_padding_layout.json"), "w"
-    ) as sprite_layout_json:
-        json.dump(sprite_layout, sprite_layout_json)
+    sprite_with_padding_layout_json = Path(output_dir).joinpath("sprite_with_padding_layout.json")
+    if not sprite_with_padding_layout_json.is_file():
+        with open(
+            os.path.join(output_dir, "sprite_with_padding_layout.json"), "w"
+        ) as f:
+            json.dump(sprite_layout, f)
 
     raster_png = sprite.sprite_path()
 
@@ -177,7 +183,7 @@ def generate_sprite_with_padding_layout(raster_dir, output_dir):
     jpg_sprite = png_sprite.convert("RGB")
     png_sprite.close()
     os.unlink(raster_png)
-    jpg_sprite_file_name = os.path.join(output_dir, "sprite_with_padding.jpg")
+    jpg_sprite_file_name = os.path.join(output_dir, f"sprite_with_padding-{image_index}.jpg")
     jpg_sprite.save(jpg_sprite_file_name)
     jpg_sprite.close()
 
@@ -254,6 +260,7 @@ def generate_sprite_svg_fragments(
     )
 
     common_path = os.path.commonprefix([scaled_image, output_dir])
+
     relative_scaled_image = jpg_sprite_file_name[len(common_path) + 1 :]
     source_image = dwg.defs.add(
         dwg.image(
