@@ -120,7 +120,7 @@ Example: 33,68,100,150 for 4 scaled puzzles with the last one being at 150%%."""
     parser.add_argument(
         "--distribution",
         action="store",
-        default=distributions[0],
+        default=(distributions[0],),
         nargs="*",
         choices=distributions,
         help=f"""Piece distribution to use. If 'default' is used it will override any other choices.""",
@@ -246,7 +246,7 @@ or set number of pieces greater than 0.
         minimum_side = sqrt(minimum_pixels)
         side_count = sqrt(jpc.pieces)
         new_minimum_piece_size = ceil(minimum_side / side_count)
-        if minimum_scale < 100:
+        if minimum_scale <= 100:
             minimum_scale = min(
                 100, ceil((new_minimum_piece_size / max_piece_side) * 100.0)
             )
