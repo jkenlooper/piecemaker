@@ -68,13 +68,16 @@ def generate_cut_proof_html(pieces_json_file, output_dir, scale, image_index):
     pieces_html = []
     for (i, v) in piece_bboxes.items():
         i = int(i)
-        x = v[0]
-        y = v[1]
-        width = v[2] - v[0]
-        height = v[3] - v[1]
+        x = v[0] + v[7]
+        y = v[1] + v[8]
+        width = v[11] - v[9]
+        height = v[12] - v[10]
+        rox = round(width * v[5], 1)
+        roy = round(height * v[6], 1)
+        rotate = v[4]
         el = "".join(
             [
-                f"<div id='p-{i}' class='p pc-{i}' style='left:{x}px;top:{y}px;'>",
+                f"<div id='p-{i}' class='p pc-{i}' style='left:{x}px;top:{y}px;transform-origin:{rox}px {roy}px;transform:rotate({rotate}deg);'>",
                 f"<img class='p-img' src='raster/image-{image_index}/{i}.png?{cachebust}' width='{width}' height='{height}'>",
                 "</div>",
             ]

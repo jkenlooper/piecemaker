@@ -31,12 +31,18 @@ class TableProofCanvas {
           id: pieceProperty.id,
           x: pieceProperty.x,
           y: pieceProperty.y,
+          r: pieceProperty.r,
           ox: pieceProperty.ox,
           oy: pieceProperty.oy,
+          rotate: pieceProperty.rotate,
           s: pieceProperty.s,
           sides: pieceProperty.sides,
           width: pieceProperty.w,
           height: pieceProperty.h,
+          center_x: pieceProperty.cx,
+          center_y: pieceProperty.cy,
+          center_x_offset: pieceProperty.cxo,
+          center_y_offset: pieceProperty.cyo,
         });
       return pc;
     });
@@ -187,12 +193,18 @@ class Piece {
     this.bbox = bbox;
     this.x = props.x;
     this.y = props.y;
+    this.r = props.r;
     this.ox = props.ox;
     this.oy = props.oy;
+    this.rotate = props.rotate;
     this.s = props.s;
     this.sides = props.sides;
     this.width = props.width;
     this.height = props.height;
+    this.center_x = props.center_x;
+    this.center_y = props.center_y;
+    this.center_x_offset = props.center_x_offset;
+    this.center_y_offset = props.center_y_offset;
 
     // TODO: Use size-100/sprite_with_padding.jpg and cut them out based on the inlined
     // svg clip paths.
@@ -205,18 +217,28 @@ class Piece {
     //}
     const x = assembled ? this.ox : this.x;
     const y = assembled ? this.oy : this.y;
+    const r = assembled ? this.rotate : this.r;
     const s = assembled ? this.sides[side_index] : side_index;
+    const w = this.bbox[2];
+    const h = this.bbox[3];
+    this.ctx.save();
+    this.ctx.translate(
+      this.offset[0] + (x * this.factor) + ((this.center_x_offset + (w * this.center_x)) * this.factor),
+      this.offset[1] + (y * this.factor) + ((this.center_y_offset + (h * this.center_y)) * this.factor),
+    );
+    this.ctx.rotate((r * Math.PI) / 180);
     this.ctx.drawImage(
       this.$sprites[s],
-      this.bbox[0],
-      this.bbox[1],
-      this.bbox[2],
-      this.bbox[3],
-      this.offset[0] + (x * this.factor),
-      this.offset[1] + (y * this.factor),
-      this.width * this.factor,
-      this.height * this.factor
+      this.bbox[0], // source x
+      this.bbox[1], // source y
+      this.bbox[2], // source width
+      this.bbox[3], // source height
+      (w * this.center_x) * (this.factor * -1), // dest canvas x
+      (h * this.center_y) * (this.factor * -1), // dest canvas y
+      w * this.factor, // dest canvas width
+      h * this.factor // dest canvas height
     );
+    this.ctx.restore();
   }
 }
 
@@ -239,7 +261,7 @@ window.addEventListener('load', (event) => {
   const sprite_layout_req = fetch(`size-${scale}/sprite_without_padding_layout.json`).then(response => response.json());
   Promise.all([
     piecemaker_index_req,
-    sprite_layout_req
+    sprite_layout_req,
   ]).then((values) => {
     const [piecemaker_index, sprite_layout] = values;
     tableProofCanvas = new TableProofCanvas(piecemaker_index, sprite_layout, $container, $canvas, $sprites);

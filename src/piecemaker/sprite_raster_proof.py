@@ -101,12 +101,15 @@ def generate_sprite_raster_proof_html(
     pieces_html = []
     for (i, v) in piece_bboxes.items():
         i = int(i)
-        x = v[0]
-        y = v[1]
-        width = v[2] - v[0]
-        height = v[3] - v[1]
+        x = v[0] + v[7]
+        y = v[1] + v[8]
+        width = v[11] - v[9]
+        height = v[12] - v[10]
+        rox = round(width * v[5], 1)
+        roy = round(height * v[6], 1)
+        rotate = v[4]
         el = f"""
-<div id='p-{i}' class='p pc-{i}' style='left:{x}px;top:{y}px;'></div>"""
+<div id='p-{i}' class='p pc-{i}' style='left:{x}px;top:{y}px;transform-origin:{rox}px {roy}px;transform:rotate({rotate}deg);'></div>"""
         pieces_html.append(el)
 
     pieces = "".join(pieces_html)

@@ -60,6 +60,7 @@ def generate_sprite_without_padding_layout(raster_dir, output_dir, image_index):
     sprite_layout = {}
     for image in sprite.images:
         filename, ext = image.filename.rsplit(".", 1)
+        # TODO sprite_layout should be extended with what is in pieces.json?
         sprite_layout[int(filename)] = (image.x, image.y, image.width, image.height)
 
     sprite_without_padding_layout_json = Path(output_dir).joinpath("sprite_without_padding_layout.json")

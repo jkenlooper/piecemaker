@@ -15,7 +15,7 @@ authors = [
 dependencies = [
 
   "Pillow >= 8.4.0, < 11",
-  "pixsaw >= 0.5.0, <0.6",
+  "pixsaw >= 0.6.0, <0.7",
 
   "beautifulsoup4",
   "future",

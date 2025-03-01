@@ -9,7 +9,7 @@ import json
 import subprocess
 from pathlib import Path
 from copy import copy
-from random import shuffle
+from random import shuffle, choice
 
 import svgwrite
 from PIL import Image
@@ -42,6 +42,7 @@ variants = {
 
 
 class PMHandler(Handler):
+    mask_rotated_prefix = ""
     mask_prefix = ""
     piece_prefix = ""
     no_mask_prefix = ""
@@ -56,6 +57,7 @@ class Pieces(object):
         self, svgfile, images, mydir, scale=100, max_pixels=0, include_border_pixels=True,
         exclude_size=(None,None), floodfill_min=400, floodfill_max=50_000_000,
         mix_sides=False,
+        rotate=(),
     ):
         "Resize the images if needed."
         self.mydir = mydir
@@ -63,6 +65,7 @@ class Pieces(object):
         # work on a copy of the image that has been scaled
         self._scaled_images = []
         self.mix_sides = mix_sides
+        self.rotate = rotate
         for image_index, image in enumerate(images):
             original_im = Image.open(image)
             im = original_im.copy()
@@ -102,6 +105,8 @@ class Pieces(object):
 
         self._mask_dir = os.path.join(self.mydir, "mask")
         os.mkdir(self._mask_dir)
+        self._mask_rotated_dir = os.path.join(self.mydir, "mask_rotated")
+        os.mkdir(self._mask_rotated_dir)
         self._raster_dir = os.path.join(self.mydir, "raster")
         os.mkdir(self._raster_dir)
         self._raster_with_padding_dir = os.path.join(self.mydir, "raster_with_padding")
@@ -114,12 +119,14 @@ class Pieces(object):
             self.mydir,
             scaled_png,
             mask_dir="mask",
+            mask_rotated_dir="mask_rotated",
             raster_dir="raster",
             jpg_dir="raster_with_padding",
             include_border_pixels=include_border_pixels,
             no_mask_raster_dir="no_mask_raster",
             floodfill_min=floodfill_min,
             floodfill_max=floodfill_max,
+            rotate=self.rotate,
         )
 
         self.width = width
@@ -133,10 +140,6 @@ class Pieces(object):
 
     def cut(self):
         self._pixsaw_handler.process(self._scaled_images, exclude_size=(self.exclude_width, self.exclude_height))
-        for piece in iglob(os.path.join(self._raster_dir, "**/*.png"), recursive=True):
-            # Skip B603; piece is set based on glob of files that were generated
-            # by this application.
-            subprocess.run(["optipng", "-clobber", "-quiet", piece], check=True)  # nosec B603
 
         for piece in iglob(os.path.join(self._mask_dir, "*.bmp")):
             potrace(piece, self._vector_dir)

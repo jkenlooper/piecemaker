@@ -27,7 +27,7 @@ class Adjacent:
         rtree_idx = index.Index(interleaved=True)
 
         for (piece_id, piece_bbox) in self.pieces_info.items():
-            rtree_idx.insert(int(piece_id), piece_bbox)
+            rtree_idx.insert(int(piece_id), piece_bbox[:4])
 
         for (piece_id, piece_bbox) in self.pieces_info.items():
             expanded_piece_bbox = (
@@ -39,7 +39,7 @@ class Adjacent:
             adjacent = list(map(str, rtree_idx.intersection(expanded_piece_bbox)))
             adjacent.remove(piece_id)
             if len(adjacent) == 0:
-                adjacent = list(map(str, rtree_idx.nearest(piece_bbox, num_results=2)))
+                adjacent = list(map(str, rtree_idx.nearest(piece_bbox[:4], num_results=2)))
                 adjacent.remove(piece_id)
             self.adjacent_pieces[piece_id] = adjacent
 
@@ -128,7 +128,7 @@ class Adjacent:
             # all the adjacent pieces had too small of overlapping pieces.
             if len(adjacent_pieces) == 0:
                 adjacent = list(
-                    map(str, rtree_idx.nearest(target_piece_bbox, num_results=2))
+                    map(str, rtree_idx.nearest(target_piece_bbox[:4], num_results=2))
                 )
                 adjacent.remove(piece_id)
                 adjacent_pieces.extend(adjacent)

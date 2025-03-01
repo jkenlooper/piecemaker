@@ -95,12 +95,19 @@ def generate_sprite_vector_proof_html(mydir, output_dir, sprite_layout, scale, i
     pieces_style = []
     for (i, piece_bbox) in piece_bboxes.items():
         i = int(i)
-        x = piece_bbox[0]
-        y = piece_bbox[1]
+        #x = piece_bbox[0]
+        #y = piece_bbox[1]
+        x = piece_bbox[0] + piece_bbox[7]
+        y = piece_bbox[1] + piece_bbox[8]
         # TODO: store and retrieve mask-padding dimensions instead of using
         # sprite_layout?
-        width = sprite_layout[i][2]
-        height = sprite_layout[i][3]
+        #width = sprite_layout[i][2]
+        #height = sprite_layout[i][3]
+        width = piece_bbox[11] - piece_bbox[9]
+        height = piece_bbox[12] - piece_bbox[10]
+        rox = round(width * piece_bbox[5], 1)
+        roy = round(height * piece_bbox[6], 1)
+        rotate = piece_bbox[4]
 
         el = f"""
 <div id="p-{i}" class="p pc-{i}" style="left:{x}px;top:{y}px;">
@@ -110,7 +117,9 @@ def generate_sprite_vector_proof_html(mydir, output_dir, sprite_layout, scale, i
 </div>"""
         pieces_html.append(el)
         pieces_style.append(
-            f".pc-{i}" + "{" + f"clip-path:url(#piece-mask-{scale}-{i});" + "}"
+            f".pc-{i}" + "{" + f"clip-path:url(#piece-mask-{scale}-{i});"
+            + f"transform-origin:{rox}px {roy}px;transform:rotate({rotate}deg);"
+            + "}"
         )
 
     with open(os.path.join(output_dir, "sprite_p.css"), "a") as css:

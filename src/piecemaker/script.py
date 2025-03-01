@@ -170,6 +170,13 @@ Example: 33,68,100,150 for 4 scaled puzzles with the last one being at 150%%."""
         help="""Mix which side of a piece is displayed if using multiple images.""",
     )
 
+    parser.add_argument(
+        "--rotate",
+        action="store",
+        default="0,0,1",
+        help="Random rotate pieces range for start, stop, step",
+    )
+
     parser.add_argument("image", nargs="+", help="JPG image")
 
     args = parser.parse_args()
@@ -279,6 +286,8 @@ or set number of pieces greater than 0.
         else:
             exclude_height = min(exclude_height or height, height, exclude_piece_height)
 
+    rotate = tuple(range(*(int(x) for x in args.rotate.split(","))))
+
     pieces = Pieces(
         svgfile,
         images,
@@ -290,6 +299,7 @@ or set number of pieces greater than 0.
         floodfill_min=args.floodfill_min,
         floodfill_max=args.floodfill_max,
         mix_sides=args.mix_sides,
+        rotate=rotate,
     )
     scaled_images = pieces._scaled_images
 
@@ -355,19 +365,29 @@ or set number of pieces greater than 0.
                 outline_offset_x + width,
                 outline_offset_y + height,
             ),
-            piece_bboxes=piece_bboxes,
+            piece_bboxes={k: v[9:13] + [v[4]] for k, v in piece_bboxes.items()},
             regions=default_region_set if "default" in args.distribution else set(args.distribution).intersection(regions_set) or default_region_set,
             nonoverlapping=True if "default" in args.distribution else "nonoverlapping" in args.distribution,
         )
 
     side_count = len(images)
     for (i, bbox) in piece_bboxes.items():
-        # TODO: set rotation of pieces
-        # TODO: set grouping ids to pieces.
-        #   Example:
+        # TODO: set grouping ids to pieces. Should be a tuple for each side.
+        #   Example (group ids would be arbitrary):
+        #   solid color = group id 0,
+        #   2 solid colors = group id 5,
+        #   3 solid colors = group id 6,
+        #   more than 3 solid colors = group id 7,
         #   red pieces = group id 1,
         #   blue pieces = group id 2,
-        #   ungrouped pieces = group id 0,
+        #   green pieces = group id 4,
+        #   edge pieces = group id 3,
+        # Considering a two-sided puzzle:
+        #   default is ungrouped: g = ((), ())
+        #   A solid blue edge piece: g = ((0, 2, 3,), (3,))
+        #   A multicolor edge piece: g = ((3,), (3,))
+        #   A piece with both blue and green: g = ((2, 4), ())
+        # Edge piece detection could be based on adjacent count.
         piece_properties.append(
             {
                 "id": i,
@@ -375,13 +395,19 @@ or set number of pieces greater than 0.
                 "y": pieces_distribution[i][1],
                 "ox": outline_offset_x + bbox[0],
                 "oy": outline_offset_y + bbox[1],
-                "r": 0,  # random rotation of piece
+                "ow": bbox[2] - bbox[0],  # width before rotation
+                "oh": bbox[3] - bbox[1],  # height before rotation
+                "r": randint(0, 360) if rotate else 0,  # random rotation of piece
                 "s": 0 if side_count == 1 else randint(0, side_count - 1),  # random piece side
-                "w": bbox[2] - bbox[0],
-                "h": bbox[3] - bbox[1],
-                "rotate": 0,  # correct rotation of piece
+                "w": bbox[11] - bbox[9],
+                "h": bbox[12] - bbox[10],
+                "rotate": bbox[4],  # correct rotation of piece
                 "sides": sides.get(i,(0,)),  # correct side (duplicates sides.json)
                 "g": 0,  # grouping id
+                "cx": bbox[5],  # center_x
+                "cy": bbox[6],  # center_y
+                "cxo": bbox[7],  # center_x_offset
+                "cyo": bbox[8],  # center_y_offset
             }
         )
     # create index.json
