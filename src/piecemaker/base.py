@@ -6,10 +6,9 @@ from builtins import object
 import os
 from glob import iglob
 import json
-import subprocess
 from pathlib import Path
 from copy import copy
-from random import shuffle, choice
+from random import shuffle
 
 import svgwrite
 from PIL import Image
@@ -23,17 +22,7 @@ from piecemaker.tools import (
     cap_dimensions,
     gridify,
 )
-from piecemaker.sprite import (
-    generate_data_uris,
-    generate_sprite_without_padding_layout,
-    generate_sprite_with_padding_layout,
-    generate_sprite_svg_clip_paths,
-    generate_sprite_svg_fragments,
-    generate_no_mask_sprite_without_padding,
-)
 from piecemaker.cut_proof import generate_cut_proof_html
-from piecemaker.sprite_raster_proof import generate_sprite_raster_proof_html
-from piecemaker.sprite_vector_proof import generate_sprite_vector_proof_html
 
 variants = {
     interlockingnubs.__name__.replace("piecemaker.paths.", ""),
@@ -185,60 +174,6 @@ class Pieces(object):
         with open(os.path.join(self.mydir, "sides.json"), "w") as f:
             json.dump(sides, f)
 
-        for image_index, image in enumerate(self._scaled_images):
-            generate_data_uris(
-                raster_dir=os.path.join(self.mydir, "raster", f"image-{image_index}"),
-                output_dir=self.mydir,
-                image_index=image_index,
-            )
-
-            sprite_without_padding_layout = generate_sprite_without_padding_layout(
-                raster_dir=os.path.join(self.mydir, "raster", f"image-{image_index}"),
-                output_dir=self.mydir,
-                image_index=image_index,
-            )
-            generate_no_mask_sprite_without_padding(
-                raster_dir=os.path.join(self.mydir, "no_mask_raster", f"image-{image_index}"),
-                output_dir=self.mydir,
-                image_index=image_index,
-            )
-            sprite_with_padding_layout = generate_sprite_with_padding_layout(
-                raster_dir=os.path.join(self.mydir, "raster_with_padding", f"image-{image_index}"),
-                output_dir=self.mydir,
-                image_index=image_index,
-            )
-            jpg_sprite_file_name = os.path.join(self.mydir, f"sprite_with_padding-{image_index}.jpg")
-
-            generate_sprite_svg_fragments(
-                sprite_layout=sprite_with_padding_layout,
-                jpg_sprite_file_name=jpg_sprite_file_name,
-                scaled_image=self._scaled_images[0],
-                output_dir=self.mydir,
-                scale=self.scale,
-            )
-
-        generate_sprite_svg_clip_paths(
-            output_dir=self.mydir,
-            scale=self.scale,
-            pieces_json_file=os.path.join(self.mydir, "pieces.json"),
-            vector_dir=self._vector_dir,
-        )
-
-        # Only care about checking the cut of the pieces and not all the images.
-        generate_sprite_raster_proof_html(
-            pieces_json_file=os.path.join(self.mydir, "pieces.json"),
-            output_dir=self.mydir,
-            sprite_layout=sprite_without_padding_layout,
-            scale=self.scale,
-            image_index=0,
-        )
-        generate_sprite_vector_proof_html(
-            mydir=self.mydir,
-            output_dir=self.mydir,
-            sprite_layout=sprite_with_padding_layout,
-            scale=self.scale,
-            image_index=0,
-        )
         # Use the cut proof to check the cut on all images.
         for image_index, image in enumerate(self._scaled_images):
             generate_cut_proof_html(

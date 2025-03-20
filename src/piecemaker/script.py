@@ -1,4 +1,3 @@
-import sys
 import os
 import json
 import argparse
@@ -9,10 +8,9 @@ from PIL import Image
 
 from piecemaker.base import Pieces, variants
 from piecemaker.adjacent import Adjacent
-from piecemaker.distribution import random_piece_distribution, regions_set, sprite_layout
+from piecemaker.distribution import random_piece_distribution, regions_set, bbox_layout
 from piecemaker.lines_svg import create_lines_svg
 from piecemaker.reduce import reduce_size
-from piecemaker.table_proof import generate_table_proof_html
 from piecemaker._version import __version__
 
 
@@ -106,8 +104,6 @@ Example: 33,68,100,150 for 4 scaled puzzles with the last one being at 150%%."""
     distributions = (
         "default", # random nonoverlapping left_side top_middle bottom_middle
         "joined",  # Useful for testing a puzzle
-        "glue",  # Use the same sprite layout that glue did
-        "sprite",  # Same as glue
         "random",
         "nonoverlapping",
         "overlapping",
@@ -123,7 +119,7 @@ Example: 33,68,100,150 for 4 scaled puzzles with the last one being at 150%%."""
         default=(distributions[0],),
         nargs="*",
         choices=distributions,
-        help=f"""Piece distribution to use. If 'default' is used it will override any other choices.""",
+        help="""Piece distribution to use. If 'default' is used it will override any other choices.""",
     )
 
     parser.add_argument(
@@ -343,18 +339,9 @@ or set number of pieces greater than 0.
     default_region_set = ("left_side", "top_middle", "bottom_middle")
 
     if "joined" in args.distribution:
-        pieces_distribution = sprite_layout(
+        pieces_distribution = bbox_layout(
             table_bbox=(0, 0, table_width, table_height),
             piece_bboxes=piece_bboxes,
-        )
-    elif "glue" in args.distribution or "sprite" in args.distribution:
-        with open(
-            os.path.join(mydir, f"size-{scale_for_size_100}", "sprite_without_padding_layout.json"), "r"
-        ) as f:
-            sprite_without_padding_layout = json.load(f)
-        pieces_distribution = sprite_layout(
-            table_bbox=(0, 0, table_width, table_height),
-            piece_bboxes=sprite_without_padding_layout,
         )
     else:  # Defaults to random
         pieces_distribution = random_piece_distribution(
@@ -453,5 +440,3 @@ or set number of pieces greater than 0.
     f = open(os.path.join(mydir, "adjacent.json"), "w")
     json.dump(adjacent.adjacent_pieces, f)
     f.close()
-
-    generate_table_proof_html(mydir=mydir)

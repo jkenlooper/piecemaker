@@ -9,7 +9,6 @@ template = """
 <html>
 <head>
 <title>Cut Proof - {scale}</title>
-<link rel="stylesheet" media="all" href="sprite_p.css">
 <style>
 {style}
 </style>
@@ -41,6 +40,7 @@ position: relative;
 display: flex;
 flex-wrap: wrap;
 }
+.p-img{display:block;}
 .p {
 transition: opacity linear 0.5s;
 background-image: none;
@@ -83,9 +83,6 @@ def generate_cut_proof_html(pieces_json_file, output_dir, scale, image_index):
             ]
         )
         pieces_html.append(el)
-
-    with open(os.path.join(output_dir, "sprite_p.css"), "a") as css:
-        css.write(".p-img{display:block;}")
 
     pieces = "".join(pieces_html)
     html = template.format(

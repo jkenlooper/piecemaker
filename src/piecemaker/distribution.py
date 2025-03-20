@@ -160,7 +160,7 @@ def joined(
     return {k: (v[0], v[1]) for k, v in piece_bboxes.items()}
 
 
-def sprite_layout(
+def bbox_layout(
     table_bbox,
     piece_bboxes,
 ):

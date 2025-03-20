@@ -35,8 +35,6 @@ Python Packages:
 * [beautifulsoup4](http://www.crummy.com/software/BeautifulSoup/bs4/)
 * [svgwrite](https://pypi.python.org/pypi/svgwrite)
 * lxml
-* [glue](https://github.com/jorgebastida/glue) (Only partially included in
-  piecemaker source)
 
 Other Software needed:
 
