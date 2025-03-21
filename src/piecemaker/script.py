@@ -18,7 +18,7 @@ def piecemaker():
     parser = argparse.ArgumentParser(
         description="Create jigsaw puzzle pieces.",
     )
-    parser.add_argument('--version', action='version', version=__version__)
+    parser.add_argument("--version", action="version", version=__version__)
 
     parser.add_argument(
         "--dir",
@@ -102,7 +102,7 @@ Example: 33,68,100,150 for 4 scaled puzzles with the last one being at 150%%."""
     )
 
     distributions = (
-        "default", # random nonoverlapping left_side top_middle bottom_middle
+        "default",  # random nonoverlapping left_side top_middle bottom_middle
         "joined",  # Useful for testing a puzzle
         "random",
         "nonoverlapping",
@@ -127,7 +127,7 @@ Example: 33,68,100,150 for 4 scaled puzzles with the last one being at 150%%."""
         action="store",
         type=str,
         default="2.5x2.5",
-        help="Width and height of table based on image dimensions. Default is '2.5x2.5'."
+        help="Width and height of table based on image dimensions. Default is '2.5x2.5'.",
     )
 
     parser.add_argument(
@@ -177,7 +177,9 @@ Example: 33,68,100,150 for 4 scaled puzzles with the last one being at 150%%."""
 
     args = parser.parse_args()
 
-    table_width_factor, table_height_factor = tuple(map(lambda x: max(1, float(x)), args.table_size_factor.split("x", 2)))
+    table_width_factor, table_height_factor = tuple(
+        map(lambda x: max(1, float(x)), args.table_size_factor.split("x", 2))
+    )
 
     if not args.dir:
         parser.error("Must set a directory to store generated files")
@@ -228,7 +230,6 @@ or set number of pieces greater than 0.
                 """
             )
 
-
         (imagefile, jpc) = create_lines_svg(
             output_dir=mydir,
             minimum_piece_size=minimum_piece_size,
@@ -272,7 +273,9 @@ or set number of pieces greater than 0.
         exclude_width = width
         exclude_height = height
     if args.exclude_piece_size != "0x0":
-        exclude_piece_width, exclude_piece_height = map(int, args.exclude_piece_size.split("x")[:2])
+        exclude_piece_width, exclude_piece_height = map(
+            int, args.exclude_piece_size.split("x")[:2]
+        )
         if exclude_piece_width == 0:
             exclude_width = None
         else:
@@ -353,12 +356,16 @@ or set number of pieces greater than 0.
                 outline_offset_y + height,
             ),
             piece_bboxes={k: v[9:13] + [v[4]] for k, v in piece_bboxes.items()},
-            regions=default_region_set if "default" in args.distribution else set(args.distribution).intersection(regions_set) or default_region_set,
-            nonoverlapping=True if "default" in args.distribution else "nonoverlapping" in args.distribution,
+            regions=default_region_set
+            if "default" in args.distribution
+            else set(args.distribution).intersection(regions_set) or default_region_set,
+            nonoverlapping=True
+            if "default" in args.distribution
+            else "nonoverlapping" in args.distribution,
         )
 
     side_count = len(images)
-    for (i, bbox) in piece_bboxes.items():
+    for i, bbox in piece_bboxes.items():
         # TODO: set grouping ids to pieces. Should be a tuple for each side.
         #   Example (group ids would be arbitrary):
         #   solid color = group id 0,
@@ -385,11 +392,13 @@ or set number of pieces greater than 0.
                 "ow": bbox[2] - bbox[0],  # width before rotation
                 "oh": bbox[3] - bbox[1],  # height before rotation
                 "r": randint(0, 360) if rotate else 0,  # random rotation of piece
-                "s": 0 if side_count == 1 else randint(0, side_count - 1),  # random piece side
+                "s": 0
+                if side_count == 1
+                else randint(0, side_count - 1),  # random piece side
                 "w": bbox[11] - bbox[9],
                 "h": bbox[12] - bbox[10],
                 "rotate": bbox[4],  # correct rotation of piece
-                "sides": sides.get(i,(0,)),  # correct side (duplicates sides.json)
+                "sides": sides.get(i, (0,)),  # correct side (duplicates sides.json)
                 "g": 0,  # grouping id
                 "cx": bbox[5],  # center_x
                 "cy": bbox[6],  # center_y
@@ -401,7 +410,9 @@ or set number of pieces greater than 0.
     data = {
         "version": __version__,
         "generator": "piecemaker",
-        "piece_cut_variant": args.variant if not args.svg else os.path.basename(args.svg),
+        "piece_cut_variant": args.variant
+        if not args.svg
+        else os.path.basename(args.svg),
         "full_size": scale_for_size_100,
         "sizes": sizes,
         "sides": tuple(range(side_count)),  # index from images
@@ -413,7 +424,8 @@ or set number of pieces greater than 0.
                 author_name="",
                 author_url="",  # Author's profile page if applicable
                 origin_url="",  # image source, image link
-            ) for image in images
+            )
+            for image in images
         ],
         "piece_count": piece_count,
         "image_width": width,

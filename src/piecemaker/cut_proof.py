@@ -66,7 +66,7 @@ def generate_cut_proof_html(pieces_json_file, output_dir, scale, image_index):
 
     cachebust = str(int(time.time()))
     pieces_html = []
-    for (i, v) in piece_bboxes.items():
+    for i, v in piece_bboxes.items():
         i = int(i)
         x = v[0] + v[7]
         y = v[1] + v[8]

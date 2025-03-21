@@ -26,10 +26,10 @@ class Adjacent:
 
         rtree_idx = index.Index(interleaved=True)
 
-        for (piece_id, piece_bbox) in self.pieces_info.items():
+        for piece_id, piece_bbox in self.pieces_info.items():
             rtree_idx.insert(int(piece_id), piece_bbox[:4])
 
-        for (piece_id, piece_bbox) in self.pieces_info.items():
+        for piece_id, piece_bbox in self.pieces_info.items():
             expanded_piece_bbox = (
                 piece_bbox[0] - 1,
                 piece_bbox[1] - 1,
@@ -39,7 +39,9 @@ class Adjacent:
             adjacent = list(map(str, rtree_idx.intersection(expanded_piece_bbox)))
             adjacent.remove(piece_id)
             if len(adjacent) == 0:
-                adjacent = list(map(str, rtree_idx.nearest(piece_bbox[:4], num_results=2)))
+                adjacent = list(
+                    map(str, rtree_idx.nearest(piece_bbox[:4], num_results=2))
+                )
                 adjacent.remove(piece_id)
             self.adjacent_pieces[piece_id] = adjacent
 
@@ -51,7 +53,7 @@ class Adjacent:
         ) as piece_id_to_mask_json:
             piece_id_to_mask = json.load(piece_id_to_mask_json)
 
-        for (piece_id, adjacent_pieces) in self.adjacent_pieces.items():
+        for piece_id, adjacent_pieces in self.adjacent_pieces.items():
             if len(adjacent_pieces) < 2:
                 # pass any that may have been added by the nearest only
                 continue

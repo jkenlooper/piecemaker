@@ -5,6 +5,7 @@ from rtree import index
 
 regions_set = {"left_side", "top_middle", "bottom_middle", "right_side", "center"}
 
+
 def bbox_area(bbox):
     w = bbox[2] - bbox[0]
     h = bbox[3] - bbox[1]
@@ -15,8 +16,8 @@ def get_bounding_box_after_rotation(bbox, r):
     "https://stackoverflow.com/questions/622140/calculate-bounding-box-coordinates-from-a-rotated-rectangle"
     rx = bbox[0]
     ry = bbox[1]
-    rw = (bbox[2] - bbox[0])
-    rh = (bbox[3] - bbox[1])
+    rw = bbox[2] - bbox[0]
+    rh = bbox[3] - bbox[1]
     ra = (r * math.pi) / 180
     abs_cos_ra = abs(math.cos(ra))
     abs_sin_ra = abs(math.sin(ra))
@@ -74,12 +75,22 @@ def random_pos_in_regions(
         outline_bbox[2] - piece_width,
         outline_bbox[3] - piece_height,
     )
-    center_area = (
-        bbox_area(center_bbox) if "center" in regions else 0
-    )
+    center_area = bbox_area(center_bbox) if "center" in regions else 0
     box = choices(
-        (left_side_bbox, top_middle_bbox, bottom_middle_bbox, right_side_bbox, center_bbox),
-        weights=(left_side_area, top_middle_area, bottom_middle_area, right_side_area, center_area),
+        (
+            left_side_bbox,
+            top_middle_bbox,
+            bottom_middle_bbox,
+            right_side_bbox,
+            center_bbox,
+        ),
+        weights=(
+            left_side_area,
+            top_middle_area,
+            bottom_middle_area,
+            right_side_area,
+            center_area,
+        ),
     )[0]
     x = randint(box[0], max(box[2], box[0] + 1))
     y = randint(box[1], max(box[3], box[1] + 1))
@@ -94,9 +105,11 @@ def random_piece_distribution(
     nonoverlapping=True,
 ):
     positions = {}
-    rotated_piece_bboxes = {k: get_bounding_box_after_rotation(v[:4], v[4]) for k, v in piece_bboxes.items()}
+    rotated_piece_bboxes = {
+        k: get_bounding_box_after_rotation(v[:4], v[4]) for k, v in piece_bboxes.items()
+    }
     if not nonoverlapping:
-        for (i, bbox) in rotated_piece_bboxes.items():
+        for i, bbox in rotated_piece_bboxes.items():
             (x, y) = random_pos_in_regions(
                 table_bbox, outline_bbox, bbox, regions=regions
             )
@@ -109,9 +122,7 @@ def random_piece_distribution(
         rtree_idx.insert(outline_id, outline_bbox)
 
     def attempt_placement(bbox, attempt=15, regions=regions):
-        (x, y) = random_pos_in_regions(
-            table_bbox, outline_bbox, bbox, regions=regions
-        )
+        (x, y) = random_pos_in_regions(table_bbox, outline_bbox, bbox, regions=regions)
         if attempt > 0:
             count = rtree_idx.count(
                 (x, y, x + (bbox[2] - bbox[0]), y + (bbox[3] - bbox[1]))
@@ -123,7 +134,7 @@ def random_piece_distribution(
         else:
             return (x, y)
 
-    for (i, bbox) in rotated_piece_bboxes.items():
+    for i, bbox in rotated_piece_bboxes.items():
         (x, y) = attempt_placement(bbox, regions=regions)
         rtree_idx.insert(int(i), (x, y, x + bbox[2] - bbox[0], y + bbox[3] - bbox[1]))
         positions[i] = (x, y)
@@ -166,5 +177,11 @@ def bbox_layout(
 ):
     # Sprite layout may not always fit on the table, just overlap any on the
     # edge of the table for now.
-    pieces_distribution = {k: (min(v[0], table_bbox[2] - v[2]), min(v[1], table_bbox[3] - v[3])) for k, v in map(lambda x: (x[0], get_bounding_box_after_rotation(x[1][:4], 0)), piece_bboxes.items())}
+    pieces_distribution = {
+        k: (min(v[0], table_bbox[2] - v[2]), min(v[1], table_bbox[3] - v[3]))
+        for k, v in map(
+            lambda x: (x[0], get_bounding_box_after_rotation(x[1][:4], 0)),
+            piece_bboxes.items(),
+        )
+    }
     return pieces_distribution

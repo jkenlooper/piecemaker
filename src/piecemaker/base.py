@@ -43,8 +43,16 @@ class Pieces(object):
     """
 
     def __init__(
-        self, svgfile, images, mydir, scale=100, max_pixels=0, include_border_pixels=True,
-        exclude_size=(None,None), floodfill_min=400, floodfill_max=50_000_000,
+        self,
+        svgfile,
+        images,
+        mydir,
+        scale=100,
+        max_pixels=0,
+        include_border_pixels=True,
+        exclude_size=(None, None),
+        floodfill_min=400,
+        floodfill_max=50_000_000,
         mix_sides=False,
         rotate=(),
     ):
@@ -59,7 +67,9 @@ class Pieces(object):
             original_im = Image.open(image)
             im = original_im.copy()
             original_im.close()
-            scaled_image = os.path.join(self.mydir, f"original-resized-{image_index}.jpg")
+            scaled_image = os.path.join(
+                self.mydir, f"original-resized-{image_index}.jpg"
+            )
             self._scaled_images.append(scaled_image)
             im.save(scaled_image)
 
@@ -128,7 +138,9 @@ class Pieces(object):
             self.exclude_height = min(self.height, exclude_size[1])
 
     def cut(self):
-        self._pixsaw_handler.process(self._scaled_images, exclude_size=(self.exclude_width, self.exclude_height))
+        self._pixsaw_handler.process(
+            self._scaled_images, exclude_size=(self.exclude_width, self.exclude_height)
+        )
 
         for piece in iglob(os.path.join(self._mask_dir, "*.bmp")):
             potrace(piece, self._vector_dir)
@@ -145,9 +157,31 @@ class Pieces(object):
         non_shuffled_side_indexes = copy(side_indexes)
         if len(side_indexes) > 1 and self.mix_sides:
             dirs_with_images = (
-                ([Path(self.mydir).joinpath("raster", f"image-{image_index}") for image_index in range(len(self._scaled_images))], "png"),
-                ([Path(self.mydir).joinpath("no_mask_raster", f"image-{image_index}") for image_index in range(len(self._scaled_images))], "png"),
-                ([Path(self.mydir).joinpath("raster_with_padding", f"image-{image_index}") for image_index in range(len(self._scaled_images))], "jpg"),
+                (
+                    [
+                        Path(self.mydir).joinpath("raster", f"image-{image_index}")
+                        for image_index in range(len(self._scaled_images))
+                    ],
+                    "png",
+                ),
+                (
+                    [
+                        Path(self.mydir).joinpath(
+                            "no_mask_raster", f"image-{image_index}"
+                        )
+                        for image_index in range(len(self._scaled_images))
+                    ],
+                    "png",
+                ),
+                (
+                    [
+                        Path(self.mydir).joinpath(
+                            "raster_with_padding", f"image-{image_index}"
+                        )
+                        for image_index in range(len(self._scaled_images))
+                    ],
+                    "jpg",
+                ),
             )
             for piece_id in self.pieces.keys():
                 shuffle(side_indexes)
@@ -156,15 +190,17 @@ class Pieces(object):
                     continue
                 for raster_dir, ext in dirs_with_images:
                     for from_side in non_shuffled_side_indexes:
-                        hold_piece = raster_dir[from_side].joinpath(
-                            f"{piece_id}.{ext}"
-                        ).rename(
-                            raster_dir[from_side].joinpath(f"{piece_id}.{ext}-hold")
+                        hold_piece = (
+                            raster_dir[from_side]
+                            .joinpath(f"{piece_id}.{ext}")
+                            .rename(
+                                raster_dir[from_side].joinpath(f"{piece_id}.{ext}-hold")
+                            )
                         )
-                    for from_side, to_side in zip(non_shuffled_side_indexes, side_indexes):
-                        raster_dir[from_side].joinpath(
-                            f"{piece_id}.{ext}-hold"
-                        ).rename(
+                    for from_side, to_side in zip(
+                        non_shuffled_side_indexes, side_indexes
+                    ):
+                        raster_dir[from_side].joinpath(f"{piece_id}.{ext}-hold").rename(
                             raster_dir[to_side].joinpath(f"{piece_id}.{ext}")
                         )
         else:
@@ -200,7 +236,6 @@ class JigsawPieceClipsSVG(object):
         maximum_piece_size=85,
         variant="interlockingnubs",
     ):
-
         self.width = width
         self.height = height
         self.minimum_piece_size = minimum_piece_size
