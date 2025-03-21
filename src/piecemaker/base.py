@@ -215,7 +215,7 @@ class Pieces(object):
             generate_cut_proof_html(
                 pieces_json_file=os.path.join(self.mydir, "pieces.json"),
                 output_dir=self.mydir,
-                scale=self.scale,
+                scale=(self.scale / self.scale),
                 image_index=image_index,
             )
 

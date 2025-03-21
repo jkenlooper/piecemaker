@@ -17,12 +17,16 @@ template = """
 <p>
 Piece count: {piece_count}<br>
 <button>
-<label for="assembled">Toggle Assembled State</label>
+<label for="layout">Toggle layout</label>
+</button>
+<button>
+<label for="outline">Toggle image outline</label>
 </button>
 </p>
 
 <!-- All the piece div elements -->
-<input type="checkbox" checked id="assembled" name="assembled">
+<input type="checkbox" id="layout" name="layout" style="visibility:hidden;">
+<input type="checkbox" id="outline" name="outline" style="visibility:hidden;">
 <div class="container">
 {pieces}
 </div>
@@ -39,19 +43,25 @@ color: white;
 position: relative;
 display: flex;
 flex-wrap: wrap;
+gap: 6px;
 }
 .p-img{display:block;}
 .p {
 transition: opacity linear 0.5s;
 background-image: none;
-}
-input[name=assembled]:checked + .container .p {
 position: absolute;
+}
+input[name=layout]:checked ~ .container .p {
+position: relative;
+transform: translate3d(0,0,0) rotate(0deg) !important;
 }
 .p.is-highlight,
 .p:hover,
 .p:active {
 opacity: 0;
+}
+input[name=outline]:checked ~ .container .p-img {
+outline: 1px dotted currentColor;
 }
 
 """
@@ -72,12 +82,12 @@ def generate_cut_proof_html(pieces_json_file, output_dir, scale, image_index):
         y = v[1] + v[8]
         width = v[11] - v[9]
         height = v[12] - v[10]
-        rox = round(width * v[5], 1)
-        roy = round(height * v[6], 1)
+        rox = round(width * v[5], 5)
+        roy = round(height * v[6], 5)
         rotate = v[4]
         el = "".join(
             [
-                f"<div id='p-{i}' class='p pc-{i}' style='left:{x}px;top:{y}px;transform-origin:{rox}px {roy}px;transform:rotate({rotate}deg);'>",
+                f"<div id='p-{i}' class='p pc-{i}' style='transform-origin:{rox}px {roy}px;transform:translate3d({x}px, {y}px, 0) rotate({rotate}deg);'>",
                 f"<img class='p-img' src='raster/image-{image_index}/{i}.png?{cachebust}' width='{width}' height='{height}'>",
                 "</div>",
             ]

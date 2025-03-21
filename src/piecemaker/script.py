@@ -3,6 +3,7 @@ import json
 import argparse
 from math import ceil, sqrt
 from random import randint
+from pathlib import Path
 
 from PIL import Image
 
@@ -303,6 +304,9 @@ or set number of pieces greater than 0.
     scaled_images = pieces._scaled_images
 
     pieces.cut()
+    # masks.json is not needed in piecemaker and has redundant data already in
+    # pieces.json.
+    Path(full_size_dir).joinpath("masks.json").unlink(missing_ok=True)
 
     pieces.generate_resources()
 
