@@ -3,6 +3,7 @@ import os
 import os.path
 import decimal
 import math
+from tempfile import mkstemp
 
 from PIL import Image
 
@@ -60,7 +61,7 @@ def rasterize_svgfile(svgfile, width, height):
     return pngfile
 
 
-def potrace(trimmedbmp, output_dir):
+def potrace_to_svg(trimmedbmp, output_dir):
     """
     Convert the mask into a svg file.
     """
@@ -86,6 +87,48 @@ def potrace(trimmedbmp, output_dir):
         masksvg,
     ]
     subprocess.run(potrace, check=True)  # nosec B603
+
+
+def potrace_to_polygon(trimmedbmp, output_dir, min_size=10):
+    """
+    Convert the mask into a geojson file.
+    """
+    fd, tmpbmp = mkstemp(suffix=".bmp")
+    os.close(fd)
+
+    # Reduce the image to 10% to have less polygons
+    im = Image.open(trimmedbmp)
+    (width, height) = im.size
+    factor = max(0.10, min_size / max(width, height))
+    reduced_width = max(1, round(width * factor))
+    reduced_height = max(1, round(height * factor))
+    im = im.resize((reduced_width, reduced_height))
+    im.save(tmpbmp)
+    im.close()
+
+    mask_bmp = os.path.basename(trimmedbmp)
+    (mask_name, ext) = os.path.splitext(mask_bmp)
+
+    mask_geojson = os.path.join(output_dir, f"{mask_name}.geojson")
+    # Skip B603; tmpbmp, and mask_geojson are safe inputs.
+    potrace = [
+        "potrace",
+        tmpbmp,
+        "--turnpolicy",
+        "majority",
+        "--alphamax",
+        "0",
+        "--turdsize",
+        "10",
+        "--invert",
+        "--flat",
+        "--backend",
+        "geojson",
+        "--output",
+        mask_geojson,
+    ]
+    subprocess.run(potrace, check=True)  # nosec B603
+    os.unlink(tmpbmp)
 
 
 def scale_down_imgfile(imgfile, factor):

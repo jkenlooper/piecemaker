@@ -18,7 +18,8 @@ from pixsaw.base import Handler
 from .paths import interlockingnubs, stochasticnubs
 from piecemaker.tools import (
     rasterize_svgfile,
-    potrace,
+    potrace_to_svg,
+    potrace_to_polygon,
     cap_dimensions,
     gridify,
 )
@@ -112,6 +113,8 @@ class Pieces(object):
         os.mkdir(self._raster_with_padding_dir)
         self._vector_dir = os.path.join(self.mydir, "vector")
         os.mkdir(self._vector_dir)
+        self._polygon_dir = os.path.join(self.mydir, "polygon")
+        os.mkdir(self._polygon_dir)
         self._no_mask_raster_dir = os.path.join(self.mydir, "no_mask_raster")
         os.mkdir(self._no_mask_raster_dir)
         self._pixsaw_handler = PMHandler(
@@ -143,7 +146,8 @@ class Pieces(object):
         )
 
         for piece in iglob(os.path.join(self._mask_dir, "*.bmp")):
-            potrace(piece, self._vector_dir)
+            potrace_to_svg(piece, self._vector_dir)
+            potrace_to_polygon(piece, self._polygon_dir)
 
         with open(os.path.join(self.mydir, "pieces.json"), "r") as pieces_json:
             self.pieces = json.load(pieces_json)

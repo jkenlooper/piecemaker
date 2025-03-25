@@ -5,7 +5,7 @@ from glob import iglob
 
 from PIL import Image
 
-from piecemaker.tools import scale_down_imgfile, potrace
+from piecemaker.tools import scale_down_imgfile, potrace_to_svg
 from piecemaker.cut_proof import generate_cut_proof_html
 
 
@@ -53,7 +53,7 @@ def reduce_size(scale, minimum_scale, output_dir, scaled_images):
 
     os.mkdir(os.path.join(scaled_dir, "vector"))
     for piece in iglob(os.path.join(scaled_dir, "mask", "*.bmp")):
-        potrace(piece, os.path.join(scaled_dir, "vector"))
+        potrace_to_svg(piece, os.path.join(scaled_dir, "vector"))
 
     # Use the cut proof to check the cut on all images.
     for image_index, image in enumerate(scaled_images):
