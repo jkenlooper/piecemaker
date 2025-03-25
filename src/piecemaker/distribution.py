@@ -141,29 +141,6 @@ def random_piece_distribution(
     return positions
 
 
-def grid(table_bbox, outline_bbox, piece_bboxes):
-    pass
-    # TODO: insert a column of pieces by checking the nearest from bottom right
-    # corner of table.  With each column; shift over when adding next column.
-    # Readjust the placed piece in the column to the nearest of the previous
-    # column piece.
-
-    # rtree_idx = index.Index(interleaved=True)
-    # outline_id = len(piece_bboxes) + 1
-    # rtree_idx.insert(outline_id, outline_bbox)
-
-    ##    x = randint(0, table_width - (bbox[2] - bbox[0]))
-    ##    y = randint(0, table_height - (bbox[3] - bbox[1]))
-    ##    next_nearest = rtree_idx.nearest([table_width, table_height, table_width, table_height], num_results=2)
-    ##    next_nearest.remove(outline_id)
-
-    ##    rtree_idx.insert(int(i), piece_bbox)
-
-    # return {
-    #    "1": [0, 0]
-    # }
-
-
 def joined(
     table_bbox,
     piece_bboxes,
@@ -175,8 +152,7 @@ def bbox_layout(
     table_bbox,
     piece_bboxes,
 ):
-    # Sprite layout may not always fit on the table, just overlap any on the
-    # edge of the table for now.
+    # May not always fit on the table, overlap any on the edge of the table.
     pieces_distribution = {
         k: (min(v[0], table_bbox[2] - v[2]), min(v[1], table_bbox[3] - v[3]))
         for k, v in map(
