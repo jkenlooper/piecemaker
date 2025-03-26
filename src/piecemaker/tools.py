@@ -4,6 +4,8 @@ import os.path
 import decimal
 import math
 from tempfile import mkstemp
+from shutil import copyfile
+import json
 
 from PIL import Image
 
@@ -89,28 +91,33 @@ def potrace_to_svg(trimmedbmp, output_dir):
     subprocess.run(potrace, check=True)  # nosec B603
 
 
-def potrace_to_polygon(trimmedbmp, output_dir, min_size=10):
+def potrace_to_polygon(trimmedbmp, output_dir, min_size=10, target_factor=0.10):
     """
     Convert the mask into a geojson file.
+    Set the target_factor to a value of 0.10 to reduce the number of polygon points.
     """
     fd, tmpbmp = mkstemp(suffix=".bmp")
     os.close(fd)
 
     # Reduce the image to 10% to have less polygons
-    im = Image.open(trimmedbmp)
-    (width, height) = im.size
-    factor = max(0.10, min_size / max(width, height))
-    reduced_width = max(1, round(width * factor))
-    reduced_height = max(1, round(height * factor))
-    im = im.resize((reduced_width, reduced_height))
-    im.save(tmpbmp)
-    im.close()
+    factor = target_factor
+    if target_factor < 1.0:
+        im = Image.open(trimmedbmp)
+        (width, height) = im.size
+        factor = max(target_factor, min_size / max(width, height))
+        reduced_width = max(1, round(width * factor))
+        reduced_height = max(1, round(height * factor))
+        im = im.resize((reduced_width, reduced_height))
+        im.save(tmpbmp)
+        im.close()
+    else:
+        copyfile(trimmedbmp, tmpbmp)
 
     mask_bmp = os.path.basename(trimmedbmp)
     (mask_name, ext) = os.path.splitext(mask_bmp)
 
-    mask_geojson = os.path.join(output_dir, f"{mask_name}.geojson")
-    # Skip B603; tmpbmp, and mask_geojson are safe inputs.
+    mask_geojson_file = os.path.join(output_dir, f"{mask_name}.geojson")
+    # Skip B603; tmpbmp, and mask_geojson_file are safe inputs.
     potrace = [
         "potrace",
         tmpbmp,
@@ -125,10 +132,45 @@ def potrace_to_polygon(trimmedbmp, output_dir, min_size=10):
         "--backend",
         "geojson",
         "--output",
-        mask_geojson,
+        mask_geojson_file,
     ]
     subprocess.run(potrace, check=True)  # nosec B603
     os.unlink(tmpbmp)
+
+    with open(mask_geojson_file, mode="rb") as f:
+        mask_geojson = json.load(f)
+
+    # Scale the coordinates and bbox from the geojson to match the piece size.
+    if target_factor < 1.0:
+
+        def scale_up_coordinates(coordinates):
+            for index, item in enumerate(coordinates):
+                if isinstance(item, list):
+                    scale_up_coordinates(item)
+                elif isinstance(item, (int, float)):
+                    coordinates[index] = round(item / factor, 2)
+
+        def scale_up_bbox(bbox):
+            bbox = [round(x / factor, 2) for x in bbox]
+
+        def scale_up(obj):
+            for k, v in obj.items():
+                if isinstance(v, list):
+                    if k == "coordinates":
+                        scale_up_coordinates(v)
+                    elif k == "bbox":
+                        scale_up_bbox(v)
+                    else:
+                        for item in v:
+                            if isinstance(item, dict):
+                                scale_up(item)
+                elif isinstance(v, dict):
+                    scale_up(v)
+
+        scale_up(mask_geojson)
+
+    with open(mask_geojson_file, mode="w") as f:
+        json.dump(mask_geojson, f, separators=(",", ":"))
 
 
 def scale_down_imgfile(imgfile, factor):

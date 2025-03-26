@@ -174,6 +174,14 @@ Example: 33,68,100,150 for 4 scaled puzzles with the last one being at 150%%."""
         help="Random rotate pieces range for start, stop, step",
     )
 
+    parser.add_argument(
+        "--polygons",
+        action="store",
+        default=0,
+        type=float,
+        help="Create polygons with this precision (0.01 to 1.0) from piece cut and store them in geojson format.",
+    )
+
     parser.add_argument("image", nargs="+", help="JPG image")
 
     args = parser.parse_args()
@@ -300,6 +308,7 @@ or set number of pieces greater than 0.
         floodfill_max=args.floodfill_max,
         mix_sides=args.mix_sides,
         rotate=rotate,
+        polygons=args.polygons,
     )
     scaled_images = pieces._scaled_images
 

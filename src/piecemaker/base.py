@@ -56,6 +56,7 @@ class Pieces(object):
         floodfill_max=50_000_000,
         mix_sides=False,
         rotate=(),
+        polygons=0.10,
     ):
         "Resize the images if needed."
         self.mydir = mydir
@@ -64,6 +65,7 @@ class Pieces(object):
         self._scaled_images = []
         self.mix_sides = mix_sides
         self.rotate = rotate
+        self.polygons = polygons
         for image_index, image in enumerate(images):
             original_im = Image.open(image)
             im = original_im.copy()
@@ -145,9 +147,14 @@ class Pieces(object):
             self._scaled_images, exclude_size=(self.exclude_width, self.exclude_height)
         )
 
+        # Create svg and polygon variants of the piece cut without rotation.
         for piece in iglob(os.path.join(self._mask_dir, "*.bmp")):
             potrace_to_svg(piece, self._vector_dir)
-            potrace_to_polygon(piece, self._polygon_dir)
+        if self.polygons and isinstance(self.polygons, (float, int)):
+            for piece in iglob(os.path.join(self._mask_dir, "*.bmp")):
+                potrace_to_polygon(
+                    piece, self._polygon_dir, target_factor=min(1.0, self.polygons)
+                )
 
         with open(os.path.join(self.mydir, "pieces.json"), "r") as pieces_json:
             self.pieces = json.load(pieces_json)
