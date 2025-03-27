@@ -333,6 +333,7 @@ or set number of pieces greater than 0.
             minimum_scale=scale_for_size_100,
             output_dir=mydir,
             scaled_images=scaled_images,
+            polygons=args.polygons,
         )
 
     im = Image.open(scaled_images[0])

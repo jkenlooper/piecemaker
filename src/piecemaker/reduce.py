@@ -2,17 +2,19 @@ import os
 import json
 import shutil
 from glob import iglob
+from pathlib import Path
 
 from PIL import Image
 
-from piecemaker.tools import scale_down_imgfile, potrace_to_svg
+from piecemaker.tools import scale_down_imgfile, potrace_to_svg, potrace_to_polygon
 from piecemaker.cut_proof import generate_cut_proof_html
 
 
-def reduce_size(scale, minimum_scale, output_dir, scaled_images):
+def reduce_size(scale, minimum_scale, output_dir, scaled_images, polygons):
     factor = scale / minimum_scale
     minimum_scaled_dir = os.path.join(output_dir, f"size-{minimum_scale}")
     scaled_dir = os.path.join(output_dir, f"size-{scale}")
+    mask_dir = Path(scaled_dir).joinpath("mask")
 
     shutil.copytree(minimum_scaled_dir, scaled_dir)
 
@@ -20,7 +22,16 @@ def reduce_size(scale, minimum_scale, output_dir, scaled_images):
         f"cut_proof-{image_index}.html" for image_index in range(len(scaled_images))
     ]:
         os.unlink(os.path.join(scaled_dir, filename))
-    shutil.rmtree(os.path.join(scaled_dir, "vector"))
+    vector_dir = Path(scaled_dir).joinpath("vector")
+    recreate_vector = False
+    if vector_dir.is_dir():
+        recreate_vector = True
+        shutil.rmtree(vector_dir)
+    polygon_dir = Path(scaled_dir).joinpath("polygon")
+    recreate_polygon = False
+    if polygon_dir.is_dir():
+        recreate_polygon = True
+        shutil.rmtree(polygon_dir)
 
     for ext in [".jpg", ".png", ".bmp"]:
         for imgfile in iglob(f"{scaled_dir}/**/*{ext}", recursive=True):
@@ -51,9 +62,15 @@ def reduce_size(scale, minimum_scale, output_dir, scaled_images):
     with open(os.path.join(scaled_dir, "pieces.json"), "w") as pieces_json:
         json.dump(piece_bboxes, pieces_json)
 
-    os.mkdir(os.path.join(scaled_dir, "vector"))
-    for piece in iglob(os.path.join(scaled_dir, "mask", "*.bmp")):
-        potrace_to_svg(piece, os.path.join(scaled_dir, "vector"))
+    if recreate_vector:
+        vector_dir.mkdir()
+        for piece in mask_dir.glob("*.bmp"):
+            potrace_to_svg(str(piece), vector_dir)
+
+    if recreate_polygon:
+        polygon_dir.mkdir()
+        for piece in mask_dir.glob("*.bmp"):
+            potrace_to_polygon(str(piece), polygon_dir, target_factor=min(1.0, polygons if polygons else 0))
 
     # Use the cut proof to check the cut on all images.
     for image_index, image in enumerate(scaled_images):
