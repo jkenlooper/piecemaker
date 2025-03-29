@@ -2,7 +2,7 @@ import os
 import json
 import argparse
 from math import ceil, sqrt
-from random import randint
+from random import randint, seed
 from pathlib import Path
 
 from PIL import Image
@@ -182,9 +182,20 @@ Example: 33,68,100,150 for 4 scaled puzzles with the last one being at 150%%."""
         help="Create polygons with this precision (0.01 to 1.0) from piece cut and store them in geojson format.",
     )
 
+    parser.add_argument(
+        "--random-seed",
+        action="store",
+        default=0,
+        type=int,
+        help="Set a random seed to use.",
+    )
+
     parser.add_argument("image", nargs="+", help="JPG image")
 
     args = parser.parse_args()
+
+    if args.random_seed:
+        seed(args.random_seed)
 
     table_width_factor, table_height_factor = tuple(
         map(lambda x: max(1, float(x)), args.table_size_factor.split("x", 2))
