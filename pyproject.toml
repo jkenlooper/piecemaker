@@ -8,7 +8,7 @@ dynamic = ['version']
 description = "Create jigsaw puzzle pieces from an image"
 readme = "README.md"
 license.text = "LGPLv3+"
-requires-python = ">=3.8, <4"
+requires-python = ">=3.9, <4"
 authors = [
     { name = "Jake Hickenlooper", email = "jake@weboftomorrow.com" },
 ]
@@ -21,7 +21,7 @@ dependencies = [
   "future",
   "lxml",  # wanted by beautifulsoup4
   "svgwrite >= 1.4.1",
-  "Rtree"
+  "rtree"
 
 ]
 
