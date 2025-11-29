@@ -82,8 +82,8 @@ def generate_cut_proof_html(pieces_json_file, output_dir, scale, image_index):
         y = v[1] + v[8]
         width = v[11] - v[9]
         height = v[12] - v[10]
-        rox = round(width * v[5], 5)
-        roy = round(height * v[6], 5)
+        rox = width * v[5]
+        roy = height * v[6]
         rotate = v[4]
         el = "".join(
             [

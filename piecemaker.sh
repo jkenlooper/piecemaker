@@ -4,8 +4,9 @@ set -o errexit
 
 script_name="$(basename "$0")"
 project_name="$(basename "$0" ".sh")"
+CONTAINER_RUNTIME="${CONTAINER_RUNTIME:-docker}"
 echo "
-Try out '$project_name' by prompting for necessary options and isolating it to a docker container.
+Try out '$project_name' by prompting for necessary options and isolating it to a container.
 "
 
 # Use $PWD to avoid using 'realpath' since it isn't always available.
@@ -14,7 +15,7 @@ test -e "$project_dir/$script_name" || (echo "ERROR: Should run $script_name fro
 
 # Exit early if required commands are not available.
 for cmd in \
-  "docker" \
+  "$CONTAINER_RUNTIME" \
   ; do
   has_cmd="$(command -v "$cmd" || echo "no")"
   if [ "$has_cmd" = "no" ]; then
@@ -24,19 +25,17 @@ for cmd in \
 done
 
 # Make sure docker daemon is running first before prompting the user.
-is_docker_up="$(docker ps -q -l || echo "no")"
+is_docker_up="$($CONTAINER_RUNTIME ps -q -l || echo "no")"
 if [ "$is_docker_up" = "no" ]; then
   echo "ERROR: Failed check if docker daemon was ready. Start docker daemon first." 1>&2
   exit 1
 fi
 
-tmp_iidfile="$(mktemp)"
-docker build \
+image_name="$project_name"
+"$CONTAINER_RUNTIME" build \
   --target app \
-  --iidfile "$tmp_iidfile" \
+  -t "$image_name" \
   .
-image_name="$(cat "$tmp_iidfile")"
-rm -f "$tmp_iidfile"
 
 # Use prompts instead of passing options since this is only for demonstration purposes.
 echo "
@@ -78,16 +77,15 @@ bn_image_file="$(basename "$image_file")"
 
 container_name="piecemaker"
 cleanup() {
-  docker stop --time 1 "$container_name" > /dev/null 2>&1 || printf ''
-  docker container rm "$container_name" > /dev/null 2>&1 || printf ''
-  docker image rm "$image_name"
+  "$CONTAINER_RUNTIME" stop --time 1 "$container_name" > /dev/null 2>&1 || printf ''
+  "$CONTAINER_RUNTIME" container rm "$container_name" > /dev/null 2>&1 || printf ''
 }
 trap 'cleanup; trap - EXIT; exit' EXIT INT HUP
-docker run \
+"$CONTAINER_RUNTIME" run \
   -it \
   --name "$container_name" \
   --mount "type=bind,src=${project_dir}/src,dst=/home/dev/app/src,readonly" \
   --mount "type=bind,src=$image_file,dst=/data/$bn_image_file,readonly=true" \
-  "$image_name" --dir=/home/dev/output --number-of-pieces="$number_of_pieces" "/data/$bn_image_file"
-docker cp "$container_name:/home/dev/output/" "$output_dir"
+  "$image_name" --dir=/home/dev/output --number-of-pieces="$number_of_pieces" --scaled-sizes=2,20,50,100 --trust-image-file --rotate=0,360,90 "/data/$bn_image_file"
+"$CONTAINER_RUNTIME" cp "$container_name:/home/dev/output/" "$output_dir"
 
