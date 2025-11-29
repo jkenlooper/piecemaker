@@ -1,36 +1,36 @@
 
-# UPKEEP due: "2025-08-11" label: "Python pip" interval: "+3 months"
+# UPKEEP due: "2025-12-13" label: "Python pip" interval: "+3 months"
 # https://pypi.org/project/pip/
-pip==25.1.1
+pip==25.2
 
-# UPKEEP due: "2025-08-11" label: "Python wheel" interval: "+3 months"
+# UPKEEP due: "2025-12-13" label: "Python wheel" interval: "+3 months"
 # https://pypi.org/project/wheel/
 wheel==0.45.1
 
-# UPKEEP due: "2025-08-11" label: "Python hatchling" interval: "+3 months"
+# UPKEEP due: "2025-12-13" label: "Python hatchling" interval: "+3 months"
 # https://pypi.org/project/hatchling/
 hatchling==1.27.0
 
-# UPKEEP due: "2025-08-11" label: "Python editables" interval: "+3 months"
+# UPKEEP due: "2025-12-13" label: "Python editables" interval: "+3 months"
 # https://pypi.org/project/editables/
 editables==0.5
 
-# UPKEEP due: "2025-08-11" label: "Python setuptools" interval: "+3 months"
+# UPKEEP due: "2025-12-13" label: "Python setuptools" interval: "+3 months"
 # https://pypi.org/project/setuptools/
-setuptools==80.4.0
+setuptools==80.9.0
 
-# UPKEEP due: "2025-08-11" label: "Python Cython" interval: "+3 months"
+# UPKEEP due: "2025-12-13" label: "Python Cython" interval: "+3 months"
 # https://pypi.org/project/Cython/
-Cython==3.1.0
+Cython==3.1.3
 
-# UPKEEP due: "2025-08-11" label: "pip-tools" interval: "+3 months"
+# UPKEEP due: "2025-12-13" label: "pip-tools" interval: "+3 months"
 # https://pypi.org/project/pip-tools/
-pip-tools==7.4.1
+pip-tools==7.5.0
 
-# UPKEEP due: "2025-08-11" label: "Python auditing tool pip-audit" interval: "+3 months"
+# UPKEEP due: "2025-12-13" label: "Python auditing tool pip-audit" interval: "+3 months"
 # https://pypi.org/project/pip-audit/
 pip-audit==2.9.0
 
-# UPKEEP due: "2025-08-11" label: "Python security linter tool: bandit" interval: "+3 months"
+# UPKEEP due: "2025-12-13" label: "Python security linter tool: bandit" interval: "+3 months"
 # https://pypi.org/project/bandit/
-bandit==1.8.3
+bandit==1.8.6

@@ -1,7 +1,7 @@
-# UPKEEP due: "2025-08-11" label: "Debian base image" interval: "+3 months"
+# UPKEEP due: "2025-12-12" label: "Debian base image" interval: "+3 months"
 # docker pull registry.hub.docker.com/library/debian:trixie
 # docker image ls --digests debian
-FROM registry.hub.docker.com/library/debian:trixie@sha256:653dfb9f86c3782e8369d5f7d29bb8faba1f4bff9025db46e807fa4c22903671 AS build
+FROM registry.hub.docker.com/library/debian:trixie@sha256:833c135acfe9521d7a0035a296076f98c182c542a2b6b5a0fd7063d355d696be AS build
 
 ARG DEBIAN_FRONTEND=noninteractive
 RUN echo "Create dev user"; \
@@ -70,10 +70,10 @@ RUN echo "Audit packages for known vulnerabilities"; \
 CMD ["sh", "-c", "while true; do printf 'z'; sleep 60; done"]
 
 
-# UPKEEP due: "2025-08-11" label: "Debian base image" interval: "+3 months"
+# UPKEEP due: "2025-12-12" label: "Debian base image" interval: "+3 months"
 # docker pull registry.hub.docker.com/library/debian:trixie
 # docker image ls --digests debian
-FROM registry.hub.docker.com/library/debian:trixie@sha256:653dfb9f86c3782e8369d5f7d29bb8faba1f4bff9025db46e807fa4c22903671 AS app
+FROM registry.hub.docker.com/library/debian:trixie@sha256:833c135acfe9521d7a0035a296076f98c182c542a2b6b5a0fd7063d355d696be AS app
 
 ARG DEBIAN_FRONTEND=noninteractive
 RUN echo "Create dev user"; \
