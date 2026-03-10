@@ -178,7 +178,7 @@ def scale_down_imgfile(imgfile, factor):
     (width, height) = im.size
     width = max(1, round(width * factor))
     height = max(1, round(height * factor))
-    im = im.resize((width, height))
+    im = im.resize((width, height), resample=Image.Resampling.NEAREST)
     im.save(imgfile)
     im.close()
 
