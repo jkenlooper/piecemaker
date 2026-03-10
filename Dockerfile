@@ -1,7 +1,7 @@
-# UPKEEP due: "2025-12-12" label: "Debian base image" interval: "+3 months"
-# docker pull registry.hub.docker.com/library/debian:trixie
-# docker image ls --digests debian
-FROM registry.hub.docker.com/library/debian:trixie@sha256:833c135acfe9521d7a0035a296076f98c182c542a2b6b5a0fd7063d355d696be AS build
+# UPKEEP due: "2026-05-03" label: "Debian base image" interval: "+3 months"
+# podman pull registry.hub.docker.com/library/debian:trixie
+# podman image ls --digests debian
+FROM registry.hub.docker.com/library/debian:trixie@sha256:8a4206e9cccfb5dcacb363063c66c39e8ab4aa4b9f601f0ef76a9cca6791bb23 AS build
 
 ARG DEBIAN_FRONTEND=noninteractive
 RUN echo "Create dev user"; \
@@ -70,10 +70,10 @@ RUN echo "Audit packages for known vulnerabilities"; \
 CMD ["sh", "-c", "while true; do printf 'z'; sleep 60; done"]
 
 
-# UPKEEP due: "2025-12-12" label: "Debian base image" interval: "+3 months"
-# docker pull registry.hub.docker.com/library/debian:trixie
-# docker image ls --digests debian
-FROM registry.hub.docker.com/library/debian:trixie@sha256:833c135acfe9521d7a0035a296076f98c182c542a2b6b5a0fd7063d355d696be AS app
+# UPKEEP due: "2026-05-03" label: "Debian base image" interval: "+3 months"
+# podman pull registry.hub.docker.com/library/debian:trixie
+# podman image ls --digests debian
+FROM registry.hub.docker.com/library/debian:trixie@sha256:8a4206e9cccfb5dcacb363063c66c39e8ab4aa4b9f601f0ef76a9cca6791bb23 AS app
 
 ARG DEBIAN_FRONTEND=noninteractive
 RUN echo "Create dev user"; \
